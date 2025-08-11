@@ -11,15 +11,10 @@ export async function GET() {
     return NextResponse.json({ ok, db: "up" }, { status: 200 });
   } catch (err: any) {
     // JANGAN throw — balas 503 saja
-    return NextResponse.json(
-      {
-        ok: false,
-        db: "down",
-        code: err?.code ?? null,
-        message:
-          err?.message?.slice?.(0, 200) ?? "db connection failed",
-      },
-      { status: 503 }
-    );
+    return NextResponse.json({
+      DATABASE_HOST: process.env.DATABASE_HOST ?? null,
+      DATABASE_PORT: process.env.DATABASE_PORT ?? null,
+      DATABASE_SSL: process.env.DATABASE_SSL ?? null,
+    });
   }
 }
