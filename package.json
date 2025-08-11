@@ -9,8 +9,9 @@
   },
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "build": "next build",
+    "prebuild": "PNPM_PROD=false pnpm --version && tsx src/assets/iconify-icons/bundle-icons-css.ts",
+    "heroku-build": "set -x; node -v; pnpm -v; echo \"NODE_ENV=$NODE_ENV\"; echo \"PNPM_PRODUCTION=$PNPM_PRODUCTION\"; NEXT_TELEMETRY_DISABLED=1 next build --debug",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
