@@ -3,15 +3,19 @@
   "version": "4.0.0",
   "license": "Commercial",
   "private": true,
+  "engines": {
+    "node": "20.x",
+    "pnpm": "10.14.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "postinstall": "npm run build:icons"
+    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
