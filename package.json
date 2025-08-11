@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "heroku-prebuild": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build": "next build --no-lint",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
