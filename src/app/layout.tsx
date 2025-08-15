@@ -1,11 +1,11 @@
 import type { ChildrenType } from '@core/types'
 import { getSystemMode } from '@core/utils/serverHelpers'
-import ClientProtection from '@/components/ClientProtection'
+import ClientProtection from '@/src/components/ClientProtection'
 
 // Keep your existing imports
 // import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 // import 'react-perfect-scrollbar/dist/css/styles.css'
-import '@/app/globals.css'
+import '@/src/app/globals.css'
 // import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
