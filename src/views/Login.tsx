@@ -59,12 +59,48 @@ const MaskImg = styled('img')({
   zIndex: -1
 })
 
+const useAuth = () => {
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store access token in localStorage
+        localStorage.setItem('accessToken', data.accessToken)
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(data.user))
+        // Redirect to dashboard
+        window.location.href = '/home'
+        return { success: true }
+      } else {
+        return { success: false, message: data.message }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      return { success: false, message: 'Network error occurred' }
+    }
+  }
+
+  return { login }
+}
+
 const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const { login } = useAuth()
 
   // Vars
   const darkImg = '/images/pages/auth-mask-dark.png'
@@ -93,31 +129,33 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('') // Clear previous errors
+    setError('')
+    setLoading(true)
+
+    if (!username.trim()) {
+      setError('Username or email is required')
+      setLoading(false)
+      return
+    }
+
+    if (!password.trim()) {
+      setError('Password is required')
+      setLoading(false)
+      return
+    }
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      })
+      const result = await login(username, password)
 
-      const data = await response.json()
-
-      if (response.ok) {
-        router.push('/')
-      } else {
-        setError(data.message || 'Login failed')
-        console.log('Login failed:', data)
+      if (!result.success) {
+        setError(result.message || 'Login failed')
       }
+      // If success, login function handles navigation
     } catch (error) {
       console.error('Login error:', error)
-      setError('Network error occurred')
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -155,6 +193,11 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
             onSubmit={handleSubmit}
             className='flex flex-col gap-5'
           >
+            {error && (
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
+                {error}
+              </div>
+            )}
             <CustomTextField
               autoFocus
               fullWidth
@@ -162,6 +205,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
               placeholder='Enter your email or username'
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              required
             />
             <CustomTextField
               fullWidth
@@ -170,6 +214,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
               type={isPasswordShown ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
               slotProps={{
                 input: {
                   endAdornment: (
@@ -182,7 +227,6 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
                 }
               }}
             />
-            {error && <Typography color="error">{error}</Typography>}
             <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
               <FormControlLabel control={<Checkbox />} label='Remember me' />
               <Typography className='text-end' color='primary.main' component={Link}>

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateAccessToken, generateRefreshToken } from '../../../../../lib/jwt'
+import { createSessionCookie, createRefreshTokenCookie } from "../../../../../lib/session";
 import bcrypt from "bcryptjs";
 import prisma from "../../../../../lib/prisma";
 
@@ -6,14 +8,16 @@ export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
 
-    // const hashedPassword = await bcrypt.hash('12345678', 10)
-    //
-    // const user1 = await prisma.user.create({
-    //   data: {
-    //     username: 'super',
-    //     email: 'super@example.com',
-    //     password: hashedPassword,
-    //   }
+    // const passwordEnc = await bcrypt.hash('Admin@123', 10)
+    // await prisma.user.upsert({
+    //   where: { email: 'admin@example.com' },
+    //   update: {},
+    //   create: {
+    //     username: 'admin',
+    //     email: 'admin@example.com',
+    //     password: passwordEnc,
+    //     tokenVersion: 0,
+    //   },
     // })
 
     const user = await prisma.user.findFirst({
@@ -25,22 +29,55 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('User found:', user ? 'Yes' : 'No')
-
     if (!user) {
-      console.log('No user found with username/email:', username)
       return NextResponse.json(
-        { message: 'User not found' },
+        { message: 'Invalid credentials' },
         { status: 401 }
-      )
-    } else {
-      return NextResponse.json(
-        { message: 'Login berhasil' },
-        { status: 200 }
       )
     }
 
-    // Rest of your code...
+    const isValidPassword = await bcrypt.compare(password, user.password)
+
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { message: 'Invalid credentials' },
+        { status: 401 }
+      )
+    }
+
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      username: user.username,
+      email: user.email
+    })
+
+    const refreshToken = generateRefreshToken({
+      userId: user.id,
+      tokenVersion: user.tokenVersion || 0
+    })
+
+    const response = NextResponse.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      },
+      accessToken
+    }, { status: 200 })
+
+    createSessionCookie({
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      isLoggedIn: true,
+      tokenVersion: user.tokenVersion || 0
+    }, response)
+
+    createRefreshTokenCookie(refreshToken, response)
+
+    return response
+
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
