@@ -1,90 +1,42 @@
-export interface JWTPayload {
-  userId: string
-  username: string
-  email: string
-  iat?: number
-  exp?: number
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken'
+
+const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET
+const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET
+
+// Helper: pastikan ENV ada
+function ensure<T>(v: T, name: string): asserts v is NonNullable<T> {
+  if (!v) throw new Error(`${name} is not set`)
 }
 
-export interface RefreshTokenPayload {
-  userId: string
-  tokenVersion: number
-  iat?: number
-  exp?: number
+// Helper: resolve expiresIn dari ENV → number detik (atau pakai string pola ms)
+function resolveExpires(v: string | undefined, fallbackSec: number): SignOptions['expiresIn'] {
+  if (!v) return fallbackSec
+  const n = Number(v)
+  return Number.isFinite(n) ? n : (v as unknown as SignOptions['expiresIn'])
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key'
+const ACCESS_TOKEN_EXPIRES = resolveExpires(process.env.ACCESS_TOKEN_TTL, 60 * 15)          // 15 menit
+const REFRESH_TOKEN_EXPIRES = resolveExpires(process.env.REFRESH_TOKEN_TTL, 60 * 60 * 24 * 7) // 7 hari
 
-// Simple base64 encode/decode for tokens (replace with proper JWT library in production)
-function base64UrlEncode(obj: any): string {
-  return btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+export type AccessPayload = { userId: string; username: string; email: string }
+export type RefreshPayload = { userId: string; tokenVersion: number }
+
+export function signAccessToken(payload: AccessPayload, opts: SignOptions = {}) {
+  ensure(ACCESS_TOKEN_SECRET, 'JWT_SECRET')
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES, ...opts })
 }
 
-function base64UrlDecode(str: string): any {
-  str = str.replace(/-/g, '+').replace(/_/g, '/')
-  while (str.length % 4) {
-    str += '='
-  }
-  return JSON.parse(atob(str))
+export function signRefreshToken(payload: RefreshPayload, opts: SignOptions = {}) {
+  ensure(REFRESH_TOKEN_SECRET, 'JWT_REFRESH_SECRET')
+  return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES, ...opts })
 }
 
-// Generate access token (short-lived, 15 minutes)
-export function generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  const now = Math.floor(Date.now() / 1000)
-  const tokenPayload = {
-    ...payload,
-    iat: now,
-    exp: now + (15 * 60) // 15 minutes
-  }
-
-  const header = base64UrlEncode({ alg: 'HS256', typ: 'JWT' })
-  const body = base64UrlEncode(tokenPayload)
-
-  // Simple signature (use proper HMAC in production)
-  const signature = base64UrlEncode({ secret: JWT_SECRET, header, body })
-
-  return `${header}.${body}.${signature}`
+export function verifyAccessToken(token: string): JwtPayload & AccessPayload {
+  ensure(ACCESS_TOKEN_SECRET, 'JWT_SECRET')
+  return jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload & AccessPayload
 }
 
-// Generate refresh token (long-lived, 7 days)
-export function generateRefreshToken(payload: Omit<RefreshTokenPayload, 'iat' | 'exp'>): string {
-  const now = Math.floor(Date.now() / 1000)
-  const tokenPayload = {
-    ...payload,
-    iat: now,
-    exp: now + (7 * 24 * 60 * 60) // 7 days
-  }
-
-  const header = base64UrlEncode({ alg: 'HS256', typ: 'JWT' })
-  const body = base64UrlEncode(tokenPayload)
-  const signature = base64UrlEncode({ secret: JWT_REFRESH_SECRET, header, body })
-
-  return `${header}.${body}.${signature}`
-}
-
-// Verify access token
-export function verifyAccessToken(token: string): JWTPayload | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-
-    const payload = base64UrlDecode(parts[1])
-    const now = Math.floor(Date.now() / 1000)
-
-    if (payload.exp < now) return null // Expired
-
-    return payload as JWTPayload
-  } catch (error) {
-    return null
-  }
-}
-
-// Extract token from request headers
-export function extractTokenFromRequest(request: any): string | null {
-  const authHeader = request.headers?.get('authorization') || request.headers?.authorization
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7)
-  }
-  return null
+export function verifyRefreshToken(token: string): JwtPayload & RefreshPayload {
+  ensure(REFRESH_TOKEN_SECRET, 'JWT_REFRESH_SECRET')
+  return jwt.verify(token, REFRESH_TOKEN_SECRET) as JwtPayload & RefreshPayload
 }

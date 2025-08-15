@@ -13,7 +13,7 @@ import type {
   HorizontalMenuDataType,
   HorizontalSubMenuDataType,
   HorizontalMenuItemDataType
-} from '@/types/menuTypes'
+} from '@/src/types/menuTypes'
 
 // Component Imports
 import { SubMenu as HorizontalSubMenu, MenuItem as HorizontalMenuItem } from '@menu/horizontal-menu'

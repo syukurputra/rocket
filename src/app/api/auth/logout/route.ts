@@ -1,22 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clearSessionCookies } from '@/lib/session'
+import prisma from '@/lib/prisma'
+import { clearSessionCookies, getRefreshTokenFromCookies } from '@/lib/session'
+import { verifyRefreshToken } from '@/lib/jwt'
 
-export async function POST(request: NextRequest) {
+export const runtime = 'nodejs'
+
+export async function POST(req: NextRequest) {
   try {
-    const response = NextResponse.json({
-      message: 'Logout successful'
-    })
+    // Coba revoke refresh token dg naikkan tokenVersion
+    const rt = getRefreshTokenFromCookies(req)
+    if (rt) {
+      try {
+        const payload = verifyRefreshToken(rt) // { userId, tokenVersion, ... }
+        await prisma.user.update({
+          where: { id: payload.userId },
+          data: { tokenVersion: { increment: 1 } } // invalidate semua refresh token lama
+        })
+      } catch {
+        // token invalid/expired → abaikan; tetap bersihkan cookies
+      }
+    }
 
-    // Clear session cookies
-    clearSessionCookies(response)
+    const res = NextResponse.json(
+      { message: 'Logout successful' },
+      { headers: { 'Cache-Control': 'no-store' } }
+    )
+    clearSessionCookies(res) // hapus access_token & refresh_token (httpOnly)
 
-    return response
-
+    return res
   } catch (error) {
     console.error('Logout error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

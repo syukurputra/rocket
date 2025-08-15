@@ -1,47 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { extractTokenFromRequest, verifyAccessToken } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
+import { verifyAccessToken } from '@/lib/jwt'
+import {
+  extractTokenFromRequest,
+  getAccessTokenFromCookies,
+  clearSessionCookies
+} from '@/lib/session'
 
-export async function POST(request: NextRequest) {
+export const runtime = 'nodejs'
+
+export async function POST(req: NextRequest) {
   try {
-    const token = extractTokenFromRequest(request)
-
+    const token = extractTokenFromRequest(req) || getAccessTokenFromCookies(req)
     if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'Access token required' }, { status: 401 })
     }
 
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
+    let payload: { userId: string }
+    try {
+      payload = verifyAccessToken(token) as { userId: string }
+    } catch {
+      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 })
     }
 
-    // Increment token version to invalidate all existing refresh tokens
-    await prisma.user.update({
-      where: { id: payload.userId },
-      data: { tokenVersion: { increment: 1 } }
-    })
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: payload.userId },
+        data: { tokenVersion: { increment: 1 } } // revoke semua refresh token
+      }),
+      prisma.session.deleteMany({ where: { userId: payload.userId } }) // jika pakai tabel sessions
+    ])
 
-    // Delete all sessions for this user
-    await prisma.session.deleteMany({
-      where: { userId: payload.userId }
-    })
-
-    return NextResponse.json({
-      message: 'All tokens revoked successfully'
-    })
-
+    const res = NextResponse.json({ message: 'All tokens revoked successfully' }, { headers: { 'Cache-Control': 'no-store' } })
+    clearSessionCookies(res) // hapus access_token & refresh_token (httpOnly)
+    return res
   } catch (error) {
     console.error('Revoke tokens error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
