@@ -10,7 +10,6 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "prisma generate && next dev --turbopack",
-    "heroku-prebuild": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
     "build": "prisma generate && next build --no-lint",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
