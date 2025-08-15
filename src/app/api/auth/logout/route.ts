@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-// @ts-ignore
-import { clearSessionCookies } from '../../../../../lib/session'
+import { clearSessionCookies } from '@/lib/session'
 
 export async function POST(request: NextRequest) {
   try {

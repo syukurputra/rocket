@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyRefreshToken, generateAccessToken } from '../../../../../lib/jwt'
-import { getRefreshTokenFromCookies } from '../../../../../lib/session'
-import prisma from '../../../../../lib/prisma'
+import { verifyRefreshToken, generateAccessToken } from '@/lib/jwt'
+import { getRefreshTokenFromCookies } from '@/lib/session'
+import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {

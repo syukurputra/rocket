@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { extractTokenFromRequest, verifyAccessToken } from '../../../../../lib/jwt'
-import prisma from '../../../../../lib/prisma'
+import prisma from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
