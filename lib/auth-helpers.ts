@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { verifyAccessToken } from './jwt'
+import { verifyAccessToken } from '@/lib/jwt'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {

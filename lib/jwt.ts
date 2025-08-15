@@ -1,7 +1,3 @@
-// @ts-ignore
-import jwt from 'jsonwebtoken'
-import { NextRequest } from 'next/server'
-
 export interface JWTPayload {
   userId: string
   username: string
