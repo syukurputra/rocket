@@ -1,78 +1,55 @@
 'use client'
-import { useEffect, ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
 
-interface ClientProtectionProps {
-  children: ReactNode
-}
+import { useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+
+interface ClientProtectionProps { children: React.ReactNode }
+
+const protectedRoutes = [/^\/home(\/|$)/, /^\/about(\/|$)/, /^\/profile(\/|$)/, /^\/admin(\/|$)/]
+const authRoutes = [/^\/login(\/|$)/, /^\/register(\/|$)/]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
-    console.log('🛡️ CLIENT PROTECTION CHECK:', pathname)
+    let cancelled = false
 
-    // Protected routes
-    const protectedRoutes = ['/home', '/about', '/profile', '/admin']
-    const authRoutes = ['/login', '/register']
+    const check = async () => {
+      const res = await fetch('/api/auth/check', {
+        credentials: 'include', // ⬅️ penting: kirim cookies httpOnly
+        cache: 'no-store'
+      })
+      if (!res.ok) return null
+      const data = await res.json().catch(() => null)
+      return data?.user ?? null
+    }
 
-    // Check if current route is protected
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
+    const run = async () => {
+      const isProtected = protectedRoutes.some(r => r.test(pathname))
+      const isAuth = authRoutes.some(r => r.test(pathname))
+      const isRoot = pathname === '/'
 
-    console.log('🔒 Is protected route:', isProtectedRoute)
-
-    if (isProtectedRoute) {
-      const token = localStorage.getItem('accessToken')
-      console.log('🔑 Token found:', token ? 'YES' : 'NO')
-
-      if (!token) {
-        console.log('❌ No token, redirecting to login')
-        window.location.href = '/login'
+      if (isProtected || isRoot) {
+        const user = await check()
+        if (cancelled) return
+        if (!user) {
+          router.replace('/login')
+        } else if (isRoot) {
+          router.replace('/home')
+        }
         return
       }
 
-      // Optional: Verify token with API
-      fetch('/api/auth/check', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(response => {
-          if (!response.ok) {
-            console.log('❌ Invalid token, redirecting to login')
-            localStorage.removeItem('accessToken')
-            window.location.href = '/login'
-          } else {
-            console.log('✅ Token valid, allowing access')
-          }
-        })
-        .catch(error => {
-          console.error('Token verification error:', error)
-          // Don't redirect on network error, just log
-        })
-    }
-
-    // If already logged in and accessing auth routes
-    if (isAuthRoute) {
-      const token = localStorage.getItem('accessToken')
-      if (token) {
-        console.log('🔄 Already logged in, redirecting to home')
-        window.location.href = '/home'
+      if (isAuth) {
+        const user = await check()
+        if (!cancelled && user) router.replace('/home')
       }
     }
 
-    // Handle root path
-    if (pathname === '/') {
-      const token = localStorage.getItem('accessToken')
-      if (token) {
-        console.log('🏠 Root access with token, redirecting to home')
-        window.location.href = '/home'
-      } else {
-        console.log('🚪 Root access without token, redirecting to login')
-        window.location.href = '/login'
-      }
-    }
-
-  }, [pathname])
+    run()
+    return () => { cancelled = true }
+  }, [pathname, router])
 
   return <>{children}</>
 }
