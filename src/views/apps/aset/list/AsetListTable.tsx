@@ -51,7 +51,7 @@ import CustomTextField from '@core/components/mui/TextField'
 
 // Util Imports
 import { getInitials } from '@/src/utils/getInitials'
-import { getLocalizedUrl } from '@/src//utils/i18n'
+import { getLocalizedUrl } from '@/src/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
