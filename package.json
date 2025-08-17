@@ -5,7 +5,7 @@
   "private": true,
   "engines": {
     "node": "20.x",
-    "pnpm": "10.14.0"
+    "npm": "10.2.4"
   },
   "scripts": {
     "postinstall": "prisma generate",
@@ -78,5 +78,5 @@
   "overrides": {
     "rimraf": "^5.0.7"
   },
-  "packageManager": "pnpm@10.14.0+sha256.297534e65d5842450539c1e8022c8831ab5e1fe2eb74664787a815519542d620"
+  "packageManager": "npm@10.2.4"
 }
