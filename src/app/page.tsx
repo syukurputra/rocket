@@ -6,7 +6,7 @@ export default function RootPage() {
         <p className="mb-4">If you see this, middleware might not be working</p>
         <div className="space-x-4">
           <a href="/login" className="bg-blue-500 text-white px-4 py-2 rounded">Login</a>
-          <a href="/home" className="bg-green-500 text-white px-4 py-2 rounded">Home</a>
+          <a href="/en/home" className="bg-green-500 text-white px-4 py-2 rounded">Home</a>
         </div>
       </div>
     </div>

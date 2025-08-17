@@ -15,8 +15,8 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
     const checkAccess = async () => {
       console.log('🔍 Checking access for:', pathname)
 
-      const protectedRoutes = ['/home', '/dashboard', '/profile', '/admin']
-      const authRoutes = ['/login', '/register']
+      const protectedRoutes = ['/id/home', '/id/aset']
+      const authRoutes = ['/id/login', '/id/register']
       const publicRoutes = ['/about', '/contact', '/public']
 
       const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
@@ -25,7 +25,6 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
 
       // Allow public routes immediately
       if (isPublic) {
-        console.log('✅ Public route, allowing access')
         setIsAllowed(true)
         setIsChecking(false)
         return
@@ -36,9 +35,9 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       // Handle root path
       if (pathname === '/') {
         if (token) {
-          window.location.href = '/home'
+          window.location.href = '/id/home'
         } else {
-          window.location.href = '/login'
+          window.location.href = '/id/login'
         }
         return
       }
@@ -46,8 +45,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       // Handle protected routes
       if (isProtected) {
         if (!token) {
-          console.log('❌ Protected route without token')
-          window.location.href = '/login'
+          window.location.href = '/id/login'
           return
         }
 
@@ -58,24 +56,20 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
           })
 
           if (response.ok) {
-            console.log('✅ Valid token, allowing access')
             setIsAllowed(true)
           } else {
-            console.log('❌ Invalid token')
             localStorage.removeItem('accessToken')
-            window.location.href = '/login'
+            window.location.href = '/id/login'
             return
           }
         } catch (error) {
-          console.log('⚠️ Token verification failed, allowing access (offline?)')
           setIsAllowed(true) // Allow access if verification fails (network issue)
         }
       }
 
       // Handle auth routes when logged in
       if (isAuth && token) {
-        console.log('🔄 Already logged in, redirecting to home')
-        window.location.href = '/home'
+        window.location.href = '/id/home'
         return
       }
 
@@ -113,7 +107,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       <div className="text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
         <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
-        <a href="/login" className="bg-blue-500 text-white px-4 py-2 rounded">
+        <a href="/id/login" className="bg-blue-500 text-white px-4 py-2 rounded">
           Go to Login
         </a>
       </div>

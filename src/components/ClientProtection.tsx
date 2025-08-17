@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 
 interface ClientProtectionProps { children: React.ReactNode }
 
-const protectedRoutes = [/^\/home(\/|$)/, /^\/about(\/|$)/, /^\/profile(\/|$)/, /^\/admin(\/|$)/]
-const authRoutes = [/^\/login(\/|$)/, /^\/register(\/|$)/]
+const protectedRoutes = [/^\/id\/home(\/|$)/, /^\/id\/aset(\/|$)/, /^\/profile(\/|$)/, /^\/admin(\/|$)/]
+const authRoutes = [/^\/id\/login(\/|$)/, /^\/id\/register(\/|$)/]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {
   const pathname = usePathname()
@@ -34,16 +34,16 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
         const user = await check()
         if (cancelled) return
         if (!user) {
-          router.replace('/login')
+          router.replace('/id/login')
         } else if (isRoot) {
-          router.replace('/home')
+          router.replace('/id/home')
         }
         return
       }
 
       if (isAuth) {
         const user = await check()
-        if (!cancelled && user) router.replace('/home')
+        if (!cancelled && user) router.replace('/en/home')
       }
     }
 

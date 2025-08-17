@@ -78,7 +78,7 @@ const useAuth = () => {
         // Store user data
         localStorage.setItem('user', JSON.stringify(data.user))
         // Redirect to dashboard
-        window.location.href = '/home'
+        window.location.href = '/en/home'
         return { success: true }
       } else {
         return { success: false, message: data.message }
@@ -184,8 +184,8 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
         </Link>
         <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
           <div className='flex flex-col gap-1'>
-            <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</Typography>
-            <Typography>Please sign-in to your account and start the adventure</Typography>
+            <Typography variant='h4'>Selamat Datang di Noor</Typography>
+            {/*<Typography>Mohon sign-in to your account and start the adventure</Typography>*/}
           </div>
           <form
             noValidate
@@ -202,7 +202,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
               autoFocus
               fullWidth
               label='Email or Username'
-              placeholder='Enter your email or username'
+              placeholder='Masukkan email atau username'
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -230,33 +230,33 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
             <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
               <FormControlLabel control={<Checkbox />} label='Remember me' />
               <Typography className='text-end' color='primary.main' component={Link}>
-                Forgot password?
+                Lupa password?
               </Typography>
             </div>
             <Button fullWidth variant='contained' type='submit'>
               Login
             </Button>
             <div className='flex justify-center items-center flex-wrap gap-2'>
-              <Typography>New on our platform?</Typography>
+              {/*<Typography>New on our platform?</Typography>*/}
               <Typography component={Link} color='primary.main'>
-                Create an account
+                Buat Akun
               </Typography>
             </div>
-            <Divider className='gap-2 text-textPrimary'>or</Divider>
-            <div className='flex justify-center items-center gap-1.5'>
-              <IconButton className='text-facebook' size='small'>
-                <i className='tabler-brand-facebook-filled' />
-              </IconButton>
-              <IconButton className='text-twitter' size='small'>
-                <i className='tabler-brand-twitter-filled' />
-              </IconButton>
-              <IconButton className='text-textPrimary' size='small'>
-                <i className='tabler-brand-github-filled' />
-              </IconButton>
-              <IconButton className='text-error' size='small'>
-                <i className='tabler-brand-google-filled' />
-              </IconButton>
-            </div>
+            {/*<Divider className='gap-2 text-textPrimary'>or</Divider>*/}
+            {/*<div className='flex justify-center items-center gap-1.5'>*/}
+            {/*  <IconButton className='text-facebook' size='small'>*/}
+            {/*    <i className='tabler-brand-facebook-filled' />*/}
+            {/*  </IconButton>*/}
+            {/*  <IconButton className='text-twitter' size='small'>*/}
+            {/*    <i className='tabler-brand-twitter-filled' />*/}
+            {/*  </IconButton>*/}
+            {/*  <IconButton className='text-textPrimary' size='small'>*/}
+            {/*    <i className='tabler-brand-github-filled' />*/}
+            {/*  </IconButton>*/}
+            {/*  <IconButton className='text-error' size='small'>*/}
+            {/*    <i className='tabler-brand-google-filled' />*/}
+            {/*  </IconButton>*/}
+            {/*</div>*/}
           </form>
         </div>
       </div>

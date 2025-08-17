@@ -96,7 +96,7 @@ export function useAuth() {
       setUser(null)
       setAccessToken(null)
       localStorage.removeItem('accessToken')
-      router.push('/login')
+      router.push('/id/login')
     }
   }
 

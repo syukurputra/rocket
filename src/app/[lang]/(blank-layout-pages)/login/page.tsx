@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 
 // Component Imports
-import Login from '@views/Login'
+import Login from '@views/apps/login/Login'
 
 // Server Action Imports
 import { getServerMode } from '@core/utils/serverHelpers'

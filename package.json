@@ -1,5 +1,5 @@
 {
-  "name": "vuexy-mui-nextjs-admin-template",
+  "name": "Noor",
   "version": "4.0.0",
   "license": "Commercial",
   "private": true,
@@ -37,7 +37,10 @@
     "react-dom": "^18.3.1",
     "react-perfect-scrollbar": "1.5.8",
     "react-use": "17.6.0",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "@tanstack/match-sorter-utils": "8.19.4",
+    "@tanstack/react-table": "8.20.6",
+    "bootstrap-icons": "1.11.3"
   },
   "devDependencies": {
     "@iconify/json": "2.2.286",

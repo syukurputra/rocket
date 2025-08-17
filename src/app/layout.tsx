@@ -6,10 +6,10 @@ import ClientProtection from '@/src/components/ClientProtection'
 // import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 // import 'react-perfect-scrollbar/dist/css/styles.css'
 import '@/src/app/globals.css'
-// import '@assets/iconify-icons/generated-icons.css'
+import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
-  title: 'Vuexy - MUI Next.js Admin Dashboard Template',
+  title: 'Noor',
   description: 'Dashboard with authentication protection'
 }
 

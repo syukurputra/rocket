@@ -37,6 +37,7 @@ const BadgeContentSpan = styled('span')({
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
+  const [logoutLoading, setLogoutLoading] = useState(false)
 
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -63,8 +64,23 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    // Redirect to login page
-    router.push('/login')
+    if (logoutLoading) return
+    setLogoutLoading(true)
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',           // ⬅️ kirim cookies httpOnly
+        headers: { 'Cache-Control': 'no-store' }
+      })
+    } catch (e) {
+      console.error('Logout failed:', e)
+    } finally {
+      // Legacy cleanup kalau sebelumnya sempat pakai localStorage
+      localStorage.removeItem('accessToken')
+      setOpen(false)
+      router.replace('/login')
+      setLogoutLoading(false)
+    }
   }
 
   return (
