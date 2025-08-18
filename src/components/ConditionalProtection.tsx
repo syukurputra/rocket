@@ -15,7 +15,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
     const checkAccess = async () => {
       console.log('🔍 Checking access for:', pathname)
 
-      const protectedRoutes = ['/id/home', '/id/aset']
+      const protectedRoutes = ['/id/home', '/id/aset/list']
       const authRoutes = ['/id/login', '/id/register']
       const publicRoutes = ['/about', '/contact', '/public']
 

@@ -40,7 +40,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Type Imports
 import type { ThemeColor } from '@core/types'
-import type { AsetType } from '@/src/types/apps/asetTypes'
+import type { AsetClient } from '@/src/types/apps/asetTypes'
 import type { Locale } from '@configs/i18n'
 
 // Component Imports
@@ -56,6 +56,11 @@ import { getLocalizedUrl } from '@/src/utils/i18n'
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
+import type { ButtonProps } from '@mui/material/Button'
+
+import AddEditAset from '@components/dialogs/aset'
+import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
+
 declare module '@tanstack/table-core' {
   interface FilterFns {
     fuzzy: FilterFn<unknown>
@@ -63,10 +68,6 @@ declare module '@tanstack/table-core' {
   interface FilterMeta {
     itemRank: RankingInfo
   }
-}
-
-type AsetTypeWithAction = AsetType & {
-  action?: string
 }
 
 type AsetStatusObj = {
@@ -118,121 +119,59 @@ const DebouncedInput = ({
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-// Vars
-const asetStatusObj: AsetStatusObj = {
-  Sent: { color: 'secondary', icon: 'tabler-send-2' },
-  Paid: { color: 'success', icon: 'tabler-check' },
-  Draft: { color: 'primary', icon: 'tabler-mail' },
-  'Partial Payment': { color: 'warning', icon: 'tabler-chart-pie-2' },
-  'Past Due': { color: 'error', icon: 'tabler-alert-circle' },
-  Downloaded: { color: 'info', icon: 'tabler-arrow-down' }
-}
+type AsetClientWithAction = AsetClient & { action?: string }
 
 // Column Definitions
-const columnHelper = createColumnHelper<AsetTypeWithAction>()
+const columnHelper = createColumnHelper<AsetClientWithAction>()
 
-const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
+const AsetListTable = ({ asetData }: { asetData?: AsetClient[] }) => {
   // States
-  const [status, setStatus] = useState<AsetType['asetStatus']>('')
+  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(...[asetData])
-  const [filteredData, setFilteredData] = useState(data)
+  const [data, setData] = useState<AsetClientWithAction[]>(asetData ?? [])
+  const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(asetData ?? [])
   const [globalFilter, setGlobalFilter] = useState('')
 
-  // Hooks
-  const { lang: locale } = useParams()
+  // Sinkron saat prop berubah
+  useEffect(() => {
+    setData(asetData ?? [])
+    setFilteredData(asetData ?? [])
+  }, [asetData])
 
-  const columns = useMemo<ColumnDef<AsetTypeWithAction, any>[]>(
+  const buttonProps: ButtonProps = {
+    variant: 'contained',
+    children: 'Tambah'
+  }
+
+  const columns = useMemo<ColumnDef<AsetClientWithAction, any>[]>(
     () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
-          />
-        )
-      },
-      columnHelper.accessor('id', {
-        header: '#',
-        cell: ({ row }) => (
-          <Typography
-            component={Link}
-            href={getLocalizedUrl(`/apps/aset/preview/${row.original.id}`, locale as Locale)}
-            color='primary.main'
-          >{`#${row.original.id}`}</Typography>
-        )
+      columnHelper.accessor('jenis', {
+        header: 'Jenis Aset',
+        cell: ({ row }) => <Typography>{`${row.original.jenis}`}</Typography>
       }),
-      columnHelper.accessor('asetStatus', {
+      columnHelper.accessor('nama', {
+        header: 'Nama Aset',
+        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
+      }),
+      columnHelper.accessor('alamat', {
+        header: 'Alamat Aset',
+        cell: ({ row }) => <Typography>{`${row.original.alamat}`}</Typography>
+      }),
+      columnHelper.accessor('kota', {
+        header: 'Kota',
+        cell: ({ row }) => <Typography>{`${row.original.kota}`}</Typography>
+      }),
+      columnHelper.accessor('provinsi', {
+        header: 'Provinsi',
+        cell: ({ row }) => <Typography>{`${row.original.provinsi}`}</Typography>
+      }),
+      columnHelper.accessor('status', {
         header: 'Status',
-        cell: ({ row }) => (
-          <Tooltip
-            title={
-              <div>
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  {row.original.asetStatus}
-                </Typography>
-                <br />
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  Balance:
-                </Typography>{' '}
-                {row.original.balance}
-                <br />
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  Due Date:
-                </Typography>{' '}
-                {row.original.dueDate}
-              </div>
-            }
-          >
-            <CustomAvatar skin='light' color={asetStatusObj[row.original.asetStatus].color} size={28}>
-              <i className={classnames('bs-4 is-4', asetStatusObj[row.original.asetStatus].icon)} />
-            </CustomAvatar>
-          </Tooltip>
-        )
-      }),
-      columnHelper.accessor('name', {
-        header: 'Client',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-3'>
-            {getAvatar({ avatar: row.original.avatar, name: row.original.name })}
-            <div className='flex flex-col'>
-              <Typography className='font-medium' color='text.primary'>
-                {row.original.name}
-              </Typography>
-              <Typography variant='body2'>{row.original.companyEmail}</Typography>
-            </div>
-          </div>
-        )
-      }),
-      columnHelper.accessor('total', {
-        header: 'Total',
-        cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
-      }),
-      columnHelper.accessor('issuedDate', {
-        header: 'Issued Date',
-        cell: ({ row }) => <Typography>{row.original.issuedDate}</Typography>
-      }),
-      columnHelper.accessor('balance', {
-        header: 'Balance',
         cell: ({ row }) => {
-          return row.original.balance === 0 ? (
-            <Chip label='Paid' color='success' size='small' variant='tonal' />
+          return row.original.status === true ? (
+            <Chip label='Aktif' color='success' size='small' variant='tonal' />
           ) : (
-            <Typography color='text.primary'>{row.original.balance}</Typography>
+            <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
           )
         }
       }),
@@ -243,37 +182,23 @@ const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
             <IconButton onClick={() => setData(data?.filter(aset => aset.id !== row.original.id))}>
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
-            <IconButton>
-              <Link
-                href={getLocalizedUrl(`/apps/aset/preview/${row.original.id}`, locale as Locale)}
-                className='flex'
-              >
-                <i className='tabler-eye text-textSecondary' />
-              </Link>
-            </IconButton>
-            <OptionMenu
-              iconButtonProps={{ size: 'medium' }}
-              iconClassName='text-textSecondary'
-              options={[
-                {
-                  text: 'Download',
-                  icon: 'tabler-download',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                },
-                {
-                  text: 'Edit',
-                  icon: 'tabler-pencil',
-                  href: getLocalizedUrl(`/apps/aset/edit/${row.original.id}`, locale as Locale),
-                  linkProps: {
-                    className: 'flex items-center is-full plb-2 pli-4 gap-2 text-textSecondary'
-                  }
-                },
-                {
-                  text: 'Duplicate',
-                  icon: 'tabler-copy',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+            <OpenDialogOnElementClick
+              element={IconButton}
+              elementProps={{
+                className: 'flex',
+                'aria-label': 'Preview / Edit',
+                children: <i className='tabler-eye text-textSecondary' />
+              }}
+              dialog={AddEditAset}
+              // kirim prop ke dialog untuk mode edit + data awal
+              dialogProps={{
+                mode: 'edit',
+                initialData: row.original,
+                onSaved: (updated) => {
+                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                 }
-              ]}
+              }}
             />
           </div>
         ),
@@ -285,7 +210,7 @@ const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
   )
 
   const table = useReactTable({
-    data: filteredData as AsetType[],
+    data: filteredData as AsetClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -313,30 +238,6 @@ const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   })
 
-  const getAvatar = (params: Pick<AsetType, 'avatar' | 'name'>) => {
-    const { avatar, name } = params
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} skin='light' size={34} />
-    } else {
-      return (
-        <CustomAvatar skin='light' size={34}>
-          {getInitials(name as string)}
-        </CustomAvatar>
-      )
-    }
-  }
-
-  useEffect(() => {
-    const filteredData = data?.filter(aset => {
-      if (status && aset.asetStatus.toLowerCase().replace(/\s+/g, '-') !== status) return false
-
-      return true
-    })
-
-    setFilteredData(filteredData)
-  }, [status, data, setFilteredData])
-
   return (
     <Card>
       <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
@@ -354,15 +255,7 @@ const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
               <MenuItem value='50'>50</MenuItem>
             </CustomTextField>
           </div>
-          <Button
-            variant='contained'
-            component={Link}
-            startIcon={<i className='tabler-plus' />}
-            href={getLocalizedUrl('apps/aset/add', locale as Locale)}
-            className='max-sm:is-full'
-          >
-            Create Aset
-          </Button>
+          <OpenDialogOnElementClick element={Button} elementProps={buttonProps} dialog={AddEditAset} />
         </div>
         <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
           <DebouncedInput
@@ -371,24 +264,6 @@ const AsetListTable = ({ asetData }: { asetData?: AsetType[] }) => {
             placeholder='Search Aset'
             className='max-sm:is-full sm:is-[250px]'
           />
-          <CustomTextField
-            select
-            id='select-status'
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-            className='max-sm:is-full sm:is-[160px]'
-            slotProps={{
-              select: { displayEmpty: true }
-            }}
-          >
-            <MenuItem value=''>Aset Status</MenuItem>
-            <MenuItem value='downloaded'>Downloaded</MenuItem>
-            <MenuItem value='draft'>Draft</MenuItem>
-            <MenuItem value='paid'>Paid</MenuItem>
-            <MenuItem value='partial-payment'>Partial Payment</MenuItem>
-            <MenuItem value='past-due'>Past Due</MenuItem>
-            <MenuItem value='sent'>Sent</MenuItem>
-          </CustomTextField>
         </div>
       </CardContent>
       <div className='overflow-x-auto'>

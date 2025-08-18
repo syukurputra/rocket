@@ -23,23 +23,31 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  sessions     Session[]
-
   @@index([username])
   @@index([email])
+
+  asetCreated Aset[] @relation("CreatedBy")
+  asetUpdated Aset[] @relation("UpdatedBy")
+
+  @@map("user")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique
-  refreshToken String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Aset {
+  id          String   @id @default(cuid())
+  jenis       String
+  nama        String
+  alamat      String
+  kota        String
+  provinsi    String
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // User relation
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdById String
+  updatedById String
 
-  @@map("sessions")
+  createdBy   User     @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("UpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("aset")
 }

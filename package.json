@@ -1,6 +1,6 @@
 {
   "name": "Noor",
-  "version": "4.0.0",
+  "version": "1.0.0",
   "license": "Commercial",
   "private": true,
   "engines": {
@@ -8,7 +8,7 @@
     "npm": "10.2.4"
   },
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "prisma db push && prisma generate",
     "dev": "prisma generate && next dev --turbopack",
     "build": "prisma generate && npm run build:icons && next build --no-lint",
     "start": "next start -p ${PORT:-3000}",

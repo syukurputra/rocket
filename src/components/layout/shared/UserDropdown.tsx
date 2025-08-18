@@ -78,7 +78,7 @@ const UserDropdown = () => {
       // Legacy cleanup kalau sebelumnya sempat pakai localStorage
       localStorage.removeItem('accessToken')
       setOpen(false)
-      router.replace('/login')
+      router.replace('/id/login')
       setLogoutLoading(false)
     }
   }

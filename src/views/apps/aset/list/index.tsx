@@ -1,11 +1,11 @@
 import Grid from '@mui/material/Grid2'
 
-import type { AsetType } from '@/src/types/apps/asetTypes'
+import type { AsetClient } from '@/src/types/apps/asetTypes'
 
 import AsetListTable from './AsetListTable'
 import AsetCard from './AsetCard'
 
-const AsetList = ({ asetData }: { asetData?: AsetType[] }) => {
+const AsetList = ({ asetData }: { asetData?: AsetClient[] }) => {
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>

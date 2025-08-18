@@ -4,25 +4,26 @@ import AsetList from '@views/apps/aset/list'
 
 import { getAsetData } from '@/src/app/server/actions'
 
-/* const getInvoiceData = async () => {
-  // Vars
-  const res = await fetch(`${process.env.API_URL}/apps/invoice`)
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch invoice data')
-  }
-
-  return res.json()
-} */
+import type { AsetClient } from '@/src/types/apps/asetTypes'
+import { apiFetchServer } from '@/src/utils/apiFetchServer'
 
 const AsetApp = async () => {
-  // Vars
-  const data = await getAsetData()
+
+  const qs = new URLSearchParams({
+    page: String(1),
+    limit: String(10)
+  })
+
+  const { data } = await apiFetchServer<{data: AsetClient[] }>(`/api/aset?${qs.toString()}`, undefined, {
+    redirectOn401: '/id/login'
+  })
+
+  // const data = await getAsetData({ page: 1, limit: 10 })
 
   return (
     <Grid container>
       <Grid size={{ xs: 12 }}>
-        <AsetList asetData={data} />
+        <AsetList asetData={data ?? []} />
       </Grid>
     </Grid>
   )

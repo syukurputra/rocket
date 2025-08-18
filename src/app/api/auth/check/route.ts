@@ -4,7 +4,8 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
   signAccessToken,
-  signRefreshToken
+  signRefreshToken,
+  isJwtExpired, // tambahkan helper ini di lib/jwt
 } from '@/lib/jwt'
 import {
   extractTokenFromRequest,
@@ -19,8 +20,8 @@ export async function GET(req: NextRequest) {
   try {
     // 1) Coba pakai ACCESS TOKEN (header/cookie)
     const accessToken =
-      extractTokenFromRequest(req) ||   // Authorization: Bearer <token>
-      getAccessTokenFromCookies(req)    // httpOnly cookie
+      extractTokenFromRequest(req) ||
+      getAccessTokenFromCookies(req)
 
     if (accessToken) {
       try {
@@ -35,12 +36,24 @@ export async function GET(req: NextRequest) {
             { headers: { 'Cache-Control': 'no-store' } }
           )
         }
-      } catch {
-        // jatuh ke refresh
+        // user tidak ada → jangan fallback ke refresh; treat as unauthorized
+        return NextResponse.json(
+          { authenticated: false, message: 'Unauthorized' },
+          { status: 401 }
+        )
+      } catch (err) {
+        // ⬇️ hanya fallback kalau access token EXPIRED
+        if (!isJwtExpired(err)) {
+          return NextResponse.json(
+            { authenticated: false, message: 'Invalid access token' },
+            { status: 401 }
+          )
+        }
+        // else: lanjut ke refresh
       }
     }
 
-    // 2) Fallback: REFRESH TOKEN dari cookie
+    // 2) Fallback: REFRESH TOKEN dari cookie (untuk kasus expired)
     const rt = getRefreshTokenFromCookies(req)
     if (!rt) {
       return NextResponse.json(
@@ -59,7 +72,6 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Pastikan user ada & tokenVersion cocok (belum di-revoke)
     const user = await prisma.user.findUnique({
       where: { id: rp.userId },
       select: { id: true, username: true, email: true, createdAt: true, updatedAt: true, tokenVersion: true }
@@ -77,7 +89,7 @@ export async function GET(req: NextRequest) {
 
     const res = NextResponse.json(
       { authenticated: true, source: 'refresh', user },
-      { headers: { 'Cache-Control': 'no-store' } }
+      { headers: { 'Cache-Control': 'no-store', 'Vary': 'Cookie' } }
     )
     setSessionCookies(res, { accessToken: newAT, refreshToken: newRT })
     return res
