@@ -4,7 +4,7 @@ import { extractTokenFromRequest, verifyAccessToken } from '@/lib/jwt'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = extractTokenFromRequest(request)
@@ -25,7 +25,7 @@ export async function GET(
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Find aset dengan user relations
     const aset = await prisma.aset.findUnique({
