@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import type { MouseEvent } from 'react'
 
 // Next Imports
@@ -20,6 +20,8 @@ import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
@@ -35,23 +37,39 @@ const BadgeContentSpan = styled('span')({
 })
 
 const UserDropdown = () => {
-  // States
   const [open, setOpen] = useState(false)
   const [logoutLoading, setLogoutLoading] = useState(false)
+  const [user, setUser] = useState<{
+    id: string
+    username: string
+    email: string
+  } | null>(null)
 
-  // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
 
-  // Hooks
   const router = useRouter()
-
   const { settings } = useSettings()
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData))
+        } catch (error) {
+          console.error('Error parsing user data:', error)
+        }
+      }
+    }
+  }, [])
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
   }
 
   const handleDropdownClose = (event?: MouseEvent<HTMLLIElement> | (MouseEvent | TouchEvent), url?: string) => {
+    if (logoutLoading) return
+
     if (url) {
       router.push(url)
     }
@@ -66,6 +84,7 @@ const UserDropdown = () => {
   const handleUserLogout = async () => {
     if (logoutLoading) return
     setLogoutLoading(true)
+
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
@@ -75,8 +94,9 @@ const UserDropdown = () => {
     } catch (e) {
       console.error('Logout failed:', e)
     } finally {
-      // Legacy cleanup kalau sebelumnya sempat pakai localStorage
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
       setOpen(false)
       router.replace('/id/login')
       setLogoutLoading(false)
@@ -94,7 +114,7 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
-          alt='John Doe'
+          alt={user?.username || 'User'}
           src='/images/avatars/1.png'
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
@@ -122,25 +142,21 @@ const UserDropdown = () => {
                     <Avatar alt='John Doe' src='/images/avatars/1.png' />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                        {user?.username || 'Loading...'}
                       </Typography>
-                      <Typography variant='caption'>admin@vuexy.com</Typography>
+                      <Typography variant='caption'>{user?.email || 'Loading...'}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
                     <i className='tabler-user' />
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
                     <i className='tabler-settings' />
                     <Typography color='text.primary'>Settings</Typography>
                   </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='tabler-currency-dollar' />
-                    <Typography color='text.primary'>Pricing</Typography>
-                  </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
                     <i className='tabler-help-circle' />
                     <Typography color='text.primary'>FAQ</Typography>
                   </MenuItem>
@@ -150,11 +166,15 @@ const UserDropdown = () => {
                       variant='contained'
                       color='error'
                       size='small'
-                      endIcon={<i className='tabler-logout' />}
+                      endIcon={logoutLoading ? <CircularProgress size={16} color="inherit" /> : <i className='tabler-logout' />}
                       onClick={handleUserLogout}
-                      sx={{ '& .MuiButton-endIcon': { marginInlineStart: 1.5 } }}
+                      disabled={logoutLoading}
+                      sx={{
+                        '& .MuiButton-endIcon': { marginInlineStart: 1.5 },
+                        opacity: logoutLoading ? 0.7 : 1
+                      }}
                     >
-                      Logout
+                      {logoutLoading ? 'Logging out...' : 'Logout'}
                     </Button>
                   </div>
                 </MenuList>

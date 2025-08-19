@@ -5,14 +5,18 @@ import type { AsetClient } from '@/src/types/apps/asetTypes'
 import AsetListTable from './AsetListTable'
 import AsetCard from './AsetCard'
 
-const AsetList = ({ asetData }: { asetData?: AsetClient[] }) => {
+interface AsetListProps {
+  initialData?: AsetClient[]
+}
+
+const AsetList = ({ initialData }: AsetListProps) => {
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
         <AsetCard />
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <AsetListTable asetData={asetData} />
+        <AsetListTable initialData={initialData} />
       </Grid>
     </Grid>
   )

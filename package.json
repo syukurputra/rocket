@@ -9,7 +9,7 @@
   },
   "scripts": {
     "postinstall": "prisma db push && prisma generate",
-    "dev": "prisma generate && next dev --turbopack",
+    "dev": "prisma generate && next dev",
     "build": "prisma generate && npm run build:icons && next build --no-lint",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",

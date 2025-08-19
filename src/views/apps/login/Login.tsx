@@ -16,6 +16,8 @@ import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Divider from '@mui/material/Divider'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -73,12 +75,10 @@ const useAuth = () => {
       const data = await response.json()
 
       if (response.ok) {
-        // Store access token in localStorage
         localStorage.setItem('accessToken', data.accessToken)
-        // Store user data
+        localStorage.setItem('refreshToken', data.refreshToken)
         localStorage.setItem('user', JSON.stringify(data.user))
-        // Redirect to dashboard
-        window.location.href = '/en/home'
+        window.location.href = '/id/home'
         return { success: true }
       } else {
         return { success: false, message: data.message }
@@ -160,107 +160,133 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   }
 
   return (
-    <div className='flex bs-full justify-center'>
-      <div
-        className={classnames(
-          'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
-          {
-            'border-ie': settings.skin === 'bordered'
-          }
-        )}
-      >
-        <LoginIllustration src={characterIllustration} alt='character-illustration' />
-        {!hidden && (
-          <MaskImg
-            alt='mask'
-            src={authBackground}
-            className={classnames({ 'scale-x-[-1]': theme.direction === 'rtl' })}
-          />
-        )}
-      </div>
-      <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-        <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
-          <Logo />
-        </Link>
-        <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
-          <div className='flex flex-col gap-1'>
-            <Typography variant='h4'>Selamat Datang di Noor</Typography>
-            {/*<Typography>Mohon sign-in to your account and start the adventure</Typography>*/}
-          </div>
-          <form
-            noValidate
-            autoComplete='off'
-            onSubmit={handleSubmit}
-            className='flex flex-col gap-5'
+    <>
+      {loading && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          bgcolor="rgba(255, 255, 255, 0.9)"
+          zIndex={9999}
+        >
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={2}
+            bgcolor="white"
+            padding={4}
+            borderRadius={2}
+            boxShadow={3}
           >
-            {error && (
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
-                {error}
+            <CircularProgress size={60} />
+            <Typography variant="body1" color="textSecondary">
+              Memproses login...
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      <div className='flex bs-full justify-center'>
+        <div
+          className={classnames(
+            'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
+            {
+              'border-ie': settings.skin === 'bordered'
+            }
+          )}
+        >
+          <LoginIllustration src={characterIllustration} alt='character-illustration' />
+          {!hidden && (
+            <MaskImg
+              alt='mask'
+              src={authBackground}
+              className={classnames({ 'scale-x-[-1]': theme.direction === 'rtl' })}
+            />
+          )}
+        </div>
+        <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
+          <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+            <Logo />
+          </Link>
+          <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
+            <div className='flex flex-col gap-1'>
+              <Typography variant='h4'>Selamat Datang di Noor</Typography>
+              {/*<Typography>Mohon sign-in to your account and start the adventure</Typography>*/}
+            </div>
+            <form
+              noValidate
+              autoComplete='off'
+              onSubmit={handleSubmit}
+              className='flex flex-col gap-5'
+            >
+              {error && (
+                <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
+                  {error}
+                </div>
+              )}
+              <CustomTextField
+                autoFocus
+                fullWidth
+                label='Email or Username'
+                placeholder='Masukkan email atau username'
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              <CustomTextField
+                fullWidth
+                label='Password'
+                placeholder='············'
+                type={isPasswordShown ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton edge='end' onClick={handleClickShowPassword} onMouseDown={e => e.preventDefault()}>
+                          <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                }}
+              />
+              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
+                <FormControlLabel
+                  control={<Checkbox disabled={loading} />}
+                  label='Remember me'
+                />
+                <Typography className='text-end' color='primary.main' component={Link}>
+                  Lupa password?
+                </Typography>
               </div>
-            )}
-            <CustomTextField
-              autoFocus
-              fullWidth
-              label='Email or Username'
-              placeholder='Masukkan email atau username'
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            <CustomTextField
-              fullWidth
-              label='Password'
-              placeholder='············'
-              type={isPasswordShown ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton edge='end' onClick={handleClickShowPassword} onMouseDown={e => e.preventDefault()}>
-                        <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }
-              }}
-            />
-            <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-              <FormControlLabel control={<Checkbox />} label='Remember me' />
-              <Typography className='text-end' color='primary.main' component={Link}>
-                Lupa password?
-              </Typography>
-            </div>
-            <Button fullWidth variant='contained' type='submit'>
-              Login
-            </Button>
-            <div className='flex justify-center items-center flex-wrap gap-2'>
-              {/*<Typography>New on our platform?</Typography>*/}
-              <Typography component={Link} color='primary.main'>
-                Buat Akun
-              </Typography>
-            </div>
-            {/*<Divider className='gap-2 text-textPrimary'>or</Divider>*/}
-            {/*<div className='flex justify-center items-center gap-1.5'>*/}
-            {/*  <IconButton className='text-facebook' size='small'>*/}
-            {/*    <i className='tabler-brand-facebook-filled' />*/}
-            {/*  </IconButton>*/}
-            {/*  <IconButton className='text-twitter' size='small'>*/}
-            {/*    <i className='tabler-brand-twitter-filled' />*/}
-            {/*  </IconButton>*/}
-            {/*  <IconButton className='text-textPrimary' size='small'>*/}
-            {/*    <i className='tabler-brand-github-filled' />*/}
-            {/*  </IconButton>*/}
-            {/*  <IconButton className='text-error' size='small'>*/}
-            {/*    <i className='tabler-brand-google-filled' />*/}
-            {/*  </IconButton>*/}
-            {/*</div>*/}
-          </form>
+              <Button
+                fullWidth
+                variant='contained'
+                type='submit'
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+              >
+                {loading ? 'Memproses...' : 'Login'}
+              </Button>
+              <div className='flex justify-center items-center flex-wrap gap-2'>
+                <Typography component={Link} color='primary.main'>
+                  Buat Akun
+                </Typography>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

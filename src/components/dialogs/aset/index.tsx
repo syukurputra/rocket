@@ -16,6 +16,7 @@ import type { AsetClient } from '@/src/types/apps/asetTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import { useRouter } from 'next/navigation'
 
 type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
@@ -54,6 +55,7 @@ const DEFAULTS: FormValues = {
 }
 
 export default function AddEditAset({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
+  const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
@@ -62,8 +64,9 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
     if (pendingSaved) {
-      onSaved?.(pendingSaved) // ✅ baru update parent di sini
+      onSaved?.(pendingSaved)
       setPendingSaved(null)
+      router.refresh()
     }
     setOpen(false) // tutup dialog setelah snackbar ditutup
   }
@@ -111,6 +114,9 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
         })
         setPendingSaved(json.data)
         setSnack({ open: true, message: json.message ?? 'Aset berhasil diupdate', severity: 'success' })
+        setTimeout(() => {
+          window.location.reload()
+        }, 3000)
       } else {
         // POST /api/aset
         const json = await apiFetchClient<{ data: AsetClient; message?: string }>(`/api/aset`, {
@@ -126,6 +132,9 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
         })
         setPendingSaved(json.data)
         setSnack({ open: true, message: json.message ?? 'Aset berhasil ditambahkan', severity: 'success' })
+        setTimeout(() => {
+          window.location.reload()
+        }, 3000)
       }
 
     } catch (e) {

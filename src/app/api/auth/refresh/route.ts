@@ -1,58 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
 import { verifyRefreshToken, signAccessToken, signRefreshToken } from '@/lib/jwt'
-import { getRefreshTokenFromCookies, setSessionCookies } from '@/lib/session'
+import prisma from '@/lib/prisma'
 
-export const runtime = 'nodejs'
-
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const refreshToken = getRefreshTokenFromCookies(req)
+    const body = await request.json()
+    const { refreshToken } = body
+
     if (!refreshToken) {
-      return NextResponse.json({ message: 'Refresh token not found' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Refresh token required' },
+        { status: 400 }
+      )
     }
 
-    let payload: { userId: string; tokenVersion: number }
-    try {
-      payload = verifyRefreshToken(refreshToken) as { userId: string; tokenVersion: number }
-    } catch {
-      return NextResponse.json({ message: 'Invalid refresh token' }, { status: 401 })
-    }
+    // Verify refresh token
+    const payload = verifyRefreshToken(refreshToken)
 
-    // Pastikan user masih ada & tokenVersion cocok (belum di-revoke)
+    // Check if user exists and token version matches
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, username: true, email: true, tokenVersion: true }
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        tokenVersion: true
+      }
     })
 
-    if (!user || user.tokenVersion !== payload.tokenVersion) {
-      return NextResponse.json({ message: 'Invalid refresh token' }, { status: 401 })
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 401 }
+      )
     }
 
-    // Buat access token baru + ROTASI refresh token
+    // Check token version (to handle revoked tokens)
+    if (user.tokenVersion !== payload.tokenVersion) {
+      return NextResponse.json(
+        { error: 'Token revoked' },
+        { status: 401 }
+      )
+    }
+
+    // Generate new access token
     const newAccessToken = signAccessToken({
       userId: user.id,
       username: user.username,
       email: user.email
     })
+
+    // Optionally generate new refresh token (rotate refresh tokens)
     const newRefreshToken = signRefreshToken({
       userId: user.id,
       tokenVersion: user.tokenVersion
     })
 
-    const res = NextResponse.json(
-      {
-        message: 'Token refreshed successfully',
-        accessToken: newAccessToken
-      },
-      { status: 200, headers: { 'Cache-Control': 'no-store' } }
-    )
+    console.log('Token refresh successful for user:', user.username)
 
-    // Set ulang cookies httpOnly
-    setSessionCookies(res, { accessToken: newAccessToken, refreshToken: newRefreshToken })
-    return res
+    return NextResponse.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
+    })
+
   } catch (error) {
-    console.error('Token refresh error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    console.error('Refresh token error:', error)
+    return NextResponse.json(
+      { error: 'Invalid refresh token' },
+      { status: 401 }
+    )
   }
 }

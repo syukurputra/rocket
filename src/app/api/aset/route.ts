@@ -28,9 +28,6 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
-    const jenis = searchParams.get('jenis') || ''
-    const kota = searchParams.get('kota') || ''
-    const provinsi = searchParams.get('provinsi') || ''
     const status = searchParams.get('status')
 
     // Build where condition
@@ -41,9 +38,6 @@ export async function GET(request: NextRequest) {
           { alamat: { contains: search, mode: 'insensitive' as const } }
         ]
       }),
-      ...(jenis && { jenis }),
-      ...(kota && { kota }),
-      ...(provinsi && { provinsi }),
       ...(status !== null && status !== '' && { status: status === 'true' })
     }
 
@@ -74,12 +68,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      },
+      total: total,
+      page: page,
+      limit: limit,
       message: 'Data retrieved successfully'
     })
 
