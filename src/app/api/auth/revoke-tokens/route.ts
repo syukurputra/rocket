@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
         where: { id: payload.userId },
         data: { tokenVersion: { increment: 1 } } // revoke semua refresh token
       }),
-      prisma.session.deleteMany({ where: { userId: payload.userId } }) // jika pakai tabel sessions
     ])
 
     const res = NextResponse.json({ message: 'All tokens revoked successfully' }, { headers: { 'Cache-Control': 'no-store' } })
