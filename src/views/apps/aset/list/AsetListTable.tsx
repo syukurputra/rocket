@@ -194,7 +194,7 @@ const AsetListTable = ({ asetData }: { asetData?: AsetClient[] }) => {
               dialogProps={{
                 mode: 'edit',
                 initialData: row.original,
-                onSaved: (updated) => {
+                onSaved: (updated: AsetClient) => {
                   setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                   setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                 }
