@@ -231,21 +231,29 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       }),
       columnHelper.accessor('asetId', {
         header: 'Aset',
-        cell: ({ row }) => <Typography>{`${row.original.aset.jenis} - ${row.original.aset.nama}`}</Typography>
+        cell: ({ row }) => {
+          const aset = (row.original as any).aset
+          return (
+            <Typography>
+              {aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}
+            </Typography>
+          )
+        }
       }),
+
       columnHelper.accessor('iconId', {
         header: 'Kategori',
-        cell: ({ row }) => (
-          <Typography
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <i className={`${row.original.icon.code}`} style={{ marginRight: 8 }} />
-            {row.original.icon.nama}
-          </Typography>)
+        cell: ({ row }) => {
+          const icon = (row.original as any).icon
+          if (!icon) return <Typography>-</Typography>
+
+          return (
+            <Typography>
+              <i className={icon.code} style={{ marginRight: 8 }} />
+              {icon.nama}
+            </Typography>
+          )
+        }
       }),
       columnHelper.accessor('action', {
         header: 'Action',
