@@ -59,7 +59,7 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<AsetClient | null>(null) // ✅ simpan hasil dulu
+  const [pendingSaved, setPendingSaved] = useState<AsetClient | null>(null)
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
@@ -95,7 +95,10 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
 
   const handleSubmit = async () => {
     // validasi singkat
-    if (!form.jenis || !form.nama) return
+    if (!form.jenis || !form.nama) {
+      setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+      return
+    }
 
     setSaving(true)
     try {

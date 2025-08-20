@@ -15,19 +15,23 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid()) @db.VarChar(100) // string ID biar cocok dgn TS kamu
+  id           String   @id @default(cuid()) @db.VarChar(100)
   username     String   @unique @db.VarChar(50)
-  email        String   @unique @db.VarChar(191)              // 191 aman untuk index MySQL
-  password     String   @db.VarChar(191)                      // simpan hash bcrypt
-  tokenVersion Int      @default(0)                           // untuk invalidate refresh token
+  email        String   @unique @db.VarChar(191)
+  password     String   @db.VarChar(191)
+  tokenVersion Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([username])
   @@index([email])
 
-  asetCreated Aset[] @relation("CreatedBy")
-  asetUpdated Aset[] @relation("UpdatedBy")
+  asetCreated      Aset[]       @relation("CreatedBy")
+  asetUpdated      Aset[]       @relation("UpdatedBy")
+  iconCreated      MasterIcon[] @relation("IconCreatedBy")
+  iconUpdated      MasterIcon[] @relation("IconUpdatedBy")
+  keuanganCreated  Keuangan[]   @relation("KeuanganCreatedBy")
+  keuanganUpdated  Keuangan[]   @relation("KeuanganUpdatedBy")
 
   @@map("user")
 }
@@ -49,5 +53,49 @@ model Aset {
   createdBy   User     @relation("CreatedBy", fields: [createdById], references: [id])
   updatedBy   User     @relation("UpdatedBy", fields: [updatedById], references: [id])
 
+  keuangan    Keuangan[]
+
   @@map("aset")
+}
+
+model MasterIcon {
+  id          String   @id @default(cuid())
+  nama        String
+  code        String
+  jenis       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  updatedById String
+
+  createdBy   User     @relation("IconCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("IconUpdatedBy", fields: [updatedById], references: [id])
+
+  keuangan    Keuangan[]
+
+  @@map("m_icon")
+}
+
+model Keuangan {
+  id          String   @id @default(cuid())
+  jenis       String
+  keterangan  String
+  nominal     Decimal  @db.Decimal(15, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  updatedById String
+
+  createdBy   User     @relation("KeuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("KeuanganUpdatedBy", fields: [updatedById], references: [id])
+
+  asetId     String
+  aset       Aset       @relation(fields: [asetId], references: [id])
+
+  iconId     String
+  icon       MasterIcon @relation(fields: [iconId], references: [id])
+
+  @@map("keuangan")
 }

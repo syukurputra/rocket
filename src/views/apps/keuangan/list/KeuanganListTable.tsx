@@ -42,10 +42,7 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-// Type Imports
-import type { ThemeColor } from '@core/types'
-import type { AsetClient } from '@/src/types/apps/asetTypes'
-import type { Locale } from '@configs/i18n'
+import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 
 // Component Imports
 import OptionMenu from '@core/components/option-menu'
@@ -53,16 +50,12 @@ import CustomAvatar from '@core/components/mui/Avatar'
 import TablePaginationComponent from '@components/TablePaginationComponent'
 import CustomTextField from '@core/components/mui/TextField'
 
-// Util Imports
-import { getInitials } from '@/src/utils/getInitials'
-import { getLocalizedUrl } from '@/src/utils/i18n'
-
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
 import type { ButtonProps } from '@mui/material/Button'
 
-import AddEditAset from '@components/dialogs/aset'
+import AddEditKeuangan from '@components/dialogs/keuangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -117,20 +110,19 @@ const DebouncedInput = ({
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-type AsetClientWithAction = AsetClient & { action?: string }
+type KeuanganClientWithAction = KeuanganClient & { action?: string }
 
 // Column Definitions
-const columnHelper = createColumnHelper<AsetClientWithAction>()
+const columnHelper = createColumnHelper<KeuanganClientWithAction>()
 
-interface AsetListTableProps {
-  initialData?: AsetClient[]
+interface KeuanganListTableProps {
+  initialData?: KeuanganClient[]
 }
 
-const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
-  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
+const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<AsetClientWithAction[]>(initialData)
-  const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(initialData)
+  const [data, setData] = useState<KeuanganClientWithAction[]>(initialData)
+  const [filteredData, setFilteredData] = useState<KeuanganClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -147,7 +139,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     severity: 'success'
   })
 
-  const fetchAsetData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchKeuanganData = async (pageNum: number = 0, limitNum: number = 10) => {
     try {
       setLoading(true)
       setError(null)
@@ -157,20 +149,20 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: AsetClient[], total: number}>(
-        `/api/aset?${qs.toString()}`,
+      const result = await apiFetchClient<{data: KeuanganClient[], total: number}>(
+        `/api/keuangan?${qs.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
 
-      const asetData = result.data || []
+      const keuanganData = result.data || []
       const total = result.total || 0
 
-      setData(asetData)
-      setFilteredData(asetData)
+      setData(keuanganData)
+      setFilteredData(keuanganData)
       setTotalCount(total)
     } catch (err) {
-      console.error('Failed to fetch aset data:', err)
+      console.error('Failed to fetch keuangan data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -181,7 +173,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
+      fetchKeuanganData(currentPage, pageSize)
     } else {
       setTotalCount(initialData.length)
     }
@@ -189,7 +181,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
+      fetchKeuanganData(currentPage, pageSize)
     }
   }, [currentPage, pageSize])
 
@@ -206,37 +198,54 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     children: 'Tambah'
   }
 
-  const columns = useMemo<ColumnDef<AsetClientWithAction, any>[]>(
+  const columns = useMemo<ColumnDef<KeuanganClientWithAction, any>[]>(
     () => [
       columnHelper.accessor('jenis', {
-        header: 'Jenis Aset',
-        cell: ({ row }) => <Typography>{`${row.original.jenis}`}</Typography>
-      }),
-      columnHelper.accessor('nama', {
-        header: 'Nama Aset',
-        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
-      }),
-      columnHelper.accessor('alamat', {
-        header: 'Alamat Aset',
-        cell: ({ row }) => <Typography>{`${row.original.alamat}`}</Typography>
-      }),
-      columnHelper.accessor('kota', {
-        header: 'Kota',
-        cell: ({ row }) => <Typography>{`${row.original.kota}`}</Typography>
-      }),
-      columnHelper.accessor('provinsi', {
-        header: 'Provinsi',
-        cell: ({ row }) => <Typography>{`${row.original.provinsi}`}</Typography>
-      }),
-      columnHelper.accessor('status', {
-        header: 'Status',
+        header: 'Jenis Keuangan',
         cell: ({ row }) => {
-          return row.original.status === true ? (
-            <Chip label='Aktif' color='success' size='small' variant='tonal' />
+          return row.original.jenis === 'pemasukan' ? (
+            <Chip label='Pemasukan' color='success' size='small' variant='tonal' />
           ) : (
-            <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
+            <Chip label='Pengeluaran' color='error' size='small' variant='tonal' />
           )
         }
+      }),
+      columnHelper.accessor('keterangan', {
+        header: 'Keterangan',
+        cell: ({ row }) => <Typography>{`${row.original.keterangan}`}</Typography>
+      }),
+      columnHelper.accessor('nominal', {
+        header: 'Nominal',
+        cell: ({ row }) => {
+          const formatNumber = (num: number): string => {
+            if (!num || num === 0) return '0'
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+          }
+
+          return (
+            <Typography>
+              Rp{formatNumber(row.original.nominal)}
+            </Typography>
+          )
+        }
+      }),
+      columnHelper.accessor('asetId', {
+        header: 'Aset',
+        cell: ({ row }) => <Typography>{`${row.original.aset.jenis} - ${row.original.aset.nama}`}</Typography>
+      }),
+      columnHelper.accessor('iconId', {
+        header: 'Kategori',
+        cell: ({ row }) => (
+          <Typography
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <i className={`${row.original.icon.code}`} style={{ marginRight: 8 }} />
+            {row.original.icon.nama}
+          </Typography>)
       }),
       columnHelper.accessor('action', {
         header: 'Action',
@@ -244,17 +253,17 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           <div className='flex items-center'>
             <IconButton onClick={async () => {
               try {
-                await apiFetchClient(`/api/aset/${row.original.id}`, {
+                await apiFetchClient(`/api/keuangan/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(aset => aset.id !== row.original.id))
-                setFilteredData(prev => prev.filter(aset => aset.id !== row.original.id))
+                setData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
+                setFilteredData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
 
                 setTotalCount(prev => prev - 1)
-                showSnackbar('Aset berhasil dihapus', 'success')
+                showSnackbar('Keuangan berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
                 const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
@@ -270,15 +279,15 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 'aria-label': 'Preview / Edit',
                 children: <i className='tabler-eye text-textSecondary' />
               }}
-              dialog={AddEditAset}
+              dialog={AddEditKeuangan}
               // kirim prop ke dialog untuk mode edit + data awal
               dialogProps={{
                 mode: 'edit',
                 initialData: row.original,
-                onSaved: (updated: AsetClient) => {
+                onSaved: (updated: KeuanganClient) => {
                   setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                   setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  showSnackbar('Aset berhasil diperbarui', 'success')
+                  showSnackbar('Keuangan berhasil diperbarui', 'success')
                 }
               }}
             />
@@ -292,7 +301,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   )
 
   const table = useReactTable({
-    data: filteredData as AsetClient[],
+    data: filteredData as KeuanganClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -333,7 +342,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchAsetData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchKeuanganData(currentPage, pageSize)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -356,7 +365,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           >
             <CircularProgress size={60} />
             <Typography variant="body1" color="textSecondary">
-              Memuat data aset...
+              Memuat data keuangan...
             </Typography>
           </Box>
         </CardContent>
@@ -420,13 +429,13 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditAset} />
+              dialog={AddEditKeuangan} />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
               value={globalFilter ?? ''}
               onChange={value => setGlobalFilter(String(value))}
-              placeholder='Search Aset'
+              placeholder='Search Keuangan'
               className='max-sm:is-full sm:is-[250px]'
             />
           </div>
@@ -522,4 +531,4 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   )
 }
 
-export default AsetListTable
+export default KeuanganListTable
