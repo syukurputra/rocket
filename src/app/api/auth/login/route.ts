@@ -7,19 +7,7 @@ import prisma from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
-
-    // const passwordEnc = await bcrypt.hash('Admin@123', 10)
-    // await prisma.user.upsert({
-    //   where: { email: 'admin@example.com' },
-    //   update: {},
-    //   create: {
-    //     username: 'admin',
-    //     email: 'admin@example.com',
-    //     password: passwordEnc,
-    //     tokenVersion: 0,
-    //   },
-    // })
-
+    
     const user = await prisma.user.findFirst({
       where: {
         OR: [
@@ -31,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { message: 'Invalid credentials' },
+        { message: 'Username / password salah' },
         { status: 401 }
       )
     }
@@ -40,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValidPassword) {
       return NextResponse.json(
-        { message: 'Invalid credentials' },
+        { message: 'Username / password salah' },
         { status: 401 }
       )
     }
@@ -58,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const res = NextResponse.json(
       {
-        message: 'Login successful',
+        message: 'Login berhasil',
         user: { id: user.id, username: user.username, email: user.email },
         accessToken,
         refreshToken,

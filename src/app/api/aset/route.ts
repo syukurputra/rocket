@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get query parameters
+    const userId = payload.userId
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Build where condition
     const where = {
+      createdById: userId,
       ...(search && {
         OR: [
           { nama: { contains: search, mode: 'insensitive' as const } },

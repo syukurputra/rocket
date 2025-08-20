@@ -4,7 +4,8 @@
 import { useState } from 'react'
 
 // Next Imports
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 // MUI Imports
 import useMediaQuery from '@mui/material/useMediaQuery'
@@ -24,24 +25,21 @@ import classnames from 'classnames'
 
 // Type Imports
 import type { SystemMode } from '@core/types'
+import type { Locale } from '@configs/i18n'
 
 // Component Imports
-import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
 import CustomTextField from '@core/components/mui/TextField'
-
-// Config Imports
-import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 
 // Styled Custom Components
-const LoginIllustration = styled('img')(({ theme }) => ({
+const RegisterIllustration = styled('img')(({ theme }) => ({
   zIndex: 2,
   blockSize: 'auto',
-  maxBlockSize: 680,
+  maxBlockSize: 600,
   maxInlineSize: '100%',
   margin: theme.spacing(12),
   [theme.breakpoints.down(1536)]: {
@@ -54,31 +52,28 @@ const LoginIllustration = styled('img')(({ theme }) => ({
 
 const MaskImg = styled('img')({
   blockSize: 'auto',
-  maxBlockSize: 355,
+  maxBlockSize: 345,
   inlineSize: '100%',
   position: 'absolute',
   insetBlockEnd: 0,
   zIndex: -1
 })
 
-const useAuth = () => {
-  const login = async (username: string, password: string) => {
+const useRegister = () => {
+  const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, email, password })
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        localStorage.setItem('accessToken', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        window.location.href = '/id/home'
+        window.location.href = '/id/login'
         return { success: true }
       } else {
         return { success: false, message: data.message }
@@ -89,29 +84,29 @@ const useAuth = () => {
     }
   }
 
-  return { login }
+  return { register }
 }
 
-const Login = ({ mode }: { mode: SystemMode }) => {
+const Register = ({ mode }: { mode: SystemMode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const { login } = useAuth()
+  const { register } = useRegister()
 
-  // Vars
   const darkImg = '/images/pages/auth-mask-dark.png'
   const lightImg = '/images/pages/auth-mask-light.png'
-  const darkIllustration = '/images/illustrations/auth/v2-login-dark.png'
-  const lightIllustration = '/images/illustrations/auth/v2-login-light.png'
-  const borderedDarkIllustration = '/images/illustrations/auth/v2-login-dark-border.png'
-  const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png'
+  const darkIllustration = '/images/illustrations/auth/v2-register-dark.png'
+  const lightIllustration = '/images/illustrations/auth/v2-register-light.png'
+  const borderedDarkIllustration = '/images/illustrations/auth/v2-register-dark-border.png'
+  const borderedLightIllustration = '/images/illustrations/auth/v2-register-light-border.png'
 
   // Hooks
-  const router = useRouter()
+  const { lang: locale } = useParams()
   const { settings } = useSettings()
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
@@ -133,7 +128,13 @@ const Login = ({ mode }: { mode: SystemMode }) => {
     setLoading(true)
 
     if (!username.trim()) {
-      setError('Username or email is required')
+      setError('Username is required')
+      setLoading(false)
+      return
+    }
+
+    if (!email.trim()) {
+      setError('Username is required')
       setLoading(false)
       return
     }
@@ -145,14 +146,13 @@ const Login = ({ mode }: { mode: SystemMode }) => {
     }
 
     try {
-      const result = await login(username, password)
+      const result = await register(username, email, password)
 
       if (!result.success) {
-        setError(result.message || 'Login failed')
+        setError(result.message || 'Register gagal')
       }
-      // If success, login function handles navigation
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Register error:', error)
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -186,12 +186,11 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           >
             <CircularProgress size={60} />
             <Typography variant="body1" color="textSecondary">
-              Memproses login...
+              Memproses Buat Akun...
             </Typography>
           </Box>
         </Box>
       )}
-
       <div className='flex bs-full justify-center'>
         <div
           className={classnames(
@@ -201,7 +200,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
             }
           )}
         >
-          <LoginIllustration src={characterIllustration} alt='character-illustration' />
+          <RegisterIllustration src={characterIllustration} alt='character-illustration' />
           {!hidden && (
             <MaskImg
               alt='mask'
@@ -211,20 +210,22 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           )}
         </div>
         <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-          <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+          <Link
+            href='/'
+            className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'
+          >
             <Logo />
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
             <div className='flex flex-col gap-1'>
-              <Typography variant='h4'>Selamat Datang Kembali</Typography>
-              <Typography>Masuk ke akun Anda di bawah ini</Typography>
+              <Typography variant='h4'>Daftar</Typography>
+              <Typography>Masukkan detail Anda di bawah ini untuk membuat akun Anda</Typography>
             </div>
             <form
               noValidate
               autoComplete='off'
               onSubmit={handleSubmit}
-              className='flex flex-col gap-5'
-            >
+              className='flex flex-col gap-6'>
               {error && (
                 <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
                   {error}
@@ -233,10 +234,18 @@ const Login = ({ mode }: { mode: SystemMode }) => {
               <CustomTextField
                 autoFocus
                 fullWidth
-                label='Email or Username'
-                placeholder='Masukkan email atau username'
+                label='Username'
+                placeholder='Masukkan username'
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              <CustomTextField
+                fullWidth
+                label='Email'
+                placeholder='Masukkan email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <CustomTextField
@@ -259,15 +268,6 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   }
                 }}
               />
-              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-                <FormControlLabel
-                  control={<Checkbox disabled={loading} />}
-                  label='Remember me'
-                />
-                <Typography className='text-end' color='primary.main' component={Link}>
-                  Lupa password?
-                </Typography>
-              </div>
               <Button
                 fullWidth
                 variant='contained'
@@ -275,15 +275,16 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                 disabled={loading}
                 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
               >
-                {loading ? 'Memproses...' : 'Login'}
+                {loading ? 'Memproses...' : 'Buat Akun'}
               </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
-                <Typography>Belum Punya Akun? </Typography>
+                <Typography>Sudah Punya Akun? </Typography>
                 <Typography
                   component={Link}
-                  href='/id/register'
-                  color='primary.main'>
-                  Daftar disini
+                  href='/id/login'
+                  color='primary.main'
+                >
+                  Login
                 </Typography>
               </div>
             </form>
@@ -294,4 +295,4 @@ const Login = ({ mode }: { mode: SystemMode }) => {
   )
 }
 
-export default Login
+export default Register
