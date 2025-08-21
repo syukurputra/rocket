@@ -9,7 +9,7 @@ import '@/src/app/globals.css'
 import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
-  title: 'Noor',
+  title: 'Bantu Sewa',
   description: 'Dashboard with authentication protection'
 }
 

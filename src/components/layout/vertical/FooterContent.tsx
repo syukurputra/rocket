@@ -24,7 +24,7 @@ const FooterContent = () => {
         <span className='text-textSecondary'>© 2025</span>
         {/*<span>{`❤️`}</span>*/}
         <span className='text-textSecondary'>{` by `}</span>
-        Noor
+        Bantu Sewa
         {/*<Link href='https://pixinvent.com' target='_blank' className='text-primary uppercase'>*/}
         {/*  Pixinvent*/}
         {/*</Link>*/}
