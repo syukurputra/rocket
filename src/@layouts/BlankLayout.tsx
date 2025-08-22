@@ -11,7 +11,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import useLayoutInit from '@core/hooks/useLayoutInit'
 
 // Util Imports
-import { blankLayoutClasses } from './utils/layoutClasses'
+import { blankLayoutClasses } from '@layouts/utils/layoutClasses'
 
 type Props = ChildrenType & {
   systemMode: SystemMode

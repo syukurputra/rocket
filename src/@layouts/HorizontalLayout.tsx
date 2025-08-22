@@ -11,13 +11,13 @@ import type { ChildrenType } from '@core/types'
 import { HorizontalNavProvider } from '@menu/contexts/horizontalNavContext'
 
 // Component Imports
-import LayoutContent from './components/horizontal/LayoutContent'
+import LayoutContent from '@layouts/components/horizontal/LayoutContent'
 
 // Util Imports
-import { horizontalLayoutClasses } from './utils/layoutClasses'
+import { horizontalLayoutClasses } from '@layouts/utils/layoutClasses'
 
 // Styled Component Imports
-import StyledContentWrapper from './styles/horizontal/StyledContentWrapper'
+import StyledContentWrapper from '@layouts/styles/horizontal/StyledContentWrapper'
 
 type HorizontalLayoutProps = ChildrenType & {
   header?: ReactNode

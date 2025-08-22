@@ -8,13 +8,13 @@ import classnames from 'classnames'
 import type { ChildrenType } from '@core/types'
 
 // Component Imports
-import LayoutContent from './components/vertical/LayoutContent'
+import LayoutContent from '@layouts/components/vertical/LayoutContent'
 
 // Util Imports
-import { verticalLayoutClasses } from './utils/layoutClasses'
+import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
 
 // Styled Component Imports
-import StyledContentWrapper from './styles/vertical/StyledContentWrapper'
+import StyledContentWrapper from '@layouts/styles/vertical/StyledContentWrapper'
 
 type VerticalLayoutProps = ChildrenType & {
   navigation?: ReactNode
