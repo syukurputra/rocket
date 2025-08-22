@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyRefreshToken, signAccessToken, signRefreshToken } from '@/lib/jwt'
-import prisma from '@/lib/prisma'
+import { verifyRefreshToken, signAccessToken, signRefreshToken } from '@/src/libs/jwt'
+import prisma from '@/src/libs/prisma'
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,35 +1,29 @@
-import type { ChildrenType } from '@core/types'
+// app/layout.tsx
+import type { ReactNode } from 'react'
 import { getSystemMode } from '@core/utils/serverHelpers'
-import ClientProtection from '@/src/components/ClientProtection'
 
 // Keep your existing imports
-// import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-// import 'react-perfect-scrollbar/dist/css/styles.css'
 import '@/src/app/globals.css'
 import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
   title: 'Bantu Sewa',
-  description: 'Dashboard with authentication protection'
+  description: 'Platform rental management terpercaya'
 }
 
-const RootLayout = async (props: ChildrenType) => {
-  const { children } = props
+interface RootLayoutProps {
+  children: ReactNode
+}
 
-  // Keep your server-side logic
+const RootLayout = async ({ children }: RootLayoutProps) => {
+  // Get system mode for theming
   const systemMode = await getSystemMode()
   const direction = 'ltr'
 
   return (
     <html id='__next' lang='en' dir={direction} suppressHydrationWarning>
     <body className='flex is-full min-bs-full flex-auto flex-col'>
-    {/* Keep your server-side script */}
-    {/* <InitColorSchemeScript attribute='data' defaultMode={systemMode} /> */}
-
-    {/* Wrap children dengan client protection */}
-    <ClientProtection>
-      {children}
-    </ClientProtection>
+    {children}
     </body>
     </html>
   )

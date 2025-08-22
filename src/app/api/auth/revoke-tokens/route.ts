@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
-import { verifyAccessToken } from '@/lib/jwt'
+import prisma from '@/src/libs/prisma'
+import { verifyAccessToken } from '@/src/libs/jwt'
 import {
   extractTokenFromRequest,
   getAccessTokenFromCookies,
   clearSessionCookies
-} from '@/lib/session'
+} from '@/src/libs/session'
 
 export const runtime = 'nodejs'
 
