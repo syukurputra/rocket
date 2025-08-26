@@ -2,8 +2,8 @@ import Grid from '@mui/material/Grid2'
 
 import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 
-import KeuanganListTable from './KeuanganListTable'
-import AsetCard from './KeuanganCard'
+import KeuanganListTable from '@views/apps/keuangan/list/KeuanganListTable'
+import AsetCard from '@views/apps/keuangan/list/KeuanganCard'
 
 interface KeuanganListProps {
   initialData?: KeuanganClient[]

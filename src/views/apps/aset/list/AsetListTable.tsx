@@ -282,6 +282,11 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 }
               }}
             />
+            <IconButton>
+              <Link href='/id/aset/view' className='flex'>
+                <i className='tabler-dots-vertical text-textSecondary' />
+              </Link>
+            </IconButton>
           </div>
         ),
         enableSorting: false

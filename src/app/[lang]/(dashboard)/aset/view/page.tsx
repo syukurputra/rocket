@@ -2,7 +2,7 @@ import Grid from '@mui/material/Grid2'
 
 import AsetList from '@views/apps/aset/list'
 
-const AsetViewApp = async () => {
+const AsetApp = async () => {
 
   return (
     <Grid container>
@@ -13,4 +13,4 @@ const AsetViewApp = async () => {
   )
 }
 
-export default AsetViewApp
+export default AsetApp

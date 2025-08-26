@@ -69,7 +69,8 @@ export async function GET(request: NextRequest) {
           id: true,
           nama: true,
           code: true,
-          jenis: true
+          jenis: true,
+          color: true
         },
         orderBy: { nama: 'desc' }
       }),

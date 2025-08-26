@@ -63,6 +63,7 @@ model MasterIcon {
   nama        String
   code        String
   jenis       String
+  color       String   @default("#000000")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -81,6 +82,7 @@ model Keuangan {
   id          String   @id @default(cuid())
   jenis       String
   keterangan  String
+  tanggal     DateTime @default(now())
   nominal     Decimal  @db.Decimal(15, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

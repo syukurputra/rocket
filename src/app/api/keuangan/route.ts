@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               nama: true,
-              code: true
+              code: true,
+              color: true
             }
           }
         },
@@ -129,14 +130,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { jenis, keterangan, nominal, asetId, iconId } = body
+    const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
 
     // Validation
     if (!jenis || !nominal || !asetId) {
       return NextResponse.json(
-        { message: 'jenis, nominal, aset harus diisi' },
+        { message: 'jenis, nominal, aset, tanggal transaksi harus diisi' },
         { status: 400 }
       )
+    }
+
+    let transactionDate = new Date()
+    if (tanggal) {
+      transactionDate = new Date(tanggal)
+      if (isNaN(transactionDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Format tanggal tidak valid' },
+          { status: 400 }
+        )
+      }
     }
 
     const newKeuangan = await prisma.keuangan.create({
@@ -144,6 +156,7 @@ export async function POST(request: NextRequest) {
         jenis: jenis,
         keterangan: keterangan,
         nominal: nominal,
+        tanggal: transactionDate,
         asetId: asetId,
         iconId: iconId,
         createdById: currentUser.id,

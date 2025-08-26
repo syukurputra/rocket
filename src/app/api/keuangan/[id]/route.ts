@@ -103,7 +103,18 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { jenis, keterangan, nominal, asetId, iconId } = body
+    const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
+
+    let transactionDate = new Date()
+    if (tanggal) {
+      transactionDate = new Date(tanggal)
+      if (isNaN(transactionDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Format tanggal tidak valid' },
+          { status: 400 }
+        )
+      }
+    }
 
     const existingKeuangan = await prisma.keuangan.findUnique({
       where: { id }
@@ -124,6 +135,7 @@ export async function PUT(
         ...(nominal && { nominal }),
         ...(asetId && { asetId }),
         ...(iconId && { iconId }),
+        ...(tanggal && { transactionDate }),
         updatedById: currentUser.id
       },
       include: {

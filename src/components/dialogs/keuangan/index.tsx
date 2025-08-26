@@ -16,6 +16,10 @@ import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
+import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
+
 import { useRouter } from 'next/navigation'
 
 type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
@@ -35,6 +39,7 @@ type FormValues = {
   nominal: number
   asetId: string
   iconId: string
+  tanggal: Date | null
 }
 
 const JENIS_OPTIONS = [
@@ -53,6 +58,7 @@ type IconOption = {
   id: string
   nama: string
   code: string
+  color: string
   jenis: string
 }
 
@@ -61,8 +67,11 @@ const DEFAULTS: FormValues = {
   keterangan: '',
   nominal: 0.0,
   asetId: '',
-  iconId: ''
+  iconId: '',
+  tanggal: new Date()
 }
+
+const Icon = styled('i')({})
 
 export default function AddEditKeuangan({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
   const router = useRouter()
@@ -99,8 +108,8 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
           setIconOptions(iconResponse.data || [])
         } catch (iconError) {
           setIconOptions([
-            { id: 'temp-1', nama: 'Kategori 1', code: 'tabler-home', jenis: 'pemasukan' },
-            { id: 'temp-2', nama: 'Kategori 2', code: 'tabler-cash', jenis: 'pengeluaran' }
+            { id: 'temp-1', nama: 'Kategori 1', code: 'tabler-home', jenis: 'pemasukan', color: 'primary-main' },
+            { id: 'temp-2', nama: 'Kategori 2', code: 'tabler-cash', jenis: 'pengeluaran', color: 'primary-main' }
           ])
         }
       } catch (error) {
@@ -157,7 +166,8 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         keterangan: initialData.keterangan ?? '',
         nominal: initialData.nominal ?? 0.0,
         asetId: initialData.asetId ?? '',
-        iconId: initialData.iconId ?? ''
+        iconId: initialData.iconId ?? '',
+        tanggal: initialData.tanggal ? new Date(initialData.tanggal) : new Date()
       })
     } else {
       setForm(DEFAULTS)
@@ -193,7 +203,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
   }
 
   const handleSubmit = async () => {
-    if (!form.jenis || !form.asetId || !form.iconId || form.nominal <= 0) {
+    if (!form.jenis || !form.asetId || !form.iconId || form.nominal <= 0 || !form.tanggal) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
       return
     }
@@ -208,7 +218,8 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             keterangan: form.keterangan,
             nominal: form.nominal,
             asetId: form.asetId,
-            iconId: form.iconId
+            iconId: form.iconId,
+            tanggal: form.tanggal.toISOString()
           })
         })
         setPendingSaved(json.data)
@@ -224,7 +235,8 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             keterangan: form.keterangan,
             nominal: form.nominal,
             asetId: form.asetId,
-            iconId: form.iconId
+            iconId: form.iconId,
+            tanggal: form.tanggal.toISOString()
           })
         })
         setPendingSaved(json.data)
@@ -263,7 +275,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6}}>
                 <CustomTextField
                   select
                   fullWidth
@@ -280,7 +292,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   select
                   fullWidth
@@ -301,7 +313,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   select
                   fullWidth
@@ -317,17 +329,41 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   </MenuItem>
                   {iconOptions.map(icon => (
                     <MenuItem key={icon.id} value={icon.id}>
-                      <i className={icon.code} style={{ marginRight: 8 }} /> {icon.nama}
+                      <div className="flex items-center gap-2">
+                        <Icon
+                          className={icon.code}
+                          sx={{ color: `var(--mui-palette-${icon.color})` }}
+                        />
+                        <Typography className="capitalize" color="text.primary">
+                          {icon.nama}
+                        </Typography>
+                      </div>
                     </MenuItem>
                   ))}
                 </CustomTextField>
               </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <AppReactDatepicker
+                  selected={form.tanggal}
+                  showYearDropdown
+                  showMonthDropdown
+                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, tanggal: date }))}
+                  placeholderText='MM/DD/YYYY'
+                  customInput={
+                  <CustomTextField
+                    fullWidth
+                    label='Tanggal Transaksi'
+                    placeholder='MM-DD-YYYY'
+                    required
+                  />}
+                />
+              </Grid>
               <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
-                  label='Keterangan'
-                  name='keterangan'
-                  variant='outlined'
+                  label="Keterangan"
+                  name="keterangan"
+                  variant="outlined"
                   placeholder='Keterangan'
                   value={form.keterangan}
                   onChange={handleChange('keterangan')}

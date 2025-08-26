@@ -13,7 +13,7 @@ export const metadata = {
   description: 'Dashboard with authentication protection'
 }
 
-const Layout = async (props: ChildrenType) => {
+const RootLayout = async (props: ChildrenType) => {
   const { children } = props
 
   // Keep your server-side logic
@@ -31,4 +31,4 @@ const Layout = async (props: ChildrenType) => {
   )
 }
 
-export default Layout
+export default RootLayout

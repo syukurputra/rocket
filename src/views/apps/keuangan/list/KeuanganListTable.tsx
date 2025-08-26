@@ -23,6 +23,7 @@ import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
+import { styled } from '@mui/material/styles'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -67,6 +68,8 @@ declare module '@tanstack/table-core' {
     itemRank: RankingInfo
   }
 }
+
+const Icon = styled('i')({})
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -210,6 +213,36 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           )
         }
       }),
+      columnHelper.accessor('asetId', {
+        header: 'Aset',
+        cell: ({ row }) => {
+          const aset = (row.original as any).aset
+          return (
+            <Typography>
+              {aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}
+            </Typography>
+          )
+        }
+      }),
+      columnHelper.accessor('iconId', {
+        header: 'Kategori',
+        cell: ({ row }) => {
+          const icon = (row.original as any).icon
+          if (!icon) return <Typography>-</Typography>
+
+          return (
+            <div className="flex items-center gap-2">
+              <Icon
+                className={icon.code}
+                sx={{ color: `var(--mui-palette-${icon.color})` }}
+              />
+              <Typography className="capitalize" color="text.primary">
+                {icon.nama}
+              </Typography>
+            </div>
+        )
+        }
+      }),
       columnHelper.accessor('keterangan', {
         header: 'Keterangan',
         cell: ({ row }) => <Typography>{`${row.original.keterangan}`}</Typography>
@@ -225,32 +258,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           return (
             <Typography>
               Rp{formatNumber(row.original.nominal)}
-            </Typography>
-          )
-        }
-      }),
-      columnHelper.accessor('asetId', {
-        header: 'Aset',
-        cell: ({ row }) => {
-          const aset = (row.original as any).aset
-          return (
-            <Typography>
-              {aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}
-            </Typography>
-          )
-        }
-      }),
-
-      columnHelper.accessor('iconId', {
-        header: 'Kategori',
-        cell: ({ row }) => {
-          const icon = (row.original as any).icon
-          if (!icon) return <Typography>-</Typography>
-
-          return (
-            <Typography>
-              <i className={icon.code} style={{ marginRight: 8 }} />
-              {icon.nama}
             </Typography>
           )
         }
