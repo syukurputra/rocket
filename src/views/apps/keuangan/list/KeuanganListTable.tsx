@@ -266,6 +266,25 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
+            <OpenDialogOnElementClick
+              element={IconButton}
+              elementProps={{
+                className: 'flex',
+                'aria-label': 'Preview / Edit',
+                children: <i className='tabler-eye text-textSecondary' />
+              }}
+              dialog={AddEditKeuangan}
+              // kirim prop ke dialog untuk mode edit + data awal
+              dialogProps={{
+                mode: 'edit',
+                initialData: row.original,
+                onSaved: (updated: KeuanganClient) => {
+                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  showSnackbar('Keuangan berhasil diperbarui', 'success')
+                }
+              }}
+            />
             <IconButton onClick={async () => {
               try {
                 await apiFetchClient(`/api/keuangan/${row.original.id}`, {
@@ -287,25 +306,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
             }}>
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
-            <OpenDialogOnElementClick
-              element={IconButton}
-              elementProps={{
-                className: 'flex',
-                'aria-label': 'Preview / Edit',
-                children: <i className='tabler-eye text-textSecondary' />
-              }}
-              dialog={AddEditKeuangan}
-              // kirim prop ke dialog untuk mode edit + data awal
-              dialogProps={{
-                mode: 'edit',
-                initialData: row.original,
-                onSaved: (updated: KeuanganClient) => {
-                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  showSnackbar('Keuangan berhasil diperbarui', 'success')
-                }
-              }}
-            />
           </div>
         ),
         enableSorting: false

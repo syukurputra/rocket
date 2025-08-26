@@ -62,7 +62,7 @@ import tableStyles from '@core/styles/table.module.css'
 
 import type { ButtonProps } from '@mui/material/Button'
 
-import AddEditAset from '@components/dialogs/aset'
+import AddEditRuang from '@components/dialogs/asetView'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -126,7 +126,7 @@ interface AsetListTableProps {
   initialData?: AsetClient[]
 }
 
-const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
+const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<AsetClientWithAction[]>(initialData)
@@ -254,7 +254,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 'aria-label': 'Preview / Edit',
                 children: <i className='tabler-eye text-textSecondary' />
               }}
-              dialog={AddEditAset}
+              dialog={AddEditRuang}
               // kirim prop ke dialog untuk mode edit + data awal
               dialogProps={{
                 mode: 'edit',
@@ -425,7 +425,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditAset} />
+              dialog={AddEditRuang} />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
@@ -527,4 +527,4 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   )
 }
 
-export default AsetListTable
+export default ViewAsetListTable
