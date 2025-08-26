@@ -8,7 +8,7 @@ interface PageProps {
   }>
 }
 
-const AsetApp = async ({ params }: PageProps) => {
+const ViewAsetApp = async ({ params }: PageProps) => {
   const { id, lang } = await params
 
   return (
@@ -20,4 +20,4 @@ const AsetApp = async ({ params }: PageProps) => {
   )
 }
 
-export default AsetApp
+export default ViewAsetApp
