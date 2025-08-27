@@ -30,7 +30,7 @@ const AsetList = ({ initialData, assetDetailData, assetId }: AsetListProps) => {
       </Grid>
       <Grid size={{ xs: 12 }}>
         <ViewRuanganListTable
-          ruanganId={assetId}
+          asetId={assetId}
           initialData={initialData}
         />
       </Grid>
