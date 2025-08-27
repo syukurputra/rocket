@@ -5,7 +5,11 @@ import { usePathname, useRouter } from 'next/navigation'
 
 interface ClientProtectionProps { children: React.ReactNode }
 
-const protectedRoutes = [/^\/id\/home(\/|$)/, /^\/id\/aset\/list(\/|$)/, /^\/profile(\/|$)/, /^\/admin(\/|$)/]
+const protectedRoutes = [
+  /^\/id\/home(\/|$)/,
+  /^\/id\/aset\/list(\/|$)/,
+  /^\/id\/aset\/view(\/|$)/,
+  /^\/id\/keuangan\/list(\/|$)/]
 const authRoutes = [/^\/id\/login(\/|$)/, /^\/id\/register(\/|$)/]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {
