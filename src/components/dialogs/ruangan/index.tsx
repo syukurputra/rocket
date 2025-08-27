@@ -1,5 +1,6 @@
 'use client'
 
+import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -12,7 +13,7 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
-import type { AsetClient } from '@/src/types/apps/asetTypes'
+import type { RuanganClient } from '@/src/types/apps/ruanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -24,42 +25,34 @@ type Props = {
   open: boolean
   setOpen: (open: boolean) => void
   mode?: 'create' | 'edit'
-  initialData?: AsetClient | null
-  onSaved?: (data: AsetClient) => void
+  initialData?: RuanganClient | null
+  asetId?: string
+  onSaved?: (data: RuanganClient) => void
 }
 
 type FormValues = {
   id?: string
-  jenis: string
   nama: string
-  alamat: string
-  kota: string
-  provinsi: string
+  nominal: number
   status: boolean
 }
 
-const JENIS_OPTIONS = [
-  { label: 'Pilih Bangunan', value: '' },
-  { label: 'Kost', value: 'kost' },
-  { label: 'Rumah', value: 'rumah' },
-  { label: 'Apartemen', value: 'apartemen' }
-]
-
 const DEFAULTS: FormValues = {
-  jenis: '',
   nama: '',
-  alamat: '',
-  kota: '',
-  provinsi: '',
+  nominal: 0.0,
   status: true
 }
 
-export default function AddEditRuang({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
+export default function AddEditRuang({ open, setOpen, mode = 'create', initialData, asetId, onSaved }: Props) {
+  const params = useParams()
+  const finalAsetId = asetId || (params?.id as string)
+
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<AsetClient | null>(null)
+  const [pendingSaved, setPendingSaved] = useState<RuanganClient | null>(null)
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
@@ -76,11 +69,8 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
     if (mode === 'edit' && initialData) {
       setForm({
         id: initialData.id,
-        jenis: initialData.jenis ?? '',
         nama: initialData.nama ?? '',
-        alamat: initialData.alamat ?? '',
-        kota: initialData.kota ?? '',
-        provinsi: initialData.provinsi ?? '',
+        nominal: initialData.nominal ?? 0.0,
         status: Boolean(initialData.status)
       })
     } else {
@@ -93,48 +83,61 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
       (e: React.ChangeEvent<HTMLInputElement>) =>
         setForm(prev => ({ ...prev, [key]: e.target.value }))
 
+  const formatNumber = (num: number): string => {
+    if (!num) return ''
+    return num.toLocaleString('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })
+  }
+
+  const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let rawValue = e.target.value.replace(/[^\d,]/g, '') // Keep comma for decimal
+    rawValue = rawValue.replace(',', '.') // Convert comma to dot
+    const numericValue = parseFloat(rawValue) || 0
+    setForm(prev => ({ ...prev, nominal: numericValue }))
+  }
+
   const handleSubmit = async () => {
-    // validasi singkat
-    if (!form.jenis || !form.nama) {
+    if (!form.nama || !form.nominal) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+      return
+    }
+
+    if (mode === 'create' && !finalAsetId) {
+      setSnack({ open: true, message: 'Asset ID diperlukan untuk membuat ruangan baru', severity: 'error' })
       return
     }
 
     setSaving(true)
     try {
+      const requestBody: any = {
+        nama: form.nama,
+        nominal: form.nominal,
+        status: form.status
+      }
+
+      if (finalAsetId && finalAsetId.trim() !== '') {
+        requestBody.asetId = finalAsetId
+      }
+
       if (mode === 'edit' && form.id) {
-        // PUT /api/aset/[id]
-        const json = await apiFetchClient<{ data: AsetClient; message?: string }>(`/api/aset/${form.id}`, {
+        const json = await apiFetchClient<{ data: RuanganClient; message?: string }>(`/api/ruangan/${form.id}`, {
           method: 'PUT',
-          body: JSON.stringify({
-            jenis: form.jenis,
-            nama: form.nama,
-            alamat: form.alamat,
-            kota: form.kota,
-            provinsi: form.provinsi,
-            status: form.status
-          })
+          body: JSON.stringify(requestBody)
         })
         setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Aset berhasil diupdate', severity: 'success' })
+        setSnack({ open: true, message: json.message ?? 'Ruangan berhasil diupdate', severity: 'success' })
         setTimeout(() => {
           window.location.reload()
         }, 3000)
       } else {
-        // POST /api/aset
-        const json = await apiFetchClient<{ data: AsetClient; message?: string }>(`/api/aset`, {
+        const json = await apiFetchClient<{ data: RuanganClient; message?: string }>(`/api/ruangan`, {
           method: 'POST',
-          body: JSON.stringify({
-            jenis: form.jenis,
-            nama: form.nama,
-            alamat: form.alamat,
-            kota: form.kota,
-            provinsi: form.provinsi,
-            status: form.status
-          })
+          body: JSON.stringify(requestBody)
         })
         setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Aset berhasil ditambahkan', severity: 'success' })
+        setSnack({ open: true, message: json.message ?? 'Ruangan berhasil ditambahkan', severity: 'success' })
         setTimeout(() => {
           window.location.reload()
         }, 3000)
@@ -158,7 +161,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
         sx={{ '& .MuiDialog-paper': { overflow: 'visible' } }}
       >
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
-          {mode === 'edit' ? 'Ubah Aset' : 'Tambah Aset'}
+          {mode === 'edit' ? 'Ubah Ruangan' : 'Tambah Ruangan'}
         </DialogTitle>
         <form onSubmit={(e) => {
           e.preventDefault()
@@ -169,67 +172,30 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Jenis Bangunan'
-                  name='jenis'
-                  variant='outlined'
-                  value={form.jenis}
-                  onChange={handleChange('jenis')}
-                >
-                  {JENIS_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label='Nama Bangunan'
+                  label='Nama Ruangan'
                   name='nama'
                   variant='outlined'
-                  placeholder='Nama Bangunan'
+                  placeholder='Nama Ruangan'
                   value={form.nama}
                   onChange={handleChange('nama')}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Alamat'
-                  name='alamat'
-                  variant='outlined'
-                  placeholder='Jl ...'
-                  value={form.alamat}
-                  onChange={handleChange('alamat')}
-                  multiline
-                  minRows={2}
-                />
-              </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label='Provinsi'
-                  name='provinsi'
-                  variant='outlined'
-                  placeholder='Nama Provinsi'
-                  value={form.provinsi}
-                  onChange={handleChange('provinsi')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Kota'
-                  name='kota'
-                  variant='outlined'
-                  placeholder='Nama Kota'
-                  value={form.kota}
-                  onChange={handleChange('kota')}
+                  label='Nominal Sewa'
+                  placeholder='10.000.000'
+                  value={formatNumber(form.nominal)}
+                  onChange={handleNominalChange}
+                  disabled={loading}
+                  inputProps={{
+                    inputMode: 'decimal',
+                    pattern: '[0-9.,]*'
+                  }}
+                  helperText="Contoh: 10.000.000"
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -239,7 +205,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
                     checked={form.status}
                     onChange={(_, checked) => setForm(prev => ({ ...prev, status: checked }))}
                   />
-                } label={form.status ? 'Aset Aktif' : 'Aset Nonaktif'}
+                } label={form.status ? 'Ruangan Aktif' : 'Ruangan Nonaktif'}
                 />
               </Grid>
             </Grid>
@@ -248,7 +214,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
             <Button variant='text' onClick={() => setOpen(false)} disabled={saving}>
               Batal
             </Button>
-            <Button variant='contained' type='submit' disabled={saving || !form.jenis || !form.nama}>
+            <Button variant='contained' type='submit' disabled={saving || !form.nama || !form.nominal}>
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>

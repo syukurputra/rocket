@@ -32,6 +32,8 @@ model User {
   iconUpdated      MasterIcon[] @relation("IconUpdatedBy")
   keuanganCreated  Keuangan[]   @relation("KeuanganCreatedBy")
   keuanganUpdated  Keuangan[]   @relation("KeuanganUpdatedBy")
+  ruanganCreated   Ruangan[]    @relation("RuanganCreatedBy")
+  ruanganUpdated   Ruangan[]    @relation("RuanganUpdatedBy")
 
   @@map("user")
 }
@@ -46,6 +48,7 @@ model Aset {
   status      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  nominal     Decimal  @db.Decimal(15, 2) @default(0)
 
   createdById String
   updatedById String
@@ -54,8 +57,29 @@ model Aset {
   updatedBy   User     @relation("UpdatedBy", fields: [updatedById], references: [id])
 
   keuangan    Keuangan[]
+  ruangan     Ruangan[]
 
   @@map("aset")
+}
+
+model Ruangan {
+  id          String   @id @default(cuid())
+  nama        String
+  status      Boolean  @default(true)
+  nominal     Decimal  @db.Decimal(15, 2) @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  updatedById String
+
+  createdBy   User     @relation("RuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+
+  asetId     String
+  aset       Aset       @relation(fields: [asetId], references: [id])
+
+  @@map("ruangan")
 }
 
 model MasterIcon {

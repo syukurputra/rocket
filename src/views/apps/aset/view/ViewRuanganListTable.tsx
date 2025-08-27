@@ -44,7 +44,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Type Imports
 import type { ThemeColor } from '@core/types'
-import type { AsetClient } from '@/src/types/apps/asetTypes'
+import type { RuanganClient } from '@/src/types/apps/ruanganTypes'
 import type { Locale } from '@configs/i18n'
 
 // Component Imports
@@ -62,7 +62,7 @@ import tableStyles from '@core/styles/table.module.css'
 
 import type { ButtonProps } from '@mui/material/Button'
 
-import AddEditRuang from '@components/dialogs/asetView'
+import AddEditRuang from '@components/dialogs/ruangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -117,20 +117,24 @@ const DebouncedInput = ({
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-type AsetClientWithAction = AsetClient & { action?: string }
+type RuanganClientWithAction = RuanganClient & { action?: string }
 
 // Column Definitions
-const columnHelper = createColumnHelper<AsetClientWithAction>()
+const columnHelper = createColumnHelper<RuanganClientWithAction>()
 
-interface AsetListTableProps {
-  initialData?: AsetClient[]
+interface RuanganListTableProps {
+  asetId?: string
+  initialData?: RuanganClient[]
 }
 
-const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
+const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProps) => {
+  const params = useParams()
+  const id = asetId || (params?.id as string)
+
   const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<AsetClientWithAction[]>(initialData)
-  const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(initialData)
+  const [data, setData] = useState<RuanganClientWithAction[]>(initialData)
+  const [filteredData, setFilteredData] = useState<RuanganClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -147,7 +151,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     severity: 'success'
   })
 
-  const fetchAsetData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchRuanganData = async (pageNum: number = 0, limitNum: number = 10) => {
     try {
       setLoading(true)
       setError(null)
@@ -157,8 +161,8 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: AsetClient[], total: number}>(
-        `/api/aset?${qs.toString()}`,
+      const result = await apiFetchClient<{data: RuanganClient[], total: number}>(
+        `/api/ruangan?${qs.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
@@ -170,7 +174,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       setFilteredData(asetData)
       setTotalCount(total)
     } catch (err) {
-      console.error('Failed to fetch aset data:', err)
+      console.error('Failed to fetch ruangan data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -181,7 +185,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
+      fetchRuanganData(currentPage, pageSize)
     } else {
       setTotalCount(initialData.length)
     }
@@ -189,7 +193,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
+      fetchRuanganData(currentPage, pageSize)
     }
   }, [currentPage, pageSize])
 
@@ -206,27 +210,26 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     children: 'Tambah'
   }
 
-  const columns = useMemo<ColumnDef<AsetClientWithAction, any>[]>(
+  const columns = useMemo<ColumnDef<RuanganClientWithAction, any>[]>(
     () => [
-      columnHelper.accessor('jenis', {
-        header: 'Jenis Aset',
-        cell: ({ row }) => <Typography>{`${row.original.jenis}`}</Typography>
-      }),
       columnHelper.accessor('nama', {
-        header: 'Nama Aset',
+        header: 'Nama Ruangan',
         cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
       }),
-      columnHelper.accessor('alamat', {
-        header: 'Alamat Aset',
-        cell: ({ row }) => <Typography>{`${row.original.alamat}`}</Typography>
-      }),
-      columnHelper.accessor('kota', {
-        header: 'Kota',
-        cell: ({ row }) => <Typography>{`${row.original.kota}`}</Typography>
-      }),
-      columnHelper.accessor('provinsi', {
-        header: 'Provinsi',
-        cell: ({ row }) => <Typography>{`${row.original.provinsi}`}</Typography>
+      columnHelper.accessor('nominal', {
+        header: 'Nominal Sewa',
+        cell: ({ row }) => {
+          const formatNumber = (num: number): string => {
+            if (!num || num === 0) return '0'
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+          }
+
+          return (
+            <Typography>
+              Rp{formatNumber(row.original.nominal)}
+            </Typography>
+          )
+        }
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -242,11 +245,6 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton>
-              <Link href={`/id/aset/view/${row.original.id}`} className='flex'>
-                <i className='tabler-dots-vertical text-textSecondary' />
-              </Link>
-            </IconButton>
             <OpenDialogOnElementClick
               element={IconButton}
               elementProps={{
@@ -257,9 +255,10 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               dialog={AddEditRuang}
               // kirim prop ke dialog untuk mode edit + data awal
               dialogProps={{
+                asetId: asetId,
                 mode: 'edit',
                 initialData: row.original,
-                onSaved: (updated: AsetClient) => {
+                onSaved: (updated: RuanganClient) => {
                   setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                   setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                   showSnackbar('Aset berhasil diperbarui', 'success')
@@ -268,17 +267,17 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             />
             <IconButton onClick={async () => {
               try {
-                await apiFetchClient(`/api/aset/${row.original.id}`, {
+                await apiFetchClient(`/api/ruangan/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(aset => aset.id !== row.original.id))
-                setFilteredData(prev => prev.filter(aset => aset.id !== row.original.id))
+                setData(prev => prev.filter(ruangan => ruangan.id !== row.original.id))
+                setFilteredData(prev => prev.filter(ruangan => ruangan.id !== row.original.id))
 
                 setTotalCount(prev => prev - 1)
-                showSnackbar('Aset berhasil dihapus', 'success')
+                showSnackbar('Ruangan berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
                 const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
@@ -292,12 +291,11 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         enableSorting: false
       })
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, filteredData]
   )
 
   const table = useReactTable({
-    data: filteredData as AsetClient[],
+    data: filteredData as RuanganClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -338,7 +336,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchAsetData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchRuanganData(currentPage, pageSize)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -361,7 +359,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           >
             <CircularProgress size={60} />
             <Typography variant="body1" color="textSecondary">
-              Memuat data aset...
+              Memuat data ruangan...
             </Typography>
           </Box>
         </CardContent>
@@ -425,7 +423,11 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditRuang} />
+              dialog={AddEditRuang}
+              dialogProps={{
+                asetId: asetId
+              }}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
@@ -469,7 +471,7 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    Tidak ada data yang ditambahkan
                   </td>
                 </tr>
               </tbody>
@@ -527,4 +529,4 @@ const ViewAsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   )
 }
 
-export default ViewAsetListTable
+export default ViewRuanganListTable

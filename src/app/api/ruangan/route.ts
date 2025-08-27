@@ -36,15 +36,13 @@ export async function GET(request: NextRequest) {
       ...(search && {
         OR: [
           { nama: { contains: search, mode: 'insensitive' as const } },
-          { alamat: { contains: search, mode: 'insensitive' as const } }
         ]
       }),
       ...(status !== null && status !== '' && { status: status === 'true' })
     }
 
-    // Fetch data dengan relations
     const [data, total] = await Promise.all([
-      prisma.aset.findMany({
+      prisma.ruangan.findMany({
         where,
         include: {
           createdBy: {
@@ -64,7 +62,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.aset.count({ where })
+      prisma.ruangan.count({ where })
     ])
 
     return NextResponse.json({
@@ -76,7 +74,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get aset error:', error)
+    console.error('Get ruangan error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -116,25 +114,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { jenis, nama, alamat, kota, provinsi, status } = body
+    const { nama, status, nominal, asetId } = body
 
     // Validation
-    if (!jenis || !nama || !alamat || !kota || !provinsi) {
+    if (!nama || !status || !nominal || !asetId) {
       return NextResponse.json(
-        { message: 'Jenis, nama, alamat, kota, dan provinsi harus diisi' },
+        { message: 'Jenis, status, dan nominal harus diisi' },
         { status: 400 }
       )
     }
 
-    // Create new aset dengan user relations
-    const newAset = await prisma.aset.create({
+    const newRuangan = await prisma.ruangan.create({
       data: {
-        jenis,
-        nama,
-        alamat,
-        kota,
-        provinsi,
+        asetId: asetId,
+        nama: nama,
         status: status !== undefined ? Boolean(status) : true,
+        nominal: nominal,
         createdById: currentUser.id,
         updatedById: currentUser.id
       },
@@ -155,12 +150,12 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      data: newAset,
-      message: 'Aset berhasil ditambahkan'
+      data: newRuangan,
+      message: 'Ruangan berhasil ditambahkan'
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Create aset error:', error)
+    console.error('Buat ruangan error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
