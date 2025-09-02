@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(request: NextRequest, { user, payload }: AuthContext) {
+async function handleGet(request: NextRequest, { user, payload }: AuthContext) {
   try {
     
     const { searchParams } = new URL(request.url)
@@ -63,28 +63,11 @@ export async function GET(request: NextRequest, { user, payload }: AuthContext) 
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest, { user, payload }: AuthContext) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
+    
     const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
+      where: { id: user.id }
     })
 
     if (!currentUser) {
@@ -144,3 +127,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handleGet)
+export const POST = withAuth(handlePost)
