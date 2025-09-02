@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
+async function handleGetAset(
   request: NextRequest,
   { user, payload }: AuthContext
 ) {
@@ -72,7 +72,7 @@ async function handleGet(
   }
 }
 
-async function handlePost(
+async function handlePostAset(
   request: NextRequest,
   { user, payload }: AuthContext
 ) {
@@ -128,5 +128,5 @@ async function handlePost(
   }
 }
 
-export const GET = withAuth(handleGet)
-export const POST = withAuth(handlePost)
+export const GET = withAuth(handleGetAset)
+export const POST = withAuth(handlePostAset)
