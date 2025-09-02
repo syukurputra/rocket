@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(request: NextRequest, { user, payload }: AuthContext, params?: any) {
+async function handleGet(
+  request: NextRequest,
+  { user, payload }: AuthContext,
+  params?: any // Add this parameter to match the expected signature
+) {
   try {
-
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -46,11 +49,18 @@ async function handleGet(request: NextRequest, { user, payload }: AuthContext, p
       prisma.aset.count({ where })
     ])
 
+    const totalPages = Math.ceil(total / limit)
+
     return NextResponse.json({
       data,
-      total: total,
-      page: page,
-      limit: limit,
+      pagination: {
+        page,
+        limit,
+        totalCount: total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
       message: 'Data retrieved successfully'
     })
 
