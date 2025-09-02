@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(request: NextRequest, { user, payload }: AuthContext) {
+async function handleGet(request: NextRequest, { user, payload }: AuthContext, params?: any) {
   try {
-    
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -65,7 +65,7 @@ async function handleGet(request: NextRequest, { user, payload }: AuthContext) {
 
 async function handlePost(request: NextRequest, { user, payload }: AuthContext) {
   try {
-    
+
     const currentUser = await prisma.user.findUnique({
       where: { id: user.id }
     })

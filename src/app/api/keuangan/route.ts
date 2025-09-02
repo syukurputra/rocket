@@ -5,7 +5,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(
   request: NextRequest,
   { user, payload }: AuthContext,
-  params?: any // Add params parameter to match expected signature
+  params?: any
 ) {
   try {
     const url = new URL(request.url)
