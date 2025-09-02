@@ -11,11 +11,10 @@ const baseCookie = {
   path: '/',
 }
 
-// Simpan token ke cookie (dipakai saat login / refresh)
 export function setSessionCookies(
   res: NextResponse,
   tokens: { accessToken: string; refreshToken: string },
-  maxAge = { accessSec: 60 * 15, refreshSec: 60 * 60 * 24 * 7 } // 15m / 7d
+  maxAge = { accessSec: 60 * 60 * 24, refreshSec: 60 * 60 * 24 * 7 } // 15m / 7d
 ) {
   res.cookies.set(ACCESS_COOKIE, tokens.accessToken, { ...baseCookie, maxAge: maxAge.accessSec })
   res.cookies.set(REFRESH_COOKIE, tokens.refreshToken, { ...baseCookie, maxAge: maxAge.refreshSec })

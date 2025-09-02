@@ -1,30 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(
+async function handleGetKeuangan(
   request: NextRequest,
+  { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { id } = await params
 
     const keuangan = await prisma.keuangan.findUnique({
@@ -68,29 +51,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
+  { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
+      where: { id: user.id }
     })
 
     if (!currentUser) {
@@ -178,27 +144,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
+  { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { id } = await params
 
     const existingKeuangan = await prisma.keuangan.findUnique({

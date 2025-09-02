@@ -1,46 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(request: NextRequest) {
+async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthContext) {
   try {
-    const token = extractTokenFromRequest(request)
+    const url  = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '10')
+    const search = url.searchParams.get('search') || ''
 
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
+    const skip = (page - 1) * limit
+
+    const whereClause: any = {}
+
+    if (search) {
+      whereClause.OR = [
+        { keterangan: { contains: search.trim(), mode: 'insensitive'}}
+      ]
     }
 
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const userId = payload.userId
-
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const search = searchParams.get('search') || ''
-    const jenis = searchParams.get('jenis')
-
-    const where = {
-      createdById: userId,
-    }
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
-    })
+    whereClause.createdById = user.id
 
     const [data, total] = await Promise.all([
       prisma.keuangan.findMany({
-        where,
+        where: whereClause,
         include: {
           createdBy: {
             select: {
@@ -74,7 +58,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { tanggal: 'desc' }
       }),
-      prisma.keuangan.count({ where })
+      prisma.keuangan.count({ where: whereClause })
     ])
 
     return NextResponse.json({
@@ -86,7 +70,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get keuangan error:', error)
+    // console.log(error.message)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -94,37 +78,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
-    })
-
-    if (!currentUser) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      )
-    }
-
     const body = await request.json()
     const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
 
@@ -154,8 +109,8 @@ export async function POST(request: NextRequest) {
         tanggal: transactionDate,
         asetId: asetId,
         iconId: iconId,
-        createdById: currentUser.id,
-        updatedById: currentUser.id
+        createdById: user.id,
+        updatedById: user.id
       },
       include: {
         createdBy: {
@@ -186,3 +141,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handleGetKeuangan)
+export const POST = withAuth(handlePostKeuangan)

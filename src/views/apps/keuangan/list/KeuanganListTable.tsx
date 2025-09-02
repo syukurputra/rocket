@@ -119,6 +119,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   const [data, setData] = useState<KeuanganClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<KeuanganClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
@@ -134,28 +135,49 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     severity: 'success'
   })
 
-  const fetchKeuanganData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchKeuanganData = async (
+    pageNum: number = 0,
+    limitNum: number = 10,
+    search: string = ''
+  ) => {
     try {
       setLoading(true)
       setError(null)
 
-      const qs = new URLSearchParams({
+      const params = new URLSearchParams({
         page: String(pageNum + 1),
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: KeuanganClient[], total: number}>(
-        `/api/keuangan?${qs.toString()}`,
-        undefined, {
-        redirectOn401: '/id/login'
-      })
+      // Add search parameter if exists
+      if (search.trim()) {
+        params.append('search', search.trim())
+      }
+
+      const result = await apiFetchClient<{
+        data: KeuanganClient[]
+        pagination: {
+          totalCount: number
+          totalPages: number
+          page: number
+          limit: number
+          hasNext: boolean
+          hasPrev: boolean
+        }
+      }>(
+        `/api/keuangan?${params.toString()}`,
+        undefined,
+        {
+          redirectOn401: '/id/login'
+        }
+      )
 
       const keuanganData = result.data || []
-      const total = result.total || 0
+      const totalFromAPI = result.pagination?.totalCount || 0
 
       setData(keuanganData)
       setFilteredData(keuanganData)
-      setTotalCount(total)
+      setTotalCount(totalFromAPI)
     } catch (err) {
       console.error('Failed to fetch keuangan data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
@@ -166,19 +188,31 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     }
   }
 
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(0) // Reset to first page when searching
+      fetchKeuanganData(0, pageSize, searchQuery)
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, pageSize])
+
+  // Initial load
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchKeuanganData(currentPage, pageSize)
+      fetchKeuanganData(currentPage, pageSize, searchQuery)
     } else {
       setTotalCount(initialData.length)
     }
   }, [])
 
+  // Page change effect (without search to avoid double calls)
   useEffect(() => {
-    if (initialData.length === 0) {
-      fetchKeuanganData(currentPage, pageSize)
+    if (initialData.length === 0 && currentPage > 0) {
+      fetchKeuanganData(currentPage, pageSize, searchQuery)
     }
-  }, [currentPage, pageSize])
+  }, [currentPage])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -186,6 +220,12 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }))
+  }
+
+  const handleSearchChange = (value: string | number) => {
+    const searchValue = String(value)
+    setSearchQuery(searchValue)
+    setGlobalFilter(searchValue) // Keep local filter in sync for UI
   }
 
   const buttonProps: ButtonProps = {
@@ -232,7 +272,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                 {icon.nama}
               </Typography>
             </div>
-        )
+          )
         }
       }),
       columnHelper.accessor('tanggal', {
@@ -270,13 +310,12 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                 children: <i className='tabler-eye text-textSecondary' />
               }}
               dialog={AddEditKeuangan}
-              // kirim prop ke dialog untuk mode edit + data awal
               dialogProps={{
                 mode: 'edit',
                 initialData: row.original,
                 onSaved: (updated: KeuanganClient) => {
-                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  // Refresh data after edit
+                  fetchKeuanganData(currentPage, pageSize, searchQuery)
                   showSnackbar('Keuangan berhasil diperbarui', 'success')
                 }
               }}
@@ -289,10 +328,8 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
-                setFilteredData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
-
-                setTotalCount(prev => prev - 1)
+                // Refresh data after delete
+                fetchKeuanganData(currentPage, pageSize, searchQuery)
                 showSnackbar('Keuangan berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
@@ -307,8 +344,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         enableSorting: false
       })
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, filteredData]
+    [currentPage, pageSize, searchQuery] // Add dependencies
   )
 
   const table = useReactTable({
@@ -327,6 +363,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     },
     pageCount: Math.ceil(totalCount / pageSize),
     manualPagination: true,
+    manualFiltering: true, // Important: disable client-side filtering
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -353,7 +390,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchKeuanganData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchKeuanganData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -440,12 +477,20 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditKeuangan} />
+              dialog={AddEditKeuangan}
+              dialogProps={{
+                onSaved: () => {
+                  // Refresh data after add
+                  fetchKeuanganData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Keuangan berhasil ditambahkan', 'success')
+                }
+              }}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
+              value={searchQuery}
+              onChange={handleSearchChange}
               placeholder='Cari Keuangan'
               className='max-sm:is-full sm:is-[250px]'
             />
@@ -454,61 +499,60 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>
             <thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id}>
-                      {header.isPlaceholder ? null : (
-                        <>
-                          <div
-                            className={classnames({
-                              'flex items-center': header.column.getIsSorted(),
-                              'cursor-pointer select-none': header.column.getCanSort()
-                            })}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                            {{
-                              asc: <i className='tabler-chevron-up text-xl' />,
-                              desc: <i className='tabler-chevron-down text-xl' />
-                            }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
-                          </div>
-                        </>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <>
+                        <div
+                          className={classnames({
+                            'flex items-center': header.column.getIsSorted(),
+                            'cursor-pointer select-none': header.column.getCanSort()
+                          })}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {{
+                            asc: <i className='tabler-chevron-up text-xl' />,
+                            desc: <i className='tabler-chevron-down text-xl' />
+                          }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                        </div>
+                      </>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
             </thead>
             {table.getFilteredRowModel().rows.length === 0 ? (
               <tbody>
-                <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
-                  </td>
-                </tr>
+              <tr>
+                <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                  {searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
+                </td>
+              </tr>
               </tbody>
             ) : (
               <tbody>
-                {table
-                  .getRowModel()
-                  .rows.slice(0, table.getState().pagination.pageSize)
-                  .map(row => {
-                    return (
-                      <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                        {row.getVisibleCells().map(cell => (
-                          <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                        ))}
-                      </tr>
-                    )
-                  })}
+              {table
+                .getRowModel()
+                .rows.map(row => {
+                  return (
+                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      ))}
+                    </tr>
+                  )
+                })}
               </tbody>
             )}
           </table>
         </div>
         <TablePagination
           component={() => <TablePaginationComponent table={table} />}
-          count={table.getFilteredRowModel().rows.length}
+          count={totalCount} // Use totalCount from API
           rowsPerPage={table.getState().pagination.pageSize}
           page={table.getState().pagination.pageIndex}
           onPageChange={(_, page) => {

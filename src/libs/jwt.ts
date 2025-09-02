@@ -17,11 +17,26 @@ function resolveExpires(v: string | undefined, fallbackSec: number): SignOptions
   return Number.isFinite(n) ? n : (v as unknown as SignOptions['expiresIn'])
 }
 
-const ACCESS_TOKEN_EXPIRES = resolveExpires(process.env.ACCESS_TOKEN_TTL, 60 * 15)          // 15 menit
+const ACCESS_TOKEN_EXPIRES = resolveExpires(process.env.ACCESS_TOKEN_TTL, 60 * 60 * 24)    // 1 hari
 const REFRESH_TOKEN_EXPIRES = resolveExpires(process.env.REFRESH_TOKEN_TTL, 60 * 60 * 24 * 7) // 7 hari
 
 export type AccessPayload = { userId: string; username: string; email: string }
 export type RefreshPayload = { userId: string; tokenVersion: number }
+
+// Custom error types untuk better error handling
+export class TokenExpiredError extends Error {
+  constructor(message: string = 'Token has expired') {
+    super(message)
+    this.name = 'TokenExpiredError'
+  }
+}
+
+export class TokenInvalidError extends Error {
+  constructor(message: string = 'Token is invalid') {
+    super(message)
+    this.name = 'TokenInvalidError'
+  }
+}
 
 export function signAccessToken(payload: AccessPayload, opts: SignOptions = {}) {
   ensure(ACCESS_TOKEN_SECRET, 'JWT_SECRET')
@@ -35,12 +50,42 @@ export function signRefreshToken(payload: RefreshPayload, opts: SignOptions = {}
 
 export function verifyAccessToken(token: string): JwtPayload & AccessPayload {
   ensure(ACCESS_TOKEN_SECRET, 'JWT_SECRET')
-  return jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload & AccessPayload
+  try {
+    return jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload & AccessPayload
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new TokenExpiredError('Access token has expired')
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new TokenInvalidError('Access token is invalid')
+    }
+    throw error
+  }
 }
 
 export function verifyRefreshToken(token: string): JwtPayload & RefreshPayload {
   ensure(REFRESH_TOKEN_SECRET, 'JWT_REFRESH_SECRET')
-  return jwt.verify(token, REFRESH_TOKEN_SECRET) as JwtPayload & RefreshPayload
+  try {
+    return jwt.verify(token, REFRESH_TOKEN_SECRET) as JwtPayload & RefreshPayload
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new TokenExpiredError('Refresh token has expired')
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new TokenInvalidError('Refresh token is invalid')
+    }
+    throw error
+  }
+}
+
+// Safe verify function yang return null instead of throwing
+export function safeVerifyAccessToken(token: string): (JwtPayload & AccessPayload) | null {
+  try {
+    return verifyAccessToken(token)
+  } catch (error) {
+    console.error('Token verification failed:', error)
+    return null
+  }
 }
 
 export function extractTokenFromRequest(request: NextRequest): string | null {
@@ -129,5 +174,9 @@ export function createAuthHeaders(token: string): HeadersInit {
 }
 
 export function isJwtExpired(err: unknown): boolean {
-  return err instanceof jwt.TokenExpiredError
+  return err instanceof jwt.TokenExpiredError || err instanceof TokenExpiredError
+}
+
+export function isJwtInvalid(err: unknown): boolean {
+  return err instanceof jwt.JsonWebTokenError || err instanceof TokenInvalidError
 }
