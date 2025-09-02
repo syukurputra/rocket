@@ -4,7 +4,6 @@ import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token
     const token = extractTokenFromRequest(request)
 
     if (!token) {
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
       where: { id: payload.userId }
     })
 
-    // Fetch data dengan relations
     const [data, total] = await Promise.all([
       prisma.keuangan.findMany({
         where,
@@ -98,7 +96,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify JWT token
     const token = extractTokenFromRequest(request)
 
     if (!token) {
@@ -117,7 +114,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get current user
     const currentUser = await prisma.user.findUnique({
       where: { id: payload.userId }
     })
@@ -132,7 +128,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
 
-    // Validation
     if (!jenis || !nominal || !asetId) {
       return NextResponse.json(
         { message: 'jenis, nominal, aset, tanggal transaksi harus diisi' },

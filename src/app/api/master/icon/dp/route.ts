@@ -4,7 +4,6 @@ import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token
     const token = extractTokenFromRequest(request)
 
     if (!token) {
@@ -23,36 +22,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // const userId = payload.userId
-    //
-    // const currentUser = await prisma.user.findUnique({
-    //   where: { id: payload.userId }
-    // })
-    //
-    // const masteIcon = await prisma.masterIcon.create({
-    //   data: {
-    //     nama: "Sewa Kantor",
-    //     code: "tabler-home",
-    //     jenis: "pemasukan",
-    //     createdById: currentUser.id,
-    //     updatedById: currentUser.id
-    //   },
-    //   include: {
-    //     createdBy: {
-    //       select: {
-    //         id: true,
-    //         username: true
-    //       }
-    //     },
-    //     updatedBy: {
-    //       select: {
-    //         id: true,
-    //         username: true
-    //       }
-    //     }
-    //   }
-    // })
-
     const { searchParams } = new URL(request.url)
     const jenisFilter = searchParams.get('jenis') // Get jenis filter from query params
     const where: any = {}
@@ -61,7 +30,6 @@ export async function GET(request: NextRequest) {
       where.jenis = jenisFilter
     }
 
-    // Fetch data dengan relations
     const [data] = await Promise.all([
       prisma.masterIcon.findMany({
         where,

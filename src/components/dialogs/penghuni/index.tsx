@@ -12,7 +12,7 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
-import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
+import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -28,24 +28,24 @@ type Props = {
   open: boolean
   setOpen: (open: boolean) => void
   mode?: 'create' | 'edit'
-  initialData?: KeuanganClient | null
-  onSaved?: (data: KeuanganClient) => void
+  initialData?: PenghuniClient | null
+  onSaved?: (data: PenghuniClient) => void
 }
 
 type FormValues = {
   id?: string
-  jenis: string
-  keterangan: string
-  nominal: number
+  nama: string
+  status: string
+  mulaiHuni: Date | null
+  selesaiHuni: Date | null
   asetId: string
-  iconId: string
-  tanggal: Date | null
+  ruanganId: string
 }
 
-const JENIS_OPTIONS = [
-  { label: 'Jenis Keuangan', value: '' },
-  { label: 'Pemasukan', value: 'pemasukan' },
-  { label: 'Pengeluaran', value: 'pengeluaran' },
+const STATUS_OPTIONS = [
+  { label: 'Pilih Status', value: '' },
+  { label: 'Huni', value: 'huni' },
+  { label: 'Tidak Huni', value: 'tidak dihuni' },
 ]
 
 type AsetOption = {
@@ -54,35 +54,33 @@ type AsetOption = {
   jenis: string
 }
 
-type IconOption = {
+type RuanganOption = {
   id: string
   nama: string
-  code: string
-  color: string
-  jenis: string
+  asetId: string
 }
 
 const DEFAULTS: FormValues = {
-  jenis: '',
-  keterangan: '',
-  nominal: 0.0,
+  nama: '',
+  status: '',
   asetId: '',
-  iconId: '',
-  tanggal: new Date()
+  ruanganId: '',
+  mulaiHuni: new Date(),
+  selesaiHuni: new Date()
 }
 
 const Icon = styled('i')({})
 
-export default function AddEditKeuangan({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
+export default function AddEditPenghuni({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<KeuanganClient | null>(null)
+  const [pendingSaved, setPendingSaved] = useState<PenghuniClient | null>(null)
 
   const [asetOptions, setAsetOptions] = useState<AsetOption[]>([])
-  const [iconOptions, setIconOptions] = useState<IconOption[]>([])
+  const [ruanganOptions, setRuanganOptions] = useState<RuanganOption[]>([])
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
@@ -104,12 +102,11 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         setAsetOptions(asetResponse.data || [])
 
         try {
-          const iconResponse = await apiFetchClient<{ data: IconOption[] }>('/api/master-icon/dp')
-          setIconOptions(iconResponse.data || [])
+          const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>('/api/ruangan/dp')
+          setRuanganOptions(ruanganResponse.data || [])
         } catch (iconError) {
-          setIconOptions([
-            { id: 'temp-1', nama: 'Kategori 1', code: 'tabler-home', jenis: 'pemasukan', color: 'primary-main' },
-            { id: 'temp-2', nama: 'Kategori 2', code: 'tabler-cash', jenis: 'pengeluaran', color: 'primary-main' }
+          setRuanganOptions([
+            { id: 'temp-1', nama: 'Ruangan 1', asetId: '1' }
           ])
         }
       } catch (error) {
@@ -124,25 +121,25 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
   }, [open])
 
   useEffect(() => {
-    if (!form.jenis) {
+    if (!form.asetId) {
       return
     }
 
-    const loadIconsByJenis = async () => {
+    const loadRuangansByAset = async () => {
       try {
         try {
-          const iconResponse = await apiFetchClient<{ data: IconOption[] }>(`/api/master/icon/dp?jenis=${form.jenis}`)
-          setIconOptions(iconResponse.data || [])
+          const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>(`/api/ruangan/dp?asetId=${form.asetId}`)
+          setRuanganOptions(ruanganResponse.data || [])
         } catch (apiError) {
-          const filteredIcons = iconOptions.filter(icon =>
-            !icon.jenis || icon.jenis === form.jenis
+          const filteredRuangans = ruanganOptions.filter(ruangan =>
+            !ruangan.asetId || ruangan.asetId === form.asetId
           )
-          setIconOptions(filteredIcons)
+          setRuanganOptions(filteredRuangans)
         }
 
-        if (form.iconId) {
-          const iconExists = iconOptions.some(icon =>
-            icon.id === form.iconId && (!icon.jenis || icon.jenis === form.jenis)
+        if (form.ruanganId) {
+          const iconExists = ruanganOptions.some(ruangan =>
+            ruangan.id === form.ruanganId && (!ruangan.asetId || ruangan.asetId === form.asetId)
           )
           if (!iconExists) {
             setForm(prev => ({ ...prev, iconId: '' }))
@@ -153,56 +150,34 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
       }
     }
 
-    loadIconsByJenis()
-  }, [form.jenis])
+    loadRuangansByAset()
+  }, [form.asetId])
+
+  const handleChange =
+    (key: keyof FormValues) =>
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm(prev => ({ ...prev, [key]: e.target.value }))
+      }
 
   useEffect(() => {
     if (!open) return
     if (mode === 'edit' && initialData) {
       setForm({
         id: initialData.id,
-        jenis: initialData.jenis ?? '',
-        keterangan: initialData.keterangan ?? '',
-        nominal: initialData.nominal ?? 0.0,
+        nama: initialData.nama ?? '',
+        status: initialData.status ?? '',
+        mulaiHuni: initialData.mulaiHuni ? new Date(initialData.mulaiHuni) : new Date(),
+        selesaiHuni: initialData.selesaiHuni ? new Date(initialData.selesaiHuni) : new Date(),
         asetId: initialData.asetId ?? '',
-        iconId: initialData.iconId ?? '',
-        tanggal: initialData.tanggal ? new Date(initialData.tanggal) : new Date()
+        ruanganId: initialData.ruanganId ?? '',
       })
     } else {
       setForm(DEFAULTS)
     }
   }, [open, mode, initialData])
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (key === 'nominal') {
-          // Remove all non-digit characters except decimal point
-          const rawValue = e.target.value.replace(/[^\d.]/g, '')
-          const numericValue = parseFloat(rawValue) || 0
-          setForm(prev => ({ ...prev, [key]: numericValue }))
-        } else {
-          setForm(prev => ({ ...prev, [key]: e.target.value }))
-        }
-      }
-
-  const formatNumber = (num: number): string => {
-    if (!num) return ''
-    return num.toLocaleString('id-ID', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    })
-  }
-
-  const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/[^\d,]/g, '') // Keep comma for decimal
-    rawValue = rawValue.replace(',', '.') // Convert comma to dot
-    const numericValue = parseFloat(rawValue) || 0
-    setForm(prev => ({ ...prev, nominal: numericValue }))
-  }
-
   const handleSubmit = async () => {
-    if (!form.jenis || !form.asetId || !form.iconId || form.nominal <= 0 || !form.tanggal) {
+    if (!form.nama || !form.status || !form.asetId || !form.ruanganId) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
       return
     }
@@ -210,15 +185,15 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
     setSaving(true)
     try {
       if (mode === 'edit' && form.id) {
-        const json = await apiFetchClient<{ data: KeuanganClient; message?: string }>(`/api/keuangan/${form.id}`, {
+        const json = await apiFetchClient<{ data: PenghuniClient; message?: string }>(`/api/penghuni/${form.id}`, {
           method: 'PUT',
           body: JSON.stringify({
-            jenis: form.jenis,
-            keterangan: form.keterangan,
-            nominal: form.nominal,
+            nama: form.nama,
+            status: form.status,
             asetId: form.asetId,
-            iconId: form.iconId,
-            tanggal: form.tanggal.toISOString()
+            ruanganId: form.ruanganId,
+            mulaiHuni: form.mulaiHuni.toISOString(),
+            selesaiHuni: form.selesaiHuni.toISOString()
           })
         })
         setPendingSaved(json.data)
@@ -227,19 +202,19 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
           window.location.reload()
         }, 3000)
       } else {
-        const json = await apiFetchClient<{ data: KeuanganClient; message?: string }>(`/api/keuangan`, {
+        const json = await apiFetchClient<{ data: PenghuniClient; message?: string }>(`/api/penghuni`, {
           method: 'POST',
           body: JSON.stringify({
-            jenis: form.jenis,
-            keterangan: form.keterangan,
-            nominal: form.nominal,
+            nama: form.nama,
+            status: form.status,
             asetId: form.asetId,
-            iconId: form.iconId,
-            tanggal: form.tanggal.toISOString()
+            ruanganId: form.ruanganId,
+            mulaiHuni: form.mulaiHuni.toISOString(),
+            selesaiHuni: form.selesaiHuni.toISOString()
           })
         })
         setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil ditambahkan', severity: 'success' })
+        setSnack({ open: true, message: json.message ?? 'Penghuni berhasil ditambahkan', severity: 'success' })
         setTimeout(() => {
           window.location.reload()
         }, 3000)
@@ -263,7 +238,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         sx={{ '& .MuiDialog-paper': { overflow: 'visible' } }}
       >
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
-          {mode === 'edit' ? 'Ubah Keuangan' : 'Tambah Keuangan'}
+          {mode === 'edit' ? 'Ubah Penghuni' : 'Tambah Penghuni'}
         </DialogTitle>
         <form onSubmit={(e) => {
           e.preventDefault()
@@ -274,23 +249,6 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6}}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Jenis Keuangan'
-                  name='jenis'
-                  variant='outlined'
-                  value={form.jenis}
-                  onChange={handleChange('jenis')}
-                >
-                  {JENIS_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   select
@@ -316,69 +274,81 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                 <CustomTextField
                   select
                   fullWidth
-                  label='Kategori Keuangan'
-                  name='iconId'
+                  label='Pilih Ruangan'
+                  name='ruanganId'
                   variant='outlined'
-                  value={form.iconId}
-                  onChange={handleChange('iconId')}
+                  value={form.ruanganId}
+                  onChange={handleChange('ruanganId')}
                   disabled={loading}
                 >
                   <MenuItem value="">
-                    <em>Pilih Kategori</em>
+                    <em>Pilih Ruangan</em>
                   </MenuItem>
-                  {iconOptions.map(icon => (
-                    <MenuItem key={icon.id} value={icon.id}>
+                  {ruanganOptions.map(ruangan => (
+                    <MenuItem key={ruangan.id} value={ruangan.id}>
                       <div className="flex items-center gap-2">
-                        <Icon
-                          className={icon.code}
-                          sx={{ color: `var(--mui-palette-${icon.color})` }}
-                        />
                         <Typography className="capitalize" color="text.primary">
-                          {icon.nama}
+                          {ruangan.nama}
                         </Typography>
                       </div>
                     </MenuItem>
                   ))}
                 </CustomTextField>
               </Grid>
+              <Grid size={{ xs: 12, sm: 6}}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Pilih Status'
+                  name='status'
+                  variant='outlined'
+                  value={form.status}
+                  onChange={handleChange('status')}
+                >
+                  {STATUS_OPTIONS.map(opt => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <AppReactDatepicker
-                  selected={form.tanggal}
-                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, tanggal: date }))}
+                  selected={form.mulaiHuni}
+                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiHuni: date }))}
                   placeholderText='MM/DD/YYYY'
                   customInput={
                   <CustomTextField
                     fullWidth
-                    label='Tanggal Transaksi'
+                    label='Tanggal Mulai Huni'
                     placeholder='MM-DD-YYYY'
                     required
                   />}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
-                <CustomTextField
-                  fullWidth
-                  label="Keterangan"
-                  name="keterangan"
-                  variant="outlined"
-                  placeholder='Keterangan'
-                  value={form.keterangan}
-                  onChange={handleChange('keterangan')}
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <AppReactDatepicker
+                  selected={form.selesaiHuni}
+                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, selesaiHuni: date }))}
+                  placeholderText='MM/DD/YYYY'
+                  customInput={
+                    <CustomTextField
+                      fullWidth
+                      label='Tanggal Selesai Huni'
+                      placeholder='MM-DD-YYYY'
+                      required
+                    />}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label='Nominal'
-                  placeholder='10.000.000'
-                  value={formatNumber(form.nominal)}
-                  onChange={handleNominalChange}
-                  disabled={loading}
-                  inputProps={{
-                    inputMode: 'decimal',
-                    pattern: '[0-9.,]*'
-                  }}
-                  helperText="Contoh: 10.000.000"
+                  label="Nama"
+                  name="nama"
+                  variant="outlined"
+                  placeholder='Nama'
+                  value={form.nama}
+                  onChange={handleChange('nama')}
                 />
               </Grid>
             </Grid>
@@ -387,7 +357,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             <Button variant='text' onClick={() => setOpen(false)} disabled={saving}>
               Batal
             </Button>
-            <Button variant='contained' type='submit' disabled={saving || !form.jenis || !form.nominal}>
+            <Button variant='contained' type='submit' disabled={saving || !form.nama || !form.asetId || !form.ruanganId}>
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>

@@ -3,21 +3,26 @@
 // React Imports
 import { useState, useEffect, useMemo } from 'react'
 
+// Next Imports
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
+import Checkbox from '@mui/material/Checkbox'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
+import Tooltip from '@mui/material/Tooltip'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
-import { styled } from '@mui/material/styles'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -37,7 +42,8 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
+// Type Imports
+import type { IconClient } from '@/src/types/apps/iconTypes'
 
 // Component Imports
 import TablePaginationComponent from '@components/TablePaginationComponent'
@@ -45,10 +51,12 @@ import CustomTextField from '@core/components/mui/TextField'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-import type { ButtonProps } from '@mui/material/Button'
-import dayjs from "dayjs"
 
-import AddEditKeuangan from '@components/dialogs/keuangan'
+// MUI Imports
+import type { ButtonProps } from '@mui/material/Button'
+import { styled } from '@mui/material/styles'
+
+import AddEditIcon from '@components/dialogs/master/icon'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -61,18 +69,13 @@ declare module '@tanstack/table-core' {
   }
 }
 
-const Icon = styled('i')({})
-
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
-  // Rank the item
   const itemRank = rankItem(row.getValue(columnId), value)
 
-  // Store the itemRank info
   addMeta({
     itemRank
   })
 
-  // Return if the item should be filtered in/out
   return itemRank.passed
 }
 
@@ -86,7 +89,6 @@ const DebouncedInput = ({
   onChange: (value: string | number) => void
   debounce?: number
 } & Omit<TextFieldProps, 'onChange'>) => {
-  // States
   const [value, setValue] = useState(initialValue)
 
   useEffect(() => {
@@ -99,29 +101,31 @@ const DebouncedInput = ({
     }, debounce)
 
     return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-type KeuanganClientWithAction = KeuanganClient & { action?: string }
+type IconClientWithAction = IconClient & { action?: string }
 
 // Column Definitions
-const columnHelper = createColumnHelper<KeuanganClientWithAction>()
+const columnHelper = createColumnHelper<IconClientWithAction>()
 
-interface KeuanganListTableProps {
-  initialData?: KeuanganClient[]
+interface IconListTableProps {
+  initialData?: IconClient[]
 }
 
-const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
+const Icon = styled('i')({})
+
+const IconListTable = ({ initialData = [] }: IconListTableProps) => {
+  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<KeuanganClientWithAction[]>(initialData)
-  const [filteredData, setFilteredData] = useState<KeuanganClientWithAction[]>(initialData)
+  const [data, setData] = useState<IconClientWithAction[]>(initialData)
+  const [filteredData, setFilteredData] = useState<IconClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
+  const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [snackbar, setSnackbar] = useState<{
@@ -134,7 +138,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     severity: 'success'
   })
 
-  const fetchKeuanganData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchIconData = async (pageNum: number = 0, limitNum: number = 10) => {
     try {
       setLoading(true)
       setError(null)
@@ -144,20 +148,20 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: KeuanganClient[], total: number}>(
-        `/api/keuangan?${qs.toString()}`,
+      const result = await apiFetchClient<{data: IconClient[], total: number}>(
+        `/api/master/icon?${qs.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
 
-      const keuanganData = result.data || []
+      const iconData = result.data || []
       const total = result.total || 0
 
-      setData(keuanganData)
-      setFilteredData(keuanganData)
+      setData(iconData)
+      setFilteredData(iconData)
       setTotalCount(total)
     } catch (err) {
-      console.error('Failed to fetch keuangan data:', err)
+      console.error('Failed to fetch icon data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -168,7 +172,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchKeuanganData(currentPage, pageSize)
+      fetchIconData(currentPage, pageSize)
     } else {
       setTotalCount(initialData.length)
     }
@@ -176,7 +180,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchKeuanganData(currentPage, pageSize)
+      fetchIconData(currentPage, pageSize)
     }
   }, [currentPage, pageSize])
 
@@ -193,10 +197,14 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     children: 'Tambah'
   }
 
-  const columns = useMemo<ColumnDef<KeuanganClientWithAction, any>[]>(
+  const columns = useMemo<ColumnDef<IconClientWithAction, any>[]>(
     () => [
+      columnHelper.accessor('nama', {
+        header: 'Nama',
+        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
+      }),
       columnHelper.accessor('jenis', {
-        header: 'Jenis Keuangan',
+        header: 'Jenis',
         cell: ({ row }) => {
           return row.original.jenis === 'pemasukan' ? (
             <Chip label='Pemasukan' color='success' size='small' variant='tonal' />
@@ -205,56 +213,25 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           )
         }
       }),
-      columnHelper.accessor('asetId', {
-        header: 'Aset',
+      columnHelper.accessor('code', {
+        header: 'Icon',
         cell: ({ row }) => {
-          const aset = (row.original as any).aset
           return (
-            <Typography>
-              {aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}
-            </Typography>
+            <Icon
+              className={row.original.code}
+              sx={{ color: `var(--mui-palette-${row.original.code})` }}
+            />
           )
         }
       }),
-      columnHelper.accessor('iconId', {
-        header: 'Kategori',
+      columnHelper.accessor('color', {
+        header: 'Warna',
         cell: ({ row }) => {
-          const icon = (row.original as any).icon
-          if (!icon) return <Typography>-</Typography>
-
           return (
-            <div className="flex items-center gap-2">
-              <Icon
-                className={icon.code}
-                sx={{ color: `var(--mui-palette-${icon.color})` }}
-              />
-              <Typography className="capitalize" color="text.primary">
-                {icon.nama}
-              </Typography>
-            </div>
-        )
-        }
-      }),
-      columnHelper.accessor('tanggal', {
-        header: 'Tanggal Transaksi',
-        cell: ({ row }) => <Typography>{dayjs(row.original.tanggal).format("DD-MM-YYYY")}</Typography>
-      }),
-      columnHelper.accessor('keterangan', {
-        header: 'Keterangan',
-        cell: ({ row }) => <Typography>{`${row.original.keterangan}`}</Typography>
-      }),
-      columnHelper.accessor('nominal', {
-        header: 'Nominal',
-        cell: ({ row }) => {
-          const formatNumber = (num: number): string => {
-            if (!num || num === 0) return '0'
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-          }
-
-          return (
-            <Typography>
-              Rp{formatNumber(row.original.nominal)}
-            </Typography>
+            <Icon
+              className='tabler-color-filter'
+              sx={{ color: `var(--mui-palette-${row.original.color})` }}
+            />
           )
         }
       }),
@@ -269,31 +246,30 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                 'aria-label': 'Preview / Edit',
                 children: <i className='tabler-eye text-textSecondary' />
               }}
-              dialog={AddEditKeuangan}
-              // kirim prop ke dialog untuk mode edit + data awal
+              dialog={AddEditIcon}
               dialogProps={{
                 mode: 'edit',
                 initialData: row.original,
-                onSaved: (updated: KeuanganClient) => {
+                onSaved: (updated: IconClient) => {
                   setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
                   setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  showSnackbar('Keuangan berhasil diperbarui', 'success')
+                  showSnackbar('Icon berhasil diperbarui', 'success')
                 }
               }}
             />
             <IconButton onClick={async () => {
               try {
-                await apiFetchClient(`/api/keuangan/${row.original.id}`, {
+                await apiFetchClient(`/api/master/icon/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
-                setFilteredData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
+                setData(prev => prev.filter(icon => icon.id !== row.original.id))
+                setFilteredData(prev => prev.filter(icon => icon.id !== row.original.id))
 
                 setTotalCount(prev => prev - 1)
-                showSnackbar('Keuangan berhasil dihapus', 'success')
+                showSnackbar('Icon berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
                 const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
@@ -307,12 +283,11 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         enableSorting: false
       })
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, filteredData]
   )
 
   const table = useReactTable({
-    data: filteredData as KeuanganClient[],
+    data: filteredData as IconClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -353,7 +328,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchKeuanganData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchIconData(currentPage, pageSize)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -376,7 +351,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           >
             <CircularProgress size={60} />
             <Typography variant="body1" color="textSecondary">
-              Memuat data keuangan...
+              Memuat data icon...
             </Typography>
           </Box>
         </CardContent>
@@ -440,13 +415,13 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditKeuangan} />
+              dialog={AddEditIcon} />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
               value={globalFilter ?? ''}
               onChange={value => setGlobalFilter(String(value))}
-              placeholder='Cari Keuangan'
+              placeholder='Cari Icon'
               className='max-sm:is-full sm:is-[250px]'
             />
           </div>
@@ -542,4 +517,4 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   )
 }
 
-export default KeuanganListTable
+export default IconListTable

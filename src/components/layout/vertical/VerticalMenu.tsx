@@ -8,7 +8,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
 
 // Component Imports
-import { Menu, MenuItem } from '@menu/vertical-menu'
+import { Menu, SubMenu, MenuItem } from '@menu/vertical-menu'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
@@ -80,16 +80,12 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/id/penghuni/list' icon={<i className='tabler-friends' />}>
           Penghuni
         </MenuItem>
+        <SubMenu label='Management Master' icon={<i className='tabler-adjustments' />}>
+          <MenuItem href='/id/master/icon/list' icon={<i className='tabler-favicon' />}>
+            Kategori Keuangan
+          </MenuItem>
+        </SubMenu>
       </Menu>
-      {/* <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <GenerateVerticalMenu menuData={menuData(dictionary)} />
-      </Menu> */}
     </ScrollWrapper>
   )
 }

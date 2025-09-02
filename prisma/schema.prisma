@@ -34,6 +34,8 @@ model User {
   keuanganUpdated  Keuangan[]   @relation("KeuanganUpdatedBy")
   ruanganCreated   Ruangan[]    @relation("RuanganCreatedBy")
   ruanganUpdated   Ruangan[]    @relation("RuanganUpdatedBy")
+  penghuniCreated  Penghuni[]    @relation("PenghuniCreatedBy")
+  penghuniUpdated  Penghuni[]    @relation("PenghuniUpdatedBy")
 
   @@map("user")
 }
@@ -58,6 +60,7 @@ model Aset {
 
   keuangan    Keuangan[]
   ruangan     Ruangan[]
+  penghuni    Penghuni[]
 
   @@map("aset")
 }
@@ -78,6 +81,8 @@ model Ruangan {
 
   asetId     String
   aset       Aset       @relation(fields: [asetId], references: [id])
+
+  penghuni    Penghuni[]
 
   @@map("ruangan")
 }
@@ -124,4 +129,28 @@ model Keuangan {
   icon       MasterIcon @relation(fields: [iconId], references: [id])
 
   @@map("keuangan")
+}
+
+model Penghuni {
+  id          String   @id @default(cuid())
+  nama        String
+  status      String   @default("KOSONG")
+  mulaiHuni   DateTime @default(now())
+  selesaiHuni DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  updatedById String
+
+  createdBy   User     @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
+
+  asetId     String
+  aset       Aset      @relation(fields: [asetId], references: [id])
+
+  ruanganId  String
+  ruangan    Ruangan   @relation(fields: [ruanganId], references: [id])
+
+  @@map("penghuni")
 }

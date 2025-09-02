@@ -1,16 +1,16 @@
 import Grid from '@mui/material/Grid2'
 
-import KeuanganList from '@views/apps/keuangan/list'
+import AsetList from '@views/apps/master/icon/list'
 
-const KeuanganApp = async () => {
+const MasterIconApp = async () => {
 
   return (
     <Grid container>
       <Grid size={{ xs: 12 }}>
-        <KeuanganList />
+        <AsetList />
       </Grid>
     </Grid>
   )
 }
 
-export default KeuanganApp
+export default MasterIconApp

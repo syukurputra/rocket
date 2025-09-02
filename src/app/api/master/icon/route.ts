@@ -22,27 +22,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = payload.userId
-
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
-    const status = searchParams.get('status')
 
     const where = {
-      createdById: userId,
       ...(search && {
         OR: [
           { nama: { contains: search, mode: 'insensitive' as const } },
-          { alamat: { contains: search, mode: 'insensitive' as const } }
         ]
-      }),
-      ...(status !== null && status !== '' && { status: status === 'true' })
+      })
     }
 
     const [data, total] = await Promise.all([
-      prisma.aset.findMany({
+      prisma.masterIcon.findMany({
         where,
         include: {
           createdBy: {
@@ -74,7 +68,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get aset error:', error)
+    console.error('Get icon error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -114,23 +108,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { jenis, nama, alamat, kota, provinsi, status } = body
+    const { nama, jenis, code, color } = body
 
-    if (!jenis || !nama || !alamat || !kota || !provinsi) {
+    // Validation
+    if (!nama || !jenis || !code) {
       return NextResponse.json(
-        { message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' },
+        { message: 'Nama, jenis dan code harus diisi' },
         { status: 400 }
       )
     }
 
-    const newAset = await prisma.aset.create({
+    const newIcon = await prisma.masterIcon.create({
       data: {
-        jenis,
-        nama,
-        alamat,
-        kota,
-        provinsi,
-        status: status !== undefined ? Boolean(status) : true,
+        nama: nama,
+        jenis: jenis,
+        code: code,
+        color: color,
         createdById: currentUser.id,
         updatedById: currentUser.id
       },
@@ -151,12 +144,12 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      data: newAset,
-      message: 'Aset berhasil ditambahkan'
+      data: newIcon,
+      message: 'Icon berhasil ditambahkan'
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Create aset error:', error)
+    console.error('Create icon error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

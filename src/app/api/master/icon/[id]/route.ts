@@ -27,7 +27,7 @@ export async function GET(
 
     const { id } = await params
 
-    const aset = await prisma.aset.findUnique({
+    const icon = await prisma.masterIcon.findUnique({
       where: { id },
       include: {
         createdBy: {
@@ -45,20 +45,20 @@ export async function GET(
       }
     })
 
-    if (!aset) {
+    if (!icon) {
       return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
+        { message: 'Icon tidak ditemukan' },
         { status: 404 }
       )
     }
 
     return NextResponse.json({
-      data: aset,
+      data: icon,
       message: 'Data retrieved successfully'
     })
 
   } catch (error) {
-    console.error('Get aset by ID error:', error)
+    console.error('Get icon by ID error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -102,28 +102,26 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { jenis, nama, alamat, kota, provinsi, status } = body
+    const { nama, jenis, code, color } = body
 
-    const existingAset = await prisma.aset.findUnique({
+    const existingIcon = await prisma.masterIcon.findUnique({
       where: { id }
     })
 
-    if (!existingAset) {
+    if (!existingIcon) {
       return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
+        { message: 'Icon tidak ditemukan' },
         { status: 404 }
       )
     }
-    
-    const updatedAset = await prisma.aset.update({
+
+    const updatedAset = await prisma.masterIcon.update({
       where: { id },
       data: {
-        ...(jenis && { jenis }),
         ...(nama && { nama }),
-        ...(alamat && { alamat }),
-        ...(kota && { kota }),
-        ...(provinsi && { provinsi }),
-        ...(status !== undefined && { status: Boolean(status) }),
+        ...(jenis && { jenis }),
+        ...(code && { code }),
+        ...(color && { color }),
         updatedById: currentUser.id
       },
       include: {
@@ -144,11 +142,11 @@ export async function PUT(
 
     return NextResponse.json({
       data: updatedAset,
-      message: 'Aset berhasil diupdate'
+      message: 'Icon berhasil diupdate'
     })
 
   } catch (error) {
-    console.error('Update aset error:', error)
+    console.error('Update icon error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -181,32 +179,30 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Check if aset exists
-    const existingAset = await prisma.aset.findUnique({
+    const existingIcon = await prisma.masterIcon.findUnique({
       where: { id }
     })
 
-    if (!existingAset) {
+    if (!existingIcon) {
       return NextResponse.json(
         { message: 'Aset tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    await prisma.aset.delete({
+    await prisma.masterIcon.delete({
       where: { id }
     })
 
     return NextResponse.json({
-      message: 'Aset berhasil dihapus'
+      message: 'Icon berhasil dihapus'
     })
 
   } catch (error) {
-    console.error('Delete aset error:', error)
+    console.error('Delete icon error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
     )
   }
 }
-

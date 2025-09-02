@@ -9,7 +9,10 @@ const protectedRoutes = [
   /^\/id\/home(\/|$)/,
   /^\/id\/aset\/list(\/|$)/,
   /^\/id\/aset\/view(\/|$)/,
-  /^\/id\/keuangan\/list(\/|$)/]
+  /^\/id\/keuangan\/list(\/|$)/,
+  /^\/id\/penghuni\/list(\/|$)/,
+  /^\/id\/master\/icon\/list(\/|$)/,
+]
 const authRoutes = [/^\/id\/login(\/|$)/, /^\/id\/register(\/|$)/]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {

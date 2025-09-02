@@ -89,7 +89,6 @@ export async function PUT(
       )
     }
 
-    // Get current user
     const currentUser = await prisma.user.findUnique({
       where: { id: payload.userId }
     })

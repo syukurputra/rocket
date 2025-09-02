@@ -27,7 +27,7 @@ export async function GET(
 
     const { id } = await params
 
-    const aset = await prisma.aset.findUnique({
+    const penghuni = await prisma.penghuni.findUnique({
       where: { id },
       include: {
         createdBy: {
@@ -45,20 +45,20 @@ export async function GET(
       }
     })
 
-    if (!aset) {
+    if (!penghuni) {
       return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
+        { message: 'Penghuni tidak ditemukan' },
         { status: 404 }
       )
     }
 
     return NextResponse.json({
-      data: aset,
+      data: penghuni,
       message: 'Data retrieved successfully'
     })
 
   } catch (error) {
-    console.error('Get aset by ID error:', error)
+    console.error('Get penghuni by ID error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -89,7 +89,7 @@ export async function PUT(
       )
     }
 
-    const currentUser = await prisma.user.findUnique({
+    const currentUser = await prisma.penghuni.findUnique({
       where: { id: payload.userId }
     })
 
@@ -102,28 +102,50 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { jenis, nama, alamat, kota, provinsi, status } = body
+    const { nama, status, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
 
-    const existingAset = await prisma.aset.findUnique({
+    let mulaiHuniDate = new Date()
+    if (mulaiHuni) {
+      mulaiHuniDate = new Date(mulaiHuni)
+      if (isNaN(mulaiHuniDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Format tanggal mulai huni tidak valid' },
+          { status: 400 }
+        )
+      }
+    }
+
+    let selesaiHuniDate = new Date()
+    if (selesaiHuni) {
+      selesaiHuniDate = new Date(selesaiHuni)
+      if (isNaN(selesaiHuniDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Format tanggal mulai huni tidak valid' },
+          { status: 400 }
+        )
+      }
+    }
+
+    const existingPenghuni = await prisma.penghuni.findUnique({
       where: { id }
     })
 
-    if (!existingAset) {
+    if (!existingPenghuni) {
       return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
+        { message: 'Penghuni tidak ditemukan' },
         { status: 404 }
       )
     }
-    
-    const updatedAset = await prisma.aset.update({
+
+    const updatedPenghuni = await prisma.penghuni.update({
       where: { id },
       data: {
-        ...(jenis && { jenis }),
         ...(nama && { nama }),
-        ...(alamat && { alamat }),
-        ...(kota && { kota }),
-        ...(provinsi && { provinsi }),
-        ...(status !== undefined && { status: Boolean(status) }),
+        ...(status && { status }),
+        ...(mulaiHuni && { mulaiHuniDate }),
+        ...(selesaiHuni && { selesaiHuniDate }),
+        ...(asetId && { asetId }),
+        ...(ruanganId && { ruanganId }),
         updatedById: currentUser.id
       },
       include: {
@@ -143,12 +165,12 @@ export async function PUT(
     })
 
     return NextResponse.json({
-      data: updatedAset,
-      message: 'Aset berhasil diupdate'
+      data: updatedPenghuni,
+      message: 'Penghuni berhasil diupdate'
     })
 
   } catch (error) {
-    console.error('Update aset error:', error)
+    console.error('Update penghuni error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -181,28 +203,27 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Check if aset exists
-    const existingAset = await prisma.aset.findUnique({
+    const existingPenghuni = await prisma.penghuni.findUnique({
       where: { id }
     })
 
-    if (!existingAset) {
+    if (!existingPenghuni) {
       return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
+        { message: 'Penghuni tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    await prisma.aset.delete({
+    await prisma.penghuni.delete({
       where: { id }
     })
 
     return NextResponse.json({
-      message: 'Aset berhasil dihapus'
+      message: 'Penghuni berhasil dihapus'
     })
 
   } catch (error) {
-    console.error('Delete aset error:', error)
+    console.error('Delete penghuni error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
