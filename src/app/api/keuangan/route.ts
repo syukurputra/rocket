@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { withAuth, type AuthContext, type RouteContext } from '@/src/libs/auth-middleware'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 async function handleGet(
   request: NextRequest,
-  { user }: AuthContext & RouteContext
+  { user }: AuthContext
 ) {
   try {
     const url = new URL(request.url)
@@ -100,7 +100,7 @@ async function handleGet(
 
 async function handlePost(
   request: NextRequest,
-  { user }: AuthContext & RouteContext
+  { user }: AuthContext
 ) {
   try {
     const body = await request.json()
