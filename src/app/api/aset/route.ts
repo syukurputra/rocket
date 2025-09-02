@@ -4,8 +4,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 async function handleGet(
   request: NextRequest,
-  { user, payload }: AuthContext,
-  params?: any // Add this parameter to match the expected signature
+  { user, payload }: AuthContext
 ) {
   try {
     const { searchParams } = new URL(request.url)
@@ -73,20 +72,11 @@ async function handleGet(
   }
 }
 
-async function handlePost(request: NextRequest, { user, payload }: AuthContext) {
+async function handlePost(
+  request: NextRequest,
+  { user, payload }: AuthContext
+) {
   try {
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    })
-
-    if (!currentUser) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      )
-    }
-
     const body = await request.json()
     const { jenis, nama, alamat, kota, provinsi, status } = body
 
@@ -105,8 +95,8 @@ async function handlePost(request: NextRequest, { user, payload }: AuthContext) 
         kota,
         provinsi,
         status: status !== undefined ? Boolean(status) : true,
-        createdById: currentUser.id,
-        updatedById: currentUser.id
+        createdById: user.id,
+        updatedById: user.id
       },
       include: {
         createdBy: {

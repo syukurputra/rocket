@@ -102,7 +102,7 @@ async function handleGet(
 async function handlePost(
   request: NextRequest,
   { user }: AuthContext,
-  params?: any // Add params parameter to match expected signature
+  params?: any
 ) {
   try {
     const body = await request.json()
