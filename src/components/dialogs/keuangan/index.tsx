@@ -83,6 +83,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
 
   const [asetOptions, setAsetOptions] = useState<AsetOption[]>([])
   const [iconOptions, setIconOptions] = useState<IconOption[]>([])
+  const [allIcons, setAllIcons] = useState<IconOption[]>([]) // Menyimpan semua icon untuk referensi
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
@@ -91,59 +92,94 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
       setPendingSaved(null)
       router.refresh()
     }
-    setOpen(false) // tutup dialog setelah snackbar ditutup
+    setOpen(false)
   }
 
-  // Load dropdown data saat dialog dibuka
+  // Load initial data saat dialog dibuka
   useEffect(() => {
     if (!open) return
-    const loadDropdownData = async () => {
+
+    const loadInitialData = async () => {
       setLoading(true)
       try {
+        // Load aset options
         const asetResponse = await apiFetchClient<{ data: AsetOption[] }>('/api/aset/dp')
         setAsetOptions(asetResponse.data || [])
 
+        // Load all icons untuk referensi
         try {
           const iconResponse = await apiFetchClient<{ data: IconOption[] }>('/api/master-icon/dp')
-          setIconOptions(iconResponse.data || [])
+          setAllIcons(iconResponse.data || [])
         } catch (iconError) {
-          setIconOptions([
+          const fallbackIcons = [
             { id: 'temp-1', nama: 'Kategori 1', code: 'tabler-home', jenis: 'pemasukan', color: 'primary-main' },
             { id: 'temp-2', nama: 'Kategori 2', code: 'tabler-cash', jenis: 'pengeluaran', color: 'primary-main' }
-          ])
+          ]
+          setAllIcons(fallbackIcons)
+        }
+
+        // Set form data untuk mode edit
+        if (mode === 'edit' && initialData) {
+          const formData = {
+            id: initialData.id,
+            jenis: initialData.jenis ?? '',
+            keterangan: initialData.keterangan ?? '',
+            nominal: initialData.nominal ?? 0.0,
+            asetId: initialData.asetId ?? '',
+            iconId: initialData.iconId ?? '',
+            tanggal: initialData.tanggal ? new Date(initialData.tanggal) : new Date()
+          }
+          setForm(formData)
+        } else {
+          setForm(DEFAULTS)
         }
       } catch (error) {
-        console.error('Error loading dropdown data:', error)
+        console.error('Error loading initial data:', error)
         setSnack({ open: true, message: 'Gagal memuat data dropdown', severity: 'error' })
       } finally {
         setLoading(false)
       }
     }
 
-    loadDropdownData()
-  }, [open])
+    loadInitialData()
+  }, [open, mode, initialData])
 
+  // Load icons berdasarkan jenis yang dipilih
   useEffect(() => {
-    if (!form.jenis) {
+    if (!form.jenis || allIcons.length === 0) {
+      setIconOptions([])
       return
     }
 
     const loadIconsByJenis = async () => {
       try {
+        let filteredIcons: IconOption[] = []
+
         try {
+          // Coba load dari API dengan filter jenis
           const iconResponse = await apiFetchClient<{ data: IconOption[] }>(`/api/master/icon/dp?jenis=${form.jenis}`)
-          setIconOptions(iconResponse.data || [])
+          filteredIcons = iconResponse.data || []
         } catch (apiError) {
-          const filteredIcons = iconOptions.filter(icon =>
+          // Fallback: filter dari allIcons
+          filteredIcons = allIcons.filter(icon =>
             !icon.jenis || icon.jenis === form.jenis
           )
-          setIconOptions(filteredIcons)
         }
 
-        if (form.iconId) {
-          const iconExists = iconOptions.some(icon =>
-            icon.id === form.iconId && (!icon.jenis || icon.jenis === form.jenis)
-          )
+        // Jika mode edit dan iconId ada, pastikan icon tersebut tetap tersedia
+        if (mode === 'edit' && form.iconId) {
+          const currentIcon = allIcons.find(icon => icon.id === form.iconId)
+          if (currentIcon && !filteredIcons.some(icon => icon.id === form.iconId)) {
+            // Tambahkan icon yang sedang digunakan ke dalam options
+            filteredIcons.unshift(currentIcon)
+          }
+        }
+
+        setIconOptions(filteredIcons)
+
+        // Reset iconId hanya jika icon tidak valid untuk jenis yang dipilih
+        if (form.iconId && mode === 'create') {
+          const iconExists = filteredIcons.some(icon => icon.id === form.iconId)
           if (!iconExists) {
             setForm(prev => ({ ...prev, iconId: '' }))
           }
@@ -154,30 +190,12 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
     }
 
     loadIconsByJenis()
-  }, [form.jenis])
-
-  useEffect(() => {
-    if (!open) return
-    if (mode === 'edit' && initialData) {
-      setForm({
-        id: initialData.id,
-        jenis: initialData.jenis ?? '',
-        keterangan: initialData.keterangan ?? '',
-        nominal: initialData.nominal ?? 0.0,
-        asetId: initialData.asetId ?? '',
-        iconId: initialData.iconId ?? '',
-        tanggal: initialData.tanggal ? new Date(initialData.tanggal) : new Date()
-      })
-    } else {
-      setForm(DEFAULTS)
-    }
-  }, [open, mode, initialData])
+  }, [form.jenis, allIcons, mode, form.iconId])
 
   const handleChange =
     (key: keyof FormValues) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
         if (key === 'nominal') {
-          // Remove all non-digit characters except decimal point
           const rawValue = e.target.value.replace(/[^\d.]/g, '')
           const numericValue = parseFloat(rawValue) || 0
           setForm(prev => ({ ...prev, [key]: numericValue }))
@@ -195,8 +213,8 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
   }
 
   const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/[^\d,]/g, '') // Keep comma for decimal
-    rawValue = rawValue.replace(',', '.') // Convert comma to dot
+    let rawValue = e.target.value.replace(/[^\d,]/g, '')
+    rawValue = rawValue.replace(',', '.')
     const numericValue = parseFloat(rawValue) || 0
     setForm(prev => ({ ...prev, nominal: numericValue }))
   }
@@ -347,12 +365,12 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   onChange={(date: Date | null) => setForm(prev => ({ ...prev, tanggal: date }))}
                   placeholderText='MM/DD/YYYY'
                   customInput={
-                  <CustomTextField
-                    fullWidth
-                    label='Tanggal Transaksi'
-                    placeholder='MM-DD-YYYY'
-                    required
-                  />}
+                    <CustomTextField
+                      fullWidth
+                      label='Tanggal Transaksi'
+                      placeholder='MM-DD-YYYY'
+                      required
+                    />}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>

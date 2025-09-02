@@ -126,15 +126,24 @@ export async function PUT(
       )
     }
 
+    let nominalValue: number
+    if (typeof nominal === 'string') {
+      // Handle string dengan separator (misalnya "1,000.50")
+      const cleanedNominal = nominal.replace(/,/g, '')
+      nominalValue = parseFloat(cleanedNominal)
+    } else {
+      nominalValue = nominal
+    }
+
     const updatedKeuangan = await prisma.keuangan.update({
       where: { id },
       data: {
-        ...(jenis && { jenis }),
-        ...(keterangan && { keterangan }),
-        ...(nominal && { nominal }),
-        ...(asetId && { asetId }),
-        ...(iconId && { iconId }),
-        ...(tanggal && { transactionDate }),
+        jenis,
+        keterangan: keterangan || '',
+        nominal: nominalValue,
+        asetId,
+        iconId,
+        tanggal: transactionDate,
         updatedById: currentUser.id
       },
       include: {
