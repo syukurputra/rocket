@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGetKeuangan(
+async function handleGet(
   request: NextRequest,
   { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
@@ -49,7 +49,7 @@ async function handleGetKeuangan(
   }
 }
 
-export async function PUT(
+async function handlePut(
   request: NextRequest,
   { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
@@ -142,7 +142,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+async function handleDelete(
   request: NextRequest,
   { user, payload }: AuthContext,
   { params }: { params: Promise<{ id: string }> }
@@ -177,4 +177,8 @@ export async function DELETE(
     )
   }
 }
+
+export const GET = withAuth(handleGet)
+export const PUT = withAuth(handlePut)
+export const DELETE = withAuth(handleDelete)
 

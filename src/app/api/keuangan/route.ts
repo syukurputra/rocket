@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthContext) {
+async function handleGet(
+  request: NextRequest,
+  { user, payload }: AuthContext,
+  params?: any // Add params parameter to match expected signature
+) {
   try {
-    const url  = new URL(request.url)
+    const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
     const search = url.searchParams.get('search') || ''
@@ -16,7 +19,17 @@ async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthCo
 
     if (search) {
       whereClause.OR = [
-        { keterangan: { contains: search.trim(), mode: 'insensitive'}}
+        { keterangan: { contains: search.trim(), mode: 'insensitive' } },
+        {
+          aset: {
+            nama: { contains: search.trim(), mode: 'insensitive' }
+          }
+        },
+        {
+          icon: {
+            nama: { contains: search.trim(), mode: 'insensitive' }
+          }
+        }
       ]
     }
 
@@ -50,7 +63,8 @@ async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthCo
               id: true,
               nama: true,
               code: true,
-              color: true
+              color: true,
+              jenis: true
             }
           }
         },
@@ -61,16 +75,23 @@ async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthCo
       prisma.keuangan.count({ where: whereClause })
     ])
 
+    const totalPages = Math.ceil(total / limit)
+
     return NextResponse.json({
       data,
-      total: total,
-      page: page,
-      limit: limit,
+      pagination: {
+        page,
+        limit,
+        totalCount: total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
       message: 'Data retrieved successfully'
     })
 
   } catch (error) {
-    // console.log(error.message)
+    console.error('Get keuangan error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -78,14 +99,18 @@ async function handleGetKeuangan(request: NextRequest, { user, payload }: AuthCo
   }
 }
 
-async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
+async function handlePost(
+  request: NextRequest,
+  { user }: AuthContext,
+  params?: any // Add params parameter to match expected signature
+) {
   try {
     const body = await request.json()
     const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
 
-    if (!jenis || !nominal || !asetId) {
+    if (!jenis || !nominal || !asetId || !iconId) {
       return NextResponse.json(
-        { message: 'jenis, nominal, aset, tanggal transaksi harus diisi' },
+        { message: 'jenis, nominal, aset, dan icon harus diisi' },
         { status: 400 }
       )
     }
@@ -101,11 +126,36 @@ async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
       }
     }
 
+    // Validasi aset exists
+    const aset = await prisma.aset.findUnique({
+      where: { id: asetId }
+    })
+    if (!aset) {
+      return NextResponse.json(
+        { message: 'Aset tidak ditemukan' },
+        { status: 400 }
+      )
+    }
+
+    // Validasi icon exists
+    const icon = await prisma.masterIcon.findUnique({
+      where: { id: iconId }
+    })
+    if (!icon) {
+      return NextResponse.json(
+        { message: 'Icon tidak ditemukan' },
+        { status: 400 }
+      )
+    }
+
+    // Convert nominal to number if it's a string
+    const nominalValue = typeof nominal === 'string' ? parseFloat(nominal) : nominal
+
     const newKeuangan = await prisma.keuangan.create({
       data: {
         jenis: jenis,
-        keterangan: keterangan,
-        nominal: nominal,
+        keterangan: keterangan || '',
+        nominal: nominalValue,
         tanggal: transactionDate,
         asetId: asetId,
         iconId: iconId,
@@ -124,6 +174,22 @@ async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
             id: true,
             username: true
           }
+        },
+        aset: {
+          select: {
+            id: true,
+            nama: true,
+            jenis: true
+          }
+        },
+        icon: {
+          select: {
+            id: true,
+            nama: true,
+            code: true,
+            color: true,
+            jenis: true
+          }
         }
       }
     })
@@ -134,7 +200,7 @@ async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Buat keuangan error:', error)
+    console.error('Create keuangan error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -142,5 +208,5 @@ async function handlePostKeuangan(request: NextRequest, { user }: AuthContext) {
   }
 }
 
-export const GET = withAuth(handleGetKeuangan)
-export const POST = withAuth(handlePostKeuangan)
+export const GET = withAuth(handleGet)
+export const POST = withAuth(handlePost)
