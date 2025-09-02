@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { withAuth, type AuthContext, type RouteContext } from '@/src/libs/auth-middleware'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 async function handleGet(
   req: NextRequest,
-  { user }: AuthContext & RouteContext
+  { user }: AuthContext
 ) {
   const { searchParams } = new URL(req.url)
   const page  = parseInt(searchParams.get('page')  || '1', 10)
@@ -47,7 +47,7 @@ async function handleGet(
 
 async function handlePost(
   req: NextRequest,
-  { user }: AuthContext & RouteContext
+  { user }: AuthContext
 ) {
   const body = await req.json()
   const { jenis, nama, alamat, kota, provinsi, status } = body
