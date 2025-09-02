@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext, type RouteContext } from '@/src/libs/auth-middleware'
 
-async function handleGetAset(
-  req: NextRequest, 
+async function handleGet(
+  req: NextRequest,
   { user }: AuthContext & RouteContext
 ) {
   const { searchParams } = new URL(req.url)
@@ -45,8 +45,8 @@ async function handleGetAset(
   })
 }
 
-async function handlePostAset(
-  req: NextRequest, 
+async function handlePost(
+  req: NextRequest,
   { user }: AuthContext & RouteContext
 ) {
   const body = await req.json()
@@ -71,5 +71,5 @@ async function handlePostAset(
   return NextResponse.json({ data: newAset, message: 'Aset berhasil ditambahkan' }, { status: 201 })
 }
 
-export const GET  = withAuth(handleGetAset)
-export const POST = withAuth(handlePostAset)
+export const GET  = withAuth(handleGet)
+export const POST = withAuth(handlePost)
