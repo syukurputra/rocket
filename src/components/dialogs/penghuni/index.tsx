@@ -177,7 +177,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
   }, [open, mode, initialData])
 
   const handleSubmit = async () => {
-    if (!form.nama || !form.status || !form.asetId || !form.ruanganId) {
+    if (!form.nama || !form.status || !form.asetId || !form.ruanganId || !form.mulaiHuni || !form.selesaiHuni) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
       return
     }
