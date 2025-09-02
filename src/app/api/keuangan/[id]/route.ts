@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
+type ParamCtx = AuthContext & { params: { id: string } }
+
 async function handleGet(
   request: NextRequest,
-  { user, payload }: AuthContext,
-  { params }: { params: Promise<{ id: string }> }
+  { user, payload, params }: ParamCtx
 ) {
   try {
     const { id } = await params
@@ -51,8 +52,7 @@ async function handleGet(
 
 async function handlePut(
   request: NextRequest,
-  { user, payload }: AuthContext,
-  { params }: { params: Promise<{ id: string }> }
+  { user, payload, params }: ParamCtx
 ) {
   try {
     const currentUser = await prisma.user.findUnique({
@@ -144,8 +144,7 @@ async function handlePut(
 
 async function handleDelete(
   request: NextRequest,
-  { user, payload }: AuthContext,
-  { params }: { params: Promise<{ id: string }> }
+  { user, payload, params }: ParamCtx
 ) {
   try {
     const { id } = await params
@@ -178,7 +177,7 @@ async function handleDelete(
   }
 }
 
-export const GET = withAuth(handleGet)
-export const PUT = withAuth(handlePut)
-export const DELETE = withAuth(handleDelete)
+export const GET    = withAuth<{ id: string }>(handleGet)
+export const PUT    = withAuth<{ id: string }>(handlePut)
+export const DELETE = withAuth<{ id: string }>(handleDelete)
 

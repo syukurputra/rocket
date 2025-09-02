@@ -4,8 +4,7 @@ import { withAuth, type AuthContext, type RouteContext } from '@/src/libs/auth-m
 
 async function handleGet(
   request: NextRequest,
-  { user, payload }: AuthContext,
-  params?: any
+  { user }: AuthContext & RouteContext
 ) {
   try {
     const url = new URL(request.url)
@@ -101,8 +100,7 @@ async function handleGet(
 
 async function handlePost(
   request: NextRequest,
-  { user }: AuthContext,
-  params?: any
+  { user }: AuthContext & RouteContext
 ) {
   try {
     const body = await request.json()

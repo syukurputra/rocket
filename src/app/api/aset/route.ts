@@ -1,9 +1,11 @@
-// src/app/api/aset/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext, type RouteContext } from '@/src/libs/auth-middleware'
 
-async function handleGetAset(req: NextRequest, { user }: AuthContext & RouteContext) {
+async function handleGetAset(
+  req: NextRequest, 
+  { user }: AuthContext & RouteContext
+) {
   const { searchParams } = new URL(req.url)
   const page  = parseInt(searchParams.get('page')  || '1', 10)
   const limit = parseInt(searchParams.get('limit') || '10', 10)
@@ -43,7 +45,10 @@ async function handleGetAset(req: NextRequest, { user }: AuthContext & RouteCont
   })
 }
 
-async function handlePostAset(req: NextRequest, { user }: AuthContext & RouteContext) {
+async function handlePostAset(
+  req: NextRequest, 
+  { user }: AuthContext & RouteContext
+) {
   const body = await req.json()
   const { jenis, nama, alamat, kota, provinsi, status } = body
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
