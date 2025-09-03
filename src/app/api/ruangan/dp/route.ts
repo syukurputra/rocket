@@ -1,37 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(request: NextRequest) {
+async function handleGet(request: NextRequest) {
   try {
-    const token = extractTokenFromRequest(request)
+    const url = new URL(request.url)
+    const asetId = url.searchParams.get('asetId') || ''
 
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const asetId = payload.asetId
-
-    console.log("aset id : " + asetId)
-
-    const { searchParams } = new URL(request.url)
-    const asetIdFilter = searchParams.get('asetId') // Get jenis filter from query params
     const where: any = {}
 
-    if (asetIdFilter) {
-      where.asetId = asetIdFilter
+    if (asetId) {
+      where.asetId = asetId
     }
 
     const [data] = await Promise.all([
@@ -59,3 +38,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handleGet)

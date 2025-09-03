@@ -1,31 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(
+type ParamCtx = AuthContext & { params: { id: string } }
+
+async function handleGet(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const { id } = await params
+    const { id } = params
 
     const aset = await prisma.aset.findUnique({
       where: { id },
@@ -66,40 +50,11 @@ export async function GET(
   }
 }
 
-export async function PUT(
+async function handlePut(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { user, params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
-    })
-
-    if (!currentUser) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
     const { jenis, nama, alamat, kota, provinsi, status } = body
@@ -114,17 +69,17 @@ export async function PUT(
         { status: 404 }
       )
     }
-    
+
     const updatedAset = await prisma.aset.update({
       where: { id },
       data: {
-        ...(jenis && { jenis }),
-        ...(nama && { nama }),
-        ...(alamat && { alamat }),
-        ...(kota && { kota }),
-        ...(provinsi && { provinsi }),
+        jenis,
+        nama,
+        alamat,
+        kota,
+        provinsi,
+        updatedById: user.id,
         ...(status !== undefined && { status: Boolean(status) }),
-        updatedById: currentUser.id
       },
       include: {
         createdBy: {
@@ -156,32 +111,13 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+async function handleDelete(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { id } = await params
 
-    // Check if aset exists
     const existingAset = await prisma.aset.findUnique({
       where: { id }
     })
@@ -209,4 +145,8 @@ export async function DELETE(
     )
   }
 }
+
+export const GET    = withAuth<{ id: string }>(handleGet)
+export const PUT    = withAuth<{ id: string }>(handlePut)
+export const DELETE = withAuth<{ id: string }>(handleDelete)
 

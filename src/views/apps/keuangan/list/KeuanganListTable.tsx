@@ -40,7 +40,6 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 
 // Component Imports
-import TablePaginationComponent from '@components/TablePaginationComponent'
 import CustomTextField from '@core/components/mui/TextField'
 
 // Style Imports
@@ -146,11 +145,10 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       setError(null)
 
       const params = new URLSearchParams({
-        page: String(pageNum + 1), // Convert 0-based to 1-based for API
+        page: String(pageNum + 1),
         limit: String(limitNum)
       })
 
-      // Add search parameter if exists
       if (search.trim()) {
         params.append('search', search.trim())
       }
@@ -193,29 +191,21 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     }
   }
 
-  // Debounced search effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setCurrentPage(0) // Reset to first page when searching
+      setCurrentPage(0)
       fetchKeuanganData(0, pageSize, searchQuery)
-    }, 500) // 500ms debounce
+    }, 500)
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery, pageSize])
 
-  // Initial load
   useEffect(() => {
     if (initialData.length === 0) {
       fetchKeuanganData(currentPage, pageSize, searchQuery)
-    } else {
-      // If we have initial data but no proper pagination info, don't override totalCount
-      console.log('Using initial data:', initialData.length)
-      // Comment out this line if initialData doesn't represent the full dataset
-      // setTotalCount(initialData.length)
     }
   }, [])
 
-  // Page change effect (without search to avoid double calls)
   useEffect(() => {
     if (initialData.length === 0) {
       fetchKeuanganData(currentPage, pageSize, searchQuery)
@@ -233,7 +223,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
     setSearchQuery(searchValue)
-    setGlobalFilter(searchValue) // Keep local filter in sync for UI
+    setGlobalFilter(searchValue)
   }
 
   const buttonProps: ButtonProps = {
@@ -320,12 +310,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
               dialog={AddEditKeuangan}
               dialogProps={{
                 mode: 'edit',
-                initialData: row.original,
-                onSaved: (updated: KeuanganClient) => {
-                  // Refresh data after edit
-                  fetchKeuanganData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Keuangan berhasil diperbarui', 'success')
-                }
+                initialData: row.original
               }}
             />
             <IconButton onClick={async () => {
@@ -336,7 +321,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                   redirectOn401: '/id/login'
                 })
 
-                // Refresh data after delete
                 fetchKeuanganData(currentPage, pageSize, searchQuery)
                 showSnackbar('Keuangan berhasil dihapus', 'success')
               } catch (err) {
@@ -352,7 +336,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         enableSorting: false
       })
     ],
-    [currentPage, pageSize, searchQuery] // Add dependencies
+    [currentPage, pageSize, searchQuery]
   )
 
   const table = useReactTable({
@@ -371,7 +355,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     },
     pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
-    manualFiltering: true, // Important: disable client-side filtering
+    manualFiltering: true,
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -472,7 +456,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
                   setPageSize(newPageSize)
-                  setCurrentPage(0) // Reset to first page when changing page size
+                  setCurrentPage(0)
                 }}
                 className='is-[70px] max-sm:is-full'
               >
@@ -486,11 +470,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
               elementProps={buttonProps}
               dialog={AddEditKeuangan}
               dialogProps={{
-                onSaved: () => {
-                  // Refresh data after add
-                  fetchKeuanganData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Keuangan berhasil ditambahkan', 'success')
-                }
               }}
             />
           </div>
@@ -568,7 +547,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
             setPageSize(newPageSize)
-            setCurrentPage(0) // Reset to first page when changing page size
+            setCurrentPage(0)
           }}
         />
         <Snackbar

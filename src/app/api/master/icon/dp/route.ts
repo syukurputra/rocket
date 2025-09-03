@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(request: NextRequest) {
+async function handleGet(
+  request: NextRequest,
+  { user }: AuthContext
+) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { searchParams } = new URL(request.url)
-    const jenisFilter = searchParams.get('jenis') // Get jenis filter from query params
+    const jenisFilter = searchParams.get('jenis')
     const where: any = {}
 
     if (jenisFilter && (jenisFilter === 'pemasukan' || jenisFilter === 'pengeluaran')) {
@@ -57,3 +42,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handleGet)

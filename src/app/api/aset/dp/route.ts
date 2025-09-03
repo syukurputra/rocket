@@ -1,35 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(request: NextRequest) {
+async function handleGet(
+  request: NextRequest,
+  { user }: AuthContext
+) {
   try {
-    // Verify JWT token
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const userId = payload.userId
-
-    const { searchParams } = new URL(request.url)
-
-    // Build where condition
     const where = {
-      createdById: userId
+      createdById: user.id
     }
 
     // Fetch data dengan relations
@@ -58,3 +37,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handleGet)

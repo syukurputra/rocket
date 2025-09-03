@@ -1,11 +1,13 @@
-// src/app/api/keuangan/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
-async function handleGet(_req: NextRequest, { params }: ParamCtx) {
+async function handleGet(
+  _req: NextRequest, 
+  { params }: ParamCtx
+) {
   try {
     const { id } = params
 
@@ -26,11 +28,11 @@ async function handleGet(_req: NextRequest, { params }: ParamCtx) {
   }
 }
 
-async function handlePut(req: NextRequest, { user, params }: ParamCtx) {
+async function handlePut(
+  req: NextRequest, 
+  { user, params }: ParamCtx
+) {
   try {
-    const currentUser = await prisma.user.findUnique({ where: { id: user.id } })
-    if (!currentUser) return NextResponse.json({ message: 'User not found' }, { status: 404 })
-
     const { id } = params
     const body = await req.json()
     const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
@@ -55,7 +57,7 @@ async function handlePut(req: NextRequest, { user, params }: ParamCtx) {
         asetId,
         iconId,
         tanggal: transactionDate,
-        updatedById: currentUser.id
+        updatedById: user.id
       },
       include: {
         createdBy: { select: { id: true, username: true } },
@@ -70,7 +72,10 @@ async function handlePut(req: NextRequest, { user, params }: ParamCtx) {
   }
 }
 
-async function handleDelete(_req: NextRequest, { params }: ParamCtx) {
+async function handleDelete(
+  _req: NextRequest, 
+  { params }: ParamCtx
+) {
   try {
     const { id } = params
 

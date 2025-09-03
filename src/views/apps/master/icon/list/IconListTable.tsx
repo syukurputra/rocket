@@ -123,11 +123,13 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   const [data, setData] = useState<IconClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<IconClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -138,28 +140,50 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
     severity: 'success'
   })
 
-  const fetchIconData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchIconData = async (
+    pageNum: number = 0,
+    limitNum: number = 10,
+    search: string = ''
+  ) => {
     try {
       setLoading(true)
       setError(null)
 
-      const qs = new URLSearchParams({
+      const params = new URLSearchParams({
         page: String(pageNum + 1),
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: IconClient[], total: number}>(
-        `/api/master/icon?${qs.toString()}`,
+      if (search.trim()) {
+        params.append('search', search.trim())
+      }
+
+      const result = await apiFetchClient<{
+        data: IconClient[],
+        pagination: {
+          totalCount: number
+          totalPages: number
+          page: number
+          limit: number
+          hasNext: boolean
+          hasPrev: boolean
+        }
+      }>(
+        `/api/master/icon?${params.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
 
       const iconData = result.data || []
-      const total = result.total || 0
+      const totalPagesFromAPI = result.pagination?.totalPages ?? 0
+      const totalCountFromAPI = result.pagination?.totalCount
+
+      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : iconData.length)
 
       setData(iconData)
       setFilteredData(iconData)
-      setTotalCount(total)
+      setTotalCount(inferredTotalCount)
+      setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch icon data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
@@ -171,18 +195,25 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   }
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(0)
+      fetchIconData(0, pageSize, searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, pageSize])
+
+  useEffect(() => {
     if (initialData.length === 0) {
-      fetchIconData(currentPage, pageSize)
-    } else {
-      setTotalCount(initialData.length)
+      fetchIconData(currentPage, pageSize, searchQuery)
     }
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchIconData(currentPage, pageSize)
+      fetchIconData(currentPage, pageSize, searchQuery)
     }
-  }, [currentPage, pageSize])
+  }, [currentPage])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -190,6 +221,12 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }))
+  }
+
+  const handleSearchChange = (value: string | number) => {
+    const searchValue = String(value)
+    setSearchQuery(searchValue)
+    setGlobalFilter(searchValue)
   }
 
   const buttonProps: ButtonProps = {
@@ -251,8 +288,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
                 mode: 'edit',
                 initialData: row.original,
                 onSaved: (updated: IconClient) => {
-                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  fetchIconData(currentPage, pageSize, searchQuery)
                   showSnackbar('Icon berhasil diperbarui', 'success')
                 }
               }}
@@ -265,10 +301,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(icon => icon.id !== row.original.id))
-                setFilteredData(prev => prev.filter(icon => icon.id !== row.original.id))
-
-                setTotalCount(prev => prev - 1)
+                fetchIconData(currentPage, pageSize, searchQuery)
                 showSnackbar('Icon berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
@@ -283,7 +316,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
         enableSorting: false
       })
     ],
-    [data, filteredData]
+    [data, filteredData, searchQuery]
   )
 
   const table = useReactTable({
@@ -300,8 +333,9 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
         pageSize: pageSize
       }
     },
-    pageCount: Math.ceil(totalCount / pageSize),
+    pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
+    manualFiltering: true,
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -328,7 +362,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchIconData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchIconData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -398,12 +432,11 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
               <Typography className='hidden sm:block'>Show</Typography>
               <CustomTextField
                 select
-                value={table.getState().pagination.pageSize}
+                value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
                   setPageSize(newPageSize)
                   setCurrentPage(0)
-                  table.setPageSize(newPageSize)
                 }}
                 className='is-[70px] max-sm:is-full'
               >
@@ -415,12 +448,15 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditIcon} />
+              dialog={AddEditIcon}
+              dialogProps={{
+              }}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
+              value={searchQuery}
+              onChange={handleSearchChange}
               placeholder='Cari Icon'
               className='max-sm:is-full sm:is-[250px]'
             />
@@ -482,19 +518,17 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component={() => <TablePaginationComponent table={table} />}
-          count={table.getFilteredRowModel().rows.length}
-          rowsPerPage={table.getState().pagination.pageSize}
-          page={table.getState().pagination.pageIndex}
+          component="div"
+          count={totalCount || pageCountState * pageSize}
+          rowsPerPage={pageSize}
+          page={currentPage}
           onPageChange={(_, page) => {
             setCurrentPage(page)
-            table.setPageIndex(page)
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
             setPageSize(newPageSize)
             setCurrentPage(0)
-            table.setPageSize(newPageSize)
           }}
         />
         <Snackbar

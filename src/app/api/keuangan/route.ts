@@ -11,9 +11,7 @@ async function handleGet(
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
     const search = url.searchParams.get('search') || ''
-
-    const skip = (page - 1) * limit
-
+    
     const whereClause: any = {}
 
     if (search) {
@@ -124,7 +122,6 @@ async function handlePost(
       }
     }
 
-    // Validasi aset exists
     const aset = await prisma.aset.findUnique({
       where: { id: asetId }
     })
@@ -135,7 +132,6 @@ async function handlePost(
       )
     }
 
-    // Validasi icon exists
     const icon = await prisma.masterIcon.findUnique({
       where: { id: iconId }
     })
@@ -146,7 +142,6 @@ async function handlePost(
       )
     }
 
-    // Convert nominal to number if it's a string
     const nominalValue = typeof nominal === 'string' ? parseFloat(nominal) : nominal
 
     const newKeuangan = await prisma.keuangan.create({

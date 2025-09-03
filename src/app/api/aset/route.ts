@@ -40,7 +40,14 @@ async function handleGet(
   const totalPages = Math.ceil(total / limit)
   return NextResponse.json({
     data,
-    pagination: { page, limit, totalCount: total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+    pagination: {
+      page,
+      limit,
+      totalCount: total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    },
     message: 'Data retrieved successfully'
   })
 }

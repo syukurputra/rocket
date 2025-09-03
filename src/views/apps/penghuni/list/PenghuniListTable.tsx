@@ -120,11 +120,13 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
   const [data, setData] = useState<PenghuniClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<PenghuniClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -135,28 +137,50 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     severity: 'success'
   })
 
-  const fetchPenghuniData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchPenghuniData = async (
+    pageNum: number = 0,
+    limitNum: number = 10,
+    search: string = ''
+    ) => {
     try {
       setLoading(true)
       setError(null)
 
-      const qs = new URLSearchParams({
+      const params = new URLSearchParams({
         page: String(pageNum + 1),
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: PenghuniClient[], total: number}>(
-        `/api/penghuni?${qs.toString()}`,
+      if (search.trim()) {
+        params.append('search', search.trim())
+      }
+
+      const result = await apiFetchClient<{
+        data: PenghuniClient[],
+        pagination: {
+          totalCount: number
+          totalPages: number
+          page: number
+          limit: number
+          hasNext: boolean
+          hasPrev: boolean
+        }
+      }>(
+        `/api/penghuni?${params.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
 
       const penghuniData = result.data || []
-      const total = result.total || 0
+      const totalPagesFromAPI = result.pagination?.totalPages ?? 0
+      const totalCountFromAPI = result.pagination?.totalCount
+
+      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : penghuniData.length)
 
       setData(penghuniData)
       setFilteredData(penghuniData)
-      setTotalCount(total)
+      setTotalCount(inferredTotalCount)
+      setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch penghuni data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
@@ -168,18 +192,25 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
   }
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(0)
+      fetchPenghuniData(0, pageSize, searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, pageSize])
+
+  useEffect(() => {
     if (initialData.length === 0) {
-      fetchPenghuniData(currentPage, pageSize)
-    } else {
-      setTotalCount(initialData.length)
+      fetchPenghuniData(currentPage, pageSize, searchQuery)
     }
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchPenghuniData(currentPage, pageSize)
+      fetchPenghuniData(currentPage, pageSize, searchQuery)
     }
-  }, [currentPage, pageSize])
+  }, [currentPage])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -187,6 +218,12 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }))
+  }
+
+  const handleSearchChange = (value: string | number) => {
+    const searchValue = String(value)
+    setSearchQuery(searchValue)
+    setGlobalFilter(searchValue) // Keep local filter in sync for UI
   }
 
   const buttonProps: ButtonProps = {
@@ -261,15 +298,9 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 children: <i className='tabler-eye text-textSecondary' />
               }}
               dialog={AddEditPenghuni}
-              // kirim prop ke dialog untuk mode edit + data awal
               dialogProps={{
                 mode: 'edit',
                 initialData: row.original,
-                onSaved: (updated: PenghuniClient) => {
-                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  showSnackbar('Penghuni berhasil diperbarui', 'success')
-                }
               }}
             />
             <IconButton onClick={async () => {
@@ -280,10 +311,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
-                setFilteredData(prev => prev.filter(keuangan => keuangan.id !== row.original.id))
-
-                setTotalCount(prev => prev - 1)
+                fetchPenghuniData(currentPage, pageSize, searchQuery)
                 showSnackbar('Keuangan berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
@@ -298,7 +326,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         enableSorting: false
       })
     ],
-    [data, filteredData]
+    [data, filteredData, searchQuery]
   )
 
   const table = useReactTable({
@@ -315,8 +343,9 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         pageSize: pageSize
       }
     },
-    pageCount: Math.ceil(totalCount / pageSize),
+    pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
+    manualFiltering: true,
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -343,7 +372,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchPenghuniData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchPenghuniData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -413,12 +442,11 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
               <Typography className='hidden sm:block'>Show</Typography>
               <CustomTextField
                 select
-                value={table.getState().pagination.pageSize}
+                value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
                   setPageSize(newPageSize)
                   setCurrentPage(0)
-                  table.setPageSize(newPageSize)
                 }}
                 className='is-[70px] max-sm:is-full'
               >
@@ -430,12 +458,19 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditPenghuni} />
+              dialog={AddEditPenghuni}
+              dialogProps={{
+                onSaved: () => {
+                  fetchPenghuniData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Penghuni berhasil ditambahkan', 'success')
+                }
+              }}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
+              value={searchQuery}
+              onChange={handleSearchChange}
               placeholder='Cari Penghuni'
               className='max-sm:is-full sm:is-[250px]'
             />
@@ -497,19 +532,17 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component={() => <TablePaginationComponent table={table} />}
-          count={table.getFilteredRowModel().rows.length}
-          rowsPerPage={table.getState().pagination.pageSize}
-          page={table.getState().pagination.pageIndex}
+          component="div"
+          count={totalCount || pageCountState * pageSize}
+          rowsPerPage={pageSize}
+          page={currentPage}
           onPageChange={(_, page) => {
             setCurrentPage(page)
-            table.setPageIndex(page)
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
             setPageSize(newPageSize)
             setCurrentPage(0)
-            table.setPageSize(newPageSize)
           }}
         />
         <Snackbar

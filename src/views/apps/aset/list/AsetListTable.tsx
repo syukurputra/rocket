@@ -132,11 +132,13 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   const [data, setData] = useState<AsetClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -147,28 +149,50 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     severity: 'success'
   })
 
-  const fetchAsetData = async (pageNum: number = 0, limitNum: number = 10) => {
+  const fetchAsetData = async (
+    pageNum: number = 0,
+    limitNum: number = 10,
+    search: string = ''
+  ) => {
     try {
       setLoading(true)
       setError(null)
 
-      const qs = new URLSearchParams({
+      const params = new URLSearchParams({
         page: String(pageNum + 1),
         limit: String(limitNum)
       })
 
-      const result = await apiFetchClient<{data: AsetClient[], total: number}>(
-        `/api/aset?${qs.toString()}`,
+      if (search.trim()) {
+        params.append('search', search.trim())
+      }
+
+      const result = await apiFetchClient<{
+        data: AsetClient[],
+        pagination: {
+          totalCount: number
+          totalPages: number
+          page: number
+          limit: number
+          hasNext: boolean
+          hasPrev: boolean
+        }
+      }>(
+        `/api/aset?${params.toString()}`,
         undefined, {
         redirectOn401: '/id/login'
       })
 
       const asetData = result.data || []
-      const total = result.total || 0
+      const totalPagesFromAPI = result.pagination?.totalPages ?? 0
+      const totalCountFromAPI = result.pagination?.totalCount
+
+      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : asetData.length)
 
       setData(asetData)
       setFilteredData(asetData)
-      setTotalCount(total)
+      setTotalCount(inferredTotalCount)
+      setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch aset data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
@@ -180,18 +204,25 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
   }
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(0)
+      fetchAsetData(0, pageSize, searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, pageSize])
+
+  useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
-    } else {
-      setTotalCount(initialData.length)
+      fetchAsetData(currentPage, pageSize, searchQuery)
     }
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchAsetData(currentPage, pageSize)
+      fetchAsetData(currentPage, pageSize, searchQuery)
     }
-  }, [currentPage, pageSize])
+  }, [currentPage])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -199,6 +230,12 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }))
+  }
+
+  const handleSearchChange = (value: string | number) => {
+    const searchValue = String(value)
+    setSearchQuery(searchValue)
+    setGlobalFilter(searchValue) // Keep local filter in sync for UI
   }
 
   const buttonProps: ButtonProps = {
@@ -260,8 +297,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 mode: 'edit',
                 initialData: row.original,
                 onSaved: (updated: AsetClient) => {
-                  setData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
-                  setFilteredData(prev => prev.map(x => x.id === updated.id ? { ...x, ...updated } : x))
+                  fetchAsetData(currentPage, pageSize, searchQuery)
                   showSnackbar('Aset berhasil diperbarui', 'success')
                 }
               }}
@@ -274,10 +310,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                   redirectOn401: '/id/login'
                 })
 
-                setData(prev => prev.filter(aset => aset.id !== row.original.id))
-                setFilteredData(prev => prev.filter(aset => aset.id !== row.original.id))
-
-                setTotalCount(prev => prev - 1)
+                fetchAsetData(currentPage, pageSize, searchQuery)
                 showSnackbar('Aset berhasil dihapus', 'success')
               } catch (err) {
                 console.error('Delete failed:', err)
@@ -292,8 +325,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         enableSorting: false
       })
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, filteredData]
+    [currentPage, pageSize, searchQuery]
   )
 
   const table = useReactTable({
@@ -310,8 +342,9 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         pageSize: pageSize
       }
     },
-    pageCount: Math.ceil(totalCount / pageSize),
+    pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
+    manualFiltering: true,
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -338,7 +371,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         <CardContent>
           <Alert severity="error">
             {error}
-            <Button onClick={() => fetchAsetData(currentPage, pageSize)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchAsetData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -408,12 +441,11 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               <Typography className='hidden sm:block'>Show</Typography>
               <CustomTextField
                 select
-                value={table.getState().pagination.pageSize}
+                value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
                   setPageSize(newPageSize)
                   setCurrentPage(0)
-                  table.setPageSize(newPageSize)
                 }}
                 className='is-[70px] max-sm:is-full'
               >
@@ -425,12 +457,13 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditAset} />
+              dialog={AddEditAset}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
+              value={searchQuery}
+              onChange={handleSearchChange}
               placeholder='Search Aset'
               className='max-sm:is-full sm:is-[250px]'
             />
@@ -469,7 +502,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    {loading ? 'Memuat data...' : searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
                   </td>
                 </tr>
               </tbody>
@@ -492,19 +525,17 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component={() => <TablePaginationComponent table={table} />}
-          count={table.getFilteredRowModel().rows.length}
-          rowsPerPage={table.getState().pagination.pageSize}
-          page={table.getState().pagination.pageIndex}
+          component="div"
+          count={totalCount || pageCountState * pageSize}
+          rowsPerPage={pageSize}
+          page={currentPage}
           onPageChange={(_, page) => {
             setCurrentPage(page)
-            table.setPageIndex(page)
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
             setPageSize(newPageSize)
             setCurrentPage(0)
-            table.setPageSize(newPageSize)
           }}
         />
         <Snackbar

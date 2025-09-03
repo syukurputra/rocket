@@ -1,30 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { extractTokenFromRequest, verifyAccessToken } from '@/src/libs/jwt'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-export async function GET(
+type ParamCtx = AuthContext & { params: { id: string } }
+
+async function handleGet(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { id } = await params
 
     const ruangan = await prisma.ruangan.findUnique({
@@ -66,40 +50,11 @@ export async function GET(
   }
 }
 
-export async function PUT(
+async function handlePut(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { user, params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: payload.userId }
-    })
-
-    if (!currentUser) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
     const { nama, status, nominal, asetId } = body
@@ -122,7 +77,7 @@ export async function PUT(
         ...(asetId && { asetId }),
         ...(nominal && { nominal }),
         ...(status !== undefined && { status: Boolean(status) }),
-        updatedById: currentUser.id
+        updatedById: user.id
       },
       include: {
         createdBy: {
@@ -154,29 +109,11 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+async function handleDelete(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: ParamCtx
 ) {
   try {
-    const token = extractTokenFromRequest(request)
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyAccessToken(token)
-
-    if (!payload) {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
     const { id } = await params
 
     const existingRuangan = await prisma.ruangan.findUnique({
@@ -206,3 +143,7 @@ export async function DELETE(
     )
   }
 }
+
+export const GET    = withAuth<{ id: string }>(handleGet)
+export const PUT    = withAuth<{ id: string }>(handlePut)
+export const DELETE = withAuth<{ id: string }>(handleDelete)
