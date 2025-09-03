@@ -1,4 +1,3 @@
-// libs/auth-middleware.ts (bagian withAuth saja)
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { extractTokenFromRequest, verifyAccessToken, isJwtExpired, isJwtInvalid, type AccessPayload } from '@/src/libs/jwt'

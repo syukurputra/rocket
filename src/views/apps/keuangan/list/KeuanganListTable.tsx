@@ -125,6 +125,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -145,7 +146,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       setError(null)
 
       const params = new URLSearchParams({
-        page: String(pageNum + 1),
+        page: String(pageNum + 1), // Convert 0-based to 1-based for API
         limit: String(limitNum)
       })
 
@@ -173,11 +174,15 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       )
 
       const keuanganData = result.data || []
-      const totalFromAPI = result.pagination?.totalCount || 0
+      const totalPagesFromAPI = result.pagination?.totalPages ?? 0
+      const totalCountFromAPI = result.pagination?.totalCount
+
+      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : keuanganData.length)
 
       setData(keuanganData)
       setFilteredData(keuanganData)
-      setTotalCount(totalFromAPI)
+      setTotalCount(inferredTotalCount)
+      setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch keuangan data:', err)
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
@@ -203,13 +208,16 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     if (initialData.length === 0) {
       fetchKeuanganData(currentPage, pageSize, searchQuery)
     } else {
-      setTotalCount(initialData.length)
+      // If we have initial data but no proper pagination info, don't override totalCount
+      console.log('Using initial data:', initialData.length)
+      // Comment out this line if initialData doesn't represent the full dataset
+      // setTotalCount(initialData.length)
     }
   }, [])
 
   // Page change effect (without search to avoid double calls)
   useEffect(() => {
-    if (initialData.length === 0 && currentPage > 0) {
+    if (initialData.length === 0) {
       fetchKeuanganData(currentPage, pageSize, searchQuery)
     }
   }, [currentPage])
@@ -361,7 +369,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
         pageSize: pageSize
       }
     },
-    pageCount: Math.ceil(totalCount / pageSize),
+    pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
     manualFiltering: true, // Important: disable client-side filtering
     enableRowSelection: true,
@@ -460,12 +468,11 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
               <Typography className='hidden sm:block'>Show</Typography>
               <CustomTextField
                 select
-                value={table.getState().pagination.pageSize}
+                value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
                   setPageSize(newPageSize)
-                  setCurrentPage(0)
-                  table.setPageSize(newPageSize)
+                  setCurrentPage(0) // Reset to first page when changing page size
                 }}
                 className='is-[70px] max-sm:is-full'
               >
@@ -529,7 +536,7 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
               <tbody>
               <tr>
                 <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                  {searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
+                  {loading ? 'Memuat data...' : searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
                 </td>
               </tr>
               </tbody>
@@ -551,19 +558,17 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component={() => <TablePaginationComponent table={table} />}
-          count={totalCount} // Use totalCount from API
-          rowsPerPage={table.getState().pagination.pageSize}
-          page={table.getState().pagination.pageIndex}
+          component="div"
+          count={totalCount || pageCountState * pageSize}
+          rowsPerPage={pageSize}
+          page={currentPage}
           onPageChange={(_, page) => {
             setCurrentPage(page)
-            table.setPageIndex(page)
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
             setPageSize(newPageSize)
-            setCurrentPage(0)
-            table.setPageSize(newPageSize)
+            setCurrentPage(0) // Reset to first page when changing page size
           }}
         />
         <Snackbar
