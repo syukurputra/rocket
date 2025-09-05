@@ -21,6 +21,7 @@ model User {
   password     String   @db.VarChar(191)
   tokenVersion Int      @default(0)
   createdAt    DateTime @default(now())
+  verifikasi   Boolean  @default(false)
   updatedAt    DateTime @updatedAt
 
   @@index([username])
@@ -34,8 +35,10 @@ model User {
   keuanganUpdated  Keuangan[]   @relation("KeuanganUpdatedBy")
   ruanganCreated   Ruangan[]    @relation("RuanganCreatedBy")
   ruanganUpdated   Ruangan[]    @relation("RuanganUpdatedBy")
-  penghuniCreated  Penghuni[]    @relation("PenghuniCreatedBy")
-  penghuniUpdated  Penghuni[]    @relation("PenghuniUpdatedBy")
+  penghuniCreated  Penghuni[]   @relation("PenghuniCreatedBy")
+  penghuniUpdated  Penghuni[]   @relation("PenghuniUpdatedBy")
+  tagihanCreated   Tagihan[]    @relation("TagihanCreatedBy")
+  tagihanUpdated   Tagihan[]    @relation("TagihanUpdatedBy")
 
   @@map("user")
 }
@@ -152,5 +155,30 @@ model Penghuni {
   ruanganId  String
   ruangan    Ruangan   @relation(fields: [ruanganId], references: [id])
 
+  tagihan    Tagihan[]
+
   @@map("penghuni")
 }
+
+model Tagihan {
+  id          String   @id @default(cuid())
+  keterangan  String
+  status      String   @default("BELUM TERBAYAR")
+  metodeBayar String?
+  mulaiSewa   DateTime @default(now())
+  selesaiSewa DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  updatedById String
+
+  createdBy   User     @relation("TagihanCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
+
+  penghuniId  String
+  penghuni    Penghuni @relation(fields: [penghuniId], references: [id])
+
+  @@map("tagihan")
+}
+

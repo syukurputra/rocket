@@ -7,7 +7,7 @@ import prisma from "@/src/libs/prisma";
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
-    
+
     const user = await prisma.user.findFirst({
       where: {
         OR: [

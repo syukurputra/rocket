@@ -13,7 +13,11 @@ const protectedRoutes = [
   /^\/id\/penghuni\/list(\/|$)/,
   /^\/id\/master\/icon\/list(\/|$)/,
 ]
-const authRoutes = [/^\/id\/login(\/|$)/, /^\/id\/register(\/|$)/]
+const authRoutes = [
+  /^\/id\/login(\/|$)/,
+  /^\/id\/register(\/|$)/,
+  /^\/id\/verifikasi(\/|$)/,
+]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {
   const pathname = usePathname()

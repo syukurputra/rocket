@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/src/libs/prisma";
+import { verifyEmailConnection } from '@/src/mails/verifyEmailConnection';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,10 +28,11 @@ export async function POST(request: NextRequest) {
       data: {
         username: username,
         email: email,
-        password: passwordEnc,
-        tokenVersion: 0,
+        password: passwordEnc
       },
     })
+
+    await verifyEmailConnection(userInsert.id, userInsert.email, userInsert.username)
 
     const res = NextResponse.json(
       {
