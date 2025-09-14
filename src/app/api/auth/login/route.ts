@@ -33,6 +33,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!user.verifikasi) {
+      return NextResponse.json(
+        { message: 'Mohon lakukan verifikasi email terlebih dahulu' },
+        { status: 401 }
+      )
+    }
+
     const accessToken = signAccessToken({
       userId: user.id,
       username: user.username,
