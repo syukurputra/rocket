@@ -27,8 +27,10 @@ async function handleGet(
         where: whereClause,
         include: {
           penghuni: {
-            id: true,
-            nama: true
+            select: {
+              id: true,
+              nama: true
+            }
           },
           createdBy: {
             select: {
