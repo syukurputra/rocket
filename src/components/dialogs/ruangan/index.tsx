@@ -34,14 +34,20 @@ type FormValues = {
   id?: string
   nama: string
   nominal: number
-  status: boolean
+  status: string
 }
 
 const DEFAULTS: FormValues = {
   nama: '',
   nominal: 0.0,
-  status: true
+  status: ''
 }
+
+const STATUS_OPTIONS = [
+  { label: 'Pilih Status', value: '' },
+  { label: 'Huni', value: 'huni' },
+  { label: 'Tidak Huni', value: 'tidak dihuni' },
+]
 
 export default function AddEditRuang({ open, setOpen, mode = 'create', initialData, asetId, onSaved }: Props) {
   const params = useParams()
@@ -71,7 +77,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
         id: initialData.id,
         nama: initialData.nama ?? '',
         nominal: initialData.nominal ?? 0.0,
-        status: Boolean(initialData.status)
+        status: initialData.status ?? ''
       })
     } else {
       setForm(DEFAULTS)
@@ -172,7 +178,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Nama Ruangan'
@@ -183,7 +189,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
                   onChange={handleChange('nama')}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12}}>
                 <CustomTextField
                   fullWidth
                   label='Nominal Sewa'
@@ -198,15 +204,22 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
                   helperText="Contoh: 10.000.000"
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
-                <FormControlLabel
-                  control={
-                  <Switch
-                    checked={form.status}
-                    onChange={(_, checked) => setForm(prev => ({ ...prev, status: checked }))}
-                  />
-                } label={form.status ? 'Ruangan Aktif' : 'Ruangan Nonaktif'}
-                />
+              <Grid size={{ xs: 12}}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Pilih Status'
+                  name='status'
+                  variant='outlined'
+                  value={form.status}
+                  onChange={handleChange('status')}
+                >
+                  {STATUS_OPTIONS.map(opt => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
               </Grid>
             </Grid>
           </DialogContent>

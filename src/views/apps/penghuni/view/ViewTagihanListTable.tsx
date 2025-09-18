@@ -127,10 +127,11 @@ interface RuanganListTableProps {
   initialData?: RuanganClient[]
 }
 
-const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProps) => {
+const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProps) => {
   const params = useParams()
   const id = asetId || (params?.id as string)
 
+  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<RuanganClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<RuanganClientWithAction[]>(initialData)
@@ -270,12 +271,11 @@ const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          switch (row.original.status) {
-            case "huni":
-              return <Chip label={row.original.status} color='success' size='small' variant='tonal' sx={{ textTransform: 'capitalize' }} />
-            default:
-                return <Chip label={row.original.status} color='error' size='small' variant='tonal' sx={{ textTransform: 'capitalize' }} />
-          }
+          return row.original.status === true ? (
+            <Chip label='Aktif' color='success' size='small' variant='tonal' />
+          ) : (
+            <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
+          )
         }
       }),
       columnHelper.accessor('action', {
@@ -557,4 +557,4 @@ const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProp
   )
 }
 
-export default ViewRuanganListTable
+export default ViewTagihanListTable

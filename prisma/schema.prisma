@@ -71,7 +71,7 @@ model Aset {
 model Ruangan {
   id          String   @id @default(cuid())
   nama        String
-  status      Boolean  @default(true)
+  status      String   @default("tidak huni")
   nominal     Decimal  @db.Decimal(15, 2) @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

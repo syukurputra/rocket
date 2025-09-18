@@ -89,7 +89,7 @@ async function handlePost(
       data: {
         asetId: asetId,
         nama: nama,
-        status: status !== undefined ? Boolean(status) : true,
+        status: status,
         nominal: nominal,
         createdById: user.id,
         updatedById: user.id

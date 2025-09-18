@@ -14,6 +14,20 @@ async function handleGet(
     const penghuni = await prisma.penghuni.findUnique({
       where: { id },
       include: {
+        aset: {
+          select: {
+            id: true,
+            nama: true,
+            jenis: true
+          }
+        },
+        ruangan: {
+          select: {
+            id: true,
+            nama: true,
+            status: true
+          }
+        },
         createdBy: {
           select: {
             id: true,

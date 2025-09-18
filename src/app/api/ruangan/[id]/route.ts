@@ -76,7 +76,7 @@ async function handlePut(
         ...(nama && { nama }),
         ...(asetId && { asetId }),
         ...(nominal && { nominal }),
-        ...(status !== undefined && { status: Boolean(status) }),
+        ...(status && { status }),
         updatedById: user.id
       },
       include: {
