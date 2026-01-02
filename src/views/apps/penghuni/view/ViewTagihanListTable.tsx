@@ -297,8 +297,8 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
                     }
                   )
 
-                  fetchRuanganData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Ruangan berhasil dihapus', 'success')
+                  fetchTagihanData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Tagihan berhasil dihapus', 'success')
                 } catch (err) {
                   console.error('Delete failed:', err)
                   const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
