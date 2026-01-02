@@ -1,43 +1,25 @@
 'use client'
 
-// React Imports
-import { useState } from 'react'
-
-// Next Imports
-import { useRouter } from 'next/navigation'
-
-// MUI Imports
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
-
-// Third-party Imports
+import Alert from '@mui/material/Alert'
 import classnames from 'classnames'
-
-// Type Imports
 import type { SystemMode } from '@core/types'
-
-// Component Imports
 import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
 import CustomTextField from '@core/components/mui/TextField'
-
-// Config Imports
 import themeConfig from '@configs/themeConfig'
-
-// Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 
-// Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
   zIndex: 2,
   blockSize: 'auto',
@@ -61,57 +43,35 @@ const MaskImg = styled('img')({
   zIndex: -1
 })
 
-const useAuth = () => {
-  const login = async (username: string, password: string) => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('accessToken', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        window.location.href = '/id/home'
-        return { success: true }
-      } else {
-        return { success: false, message: data.message }
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      return { success: false, message: 'Network error occurred' }
-    }
-  }
-
-  return { login }
-}
-
-const Login = ({ mode }: { mode: SystemMode }) => {
-  // States
-  const [isPasswordShown, setIsPasswordShown] = useState(false)
-  const [username, setUsername] = useState('')
+const ResetPassword = ({ mode }: { mode: SystemMode }) => {
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [token, setToken] = useState('')
 
-  const { login } = useAuth()
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
-  // Vars
+  useEffect(() => {
+    const tokenParam = searchParams.get('token')
+    if (tokenParam) {
+      setToken(tokenParam)
+    } else {
+      setError('Token tidak valid')
+    }
+  }, [searchParams])
+
   const darkImg = '/images/pages/auth-mask-dark.png'
   const lightImg = '/images/pages/auth-mask-light.png'
-  const darkIllustration = '/images/illustrations/auth/v2-login-dark.png'
-  const lightIllustration = '/images/illustrations/auth/v2-login-light.png'
-  const borderedDarkIllustration = '/images/illustrations/auth/v2-login-dark-border.png'
-  const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png'
+  const darkIllustration = '/images/illustrations/auth/v2-reset-password-dark.png'
+  const lightIllustration = '/images/illustrations/auth/v2-reset-password-light.png'
+  const borderedDarkIllustration = '/images/illustrations/auth/v2-reset-password-dark-border.png'
+  const borderedLightIllustration = '/images/illustrations/auth/v2-reset-password-light-border.png'
 
-  // Hooks
-  const router = useRouter()
   const { settings } = useSettings()
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
@@ -125,35 +85,52 @@ const Login = ({ mode }: { mode: SystemMode }) => {
     borderedDarkIllustration
   )
 
-  const handleClickShowPassword = () => setIsPasswordShown(show => !show)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess(false)
     setLoading(true)
 
-    if (!username.trim()) {
-      setError('Username or email is required')
+    if (!password.trim()) {
+      setError('Password harus diisi')
       setLoading(false)
       return
     }
 
-    if (!password.trim()) {
-      setError('Password is required')
+    if (password.length < 6) {
+      setError('Password minimal 6 karakter')
+      setLoading(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Password tidak cocok')
       setLoading(false)
       return
     }
 
     try {
-      const result = await login(username, password)
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token, password })
+      })
 
-      if (!result.success) {
-        setError(result.message || 'Login failed')
+      const data = await response.json()
+
+      if (response.ok) {
+        setSuccess(true)
+        setTimeout(() => {
+          router.push('/id/login')
+        }, 3000)
+      } else {
+        setError(data.message || 'Terjadi kesalahan')
       }
-      // If success, login function handles navigation
     } catch (error) {
-      console.error('Login error:', error)
-      setError('An unexpected error occurred')
+      console.error('Reset password error:', error)
+      setError('Terjadi kesalahan jaringan')
     } finally {
       setLoading(false)
     }
@@ -186,7 +163,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           >
             <CircularProgress size={60} />
             <Typography variant='body1' color='textSecondary'>
-              Memproses login...
+              Mereset password...
             </Typography>
           </Box>
         </Box>
@@ -216,23 +193,18 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
             <div className='flex flex-col gap-1'>
-              <Typography variant='h4'>Selamat Datang Kembali</Typography>
-              <Typography>Masuk ke akun Anda di bawah ini</Typography>
+              <Typography variant='h4'>Reset Password 🔐</Typography>
+              <Typography>Masukkan password baru Anda</Typography>
             </div>
             <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-5'>
-              {error && <div className='p-4 rounded-lg bg-red-50 border border-red-200 text-red-800'>{error}</div>}
+              {error && <Alert severity='error'>{error}</Alert>}
+              {success && (
+                <Alert severity='success'>Password berhasil direset! Anda akan diarahkan ke halaman login...</Alert>
+              )}
               <CustomTextField
                 autoFocus
                 fullWidth
-                label='Email or Username'
-                placeholder='Masukkan email atau username'
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-              <CustomTextField
-                fullWidth
-                label='Kata Sandi'
+                label='Password Baru'
                 placeholder='············'
                 type={isPasswordShown ? 'text' : 'password'}
                 value={password}
@@ -242,7 +214,11 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   input: {
                     endAdornment: (
                       <InputAdornment position='end'>
-                        <IconButton edge='end' onClick={handleClickShowPassword} onMouseDown={e => e.preventDefault()}>
+                        <IconButton
+                          edge='end'
+                          onClick={() => setIsPasswordShown(!isPasswordShown)}
+                          onMouseDown={e => e.preventDefault()}
+                        >
                           <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
                         </IconButton>
                       </InputAdornment>
@@ -250,27 +226,50 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   }
                 }}
               />
-              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-                <FormControlLabel control={<Checkbox disabled={loading} />} label='Remember me' />
-                <Typography className='text-end' color='primary.main' component={Link} href='/id/forgot-password'>
-                  Lupa password?
-                </Typography>
-              </div>
+              <CustomTextField
+                fullWidth
+                label='Konfirmasi Password'
+                placeholder='············'
+                type={isConfirmPasswordShown ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton
+                          edge='end'
+                          onClick={() => setIsConfirmPasswordShown(!isConfirmPasswordShown)}
+                          onMouseDown={e => e.preventDefault()}
+                        >
+                          <i className={isConfirmPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                }}
+              />
               <Button
                 fullWidth
                 variant='contained'
                 type='submit'
-                disabled={loading}
+                disabled={loading || success}
                 startIcon={loading ? <CircularProgress size={20} color='inherit' /> : null}
               >
-                {loading ? 'Memproses...' : 'Login'}
+                {loading ? 'Mereset...' : 'Reset Password'}
               </Button>
-              <div className='flex justify-center items-center flex-wrap gap-2'>
-                <Typography>Belum Punya Akun? </Typography>
-                <Typography component={Link} href='/id/register' color='primary.main'>
-                  Daftar disini
+              <Typography className='flex justify-center items-center' sx={{ mt: 2 }}>
+                <Typography
+                  component={Link}
+                  href='/id/login'
+                  color='primary.main'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <i className='tabler-chevron-left' />
+                  Kembali ke Login
                 </Typography>
-              </div>
+              </Typography>
             </form>
           </div>
         </div>
@@ -279,4 +278,4 @@ const Login = ({ mode }: { mode: SystemMode }) => {
   )
 }
 
-export default Login
+export default ResetPassword
