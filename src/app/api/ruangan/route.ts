@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -15,9 +12,7 @@ async function handleGet(
     const whereClause: any = {}
 
     if (search) {
-      whereClause.OR = [
-        { nama: { contains: search.trim(), mode: 'insensitive' } },
-      ]
+      whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
     }
 
     whereClause.createdById = user.id
@@ -60,29 +55,19 @@ async function handleGet(
       },
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get ruangan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePost(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
     const { nama, status, nominal, asetId } = body
 
     if (!nama || !status || !nominal || !asetId) {
-      return NextResponse.json(
-        { message: 'Jenis, status, dan nominal harus diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'Jenis, status, dan nominal harus diisi' }, { status: 400 })
     }
 
     const newRuangan = await prisma.ruangan.create({
@@ -92,7 +77,8 @@ async function handlePost(
         status: status,
         nominal: nominal,
         createdById: user.id,
-        updatedById: user.id
+        updatedById: user.id,
+        companyId: user.companyId || ''
       },
       include: {
         createdBy: {
@@ -110,17 +96,16 @@ async function handlePost(
       }
     })
 
-    return NextResponse.json({
-      data: newRuangan,
-      message: 'Ruangan berhasil ditambahkan'
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        data: newRuangan,
+        message: 'Ruangan berhasil ditambahkan'
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Buat ruangan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 

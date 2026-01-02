@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
     const search = url.searchParams.get('search') || ''
-    
+
     const whereClause: any = {}
 
     if (search) {
@@ -86,39 +83,26 @@ async function handleGet(
       },
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get keuangan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePost(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
     const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
 
     if (!jenis || !nominal || !asetId || !iconId) {
-      return NextResponse.json(
-        { message: 'jenis, nominal, aset, dan icon harus diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'jenis, nominal, aset, dan icon harus diisi' }, { status: 400 })
     }
 
     let transactionDate = new Date()
     if (tanggal) {
       transactionDate = new Date(tanggal)
       if (isNaN(transactionDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Format tanggal tidak valid' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Format tanggal tidak valid' }, { status: 400 })
       }
     }
 
@@ -126,20 +110,14 @@ async function handlePost(
       where: { id: asetId }
     })
     if (!aset) {
-      return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'Aset tidak ditemukan' }, { status: 400 })
     }
 
     const icon = await prisma.masterIcon.findUnique({
       where: { id: iconId }
     })
     if (!icon) {
-      return NextResponse.json(
-        { message: 'Icon tidak ditemukan' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'Icon tidak ditemukan' }, { status: 400 })
     }
 
     const nominalValue = typeof nominal === 'string' ? parseFloat(nominal) : nominal
@@ -153,7 +131,8 @@ async function handlePost(
         asetId: asetId,
         iconId: iconId,
         createdById: user.id,
-        updatedById: user.id
+        updatedById: user.id,
+        companyId: user.companyId || ''
       },
       include: {
         createdBy: {
@@ -187,18 +166,16 @@ async function handlePost(
       }
     })
 
-    return NextResponse.json({
-      data: newKeuangan,
-      message: 'Keuangan berhasil ditambahkan'
-    }, { status: 201 })
-
-  } catch (error) {
-
-    console.error('Create keuangan error:', error)
     return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
+      {
+        data: newKeuangan,
+        message: 'Keuangan berhasil ditambahkan'
+      },
+      { status: 201 }
     )
+  } catch (error) {
+    console.error('Create keuangan error:', error)
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 

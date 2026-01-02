@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -15,9 +12,7 @@ async function handleGet(
     const whereClause: any = {}
 
     if (search) {
-      whereClause.OR = [
-        { nama: { contains: search.trim(), mode: 'insensitive' } },
-      ]
+      whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
     }
 
     whereClause.createdById = user.id
@@ -66,39 +61,26 @@ async function handleGet(
       },
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get tagihan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePost(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
     const { keterangan, mulaiSewa, selesaiSewa, penghuniId } = body
 
     if (!keterangan || !mulaiSewa || !selesaiSewa || !penghuniId) {
-      return NextResponse.json(
-        { message: 'keterangn, mulai sewa dan selesai sewa harus diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'keterangn, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
     }
 
     let mulaiSewaDate = new Date()
     if (mulaiSewa) {
       mulaiSewaDate = new Date(mulaiSewa)
       if (isNaN(mulaiSewaDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Format tanggal mulai sewa tidak valid' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
@@ -106,10 +88,7 @@ async function handlePost(
     if (selesaiSewa) {
       selesaiSewaDate = new Date(selesaiSewa)
       if (isNaN(selesaiSewaDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Format tanggal mulai sewa tidak valid' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
@@ -120,7 +99,8 @@ async function handlePost(
         selesaiSewa: selesaiSewaDate,
         penghuniId: penghuniId,
         createdById: user.id,
-        updatedById: user.id
+        updatedById: user.id,
+        companyId: user.companyId || ''
       },
       include: {
         createdBy: {
@@ -138,17 +118,16 @@ async function handlePost(
       }
     })
 
-    return NextResponse.json({
-      data: newTagihan,
-      message: 'Tagihan berhasil ditambahkan'
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        data: newTagihan,
+        message: 'Tagihan berhasil ditambahkan'
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Buat tagihan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 

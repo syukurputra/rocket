@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
-  req: NextRequest,
-  { user }: AuthContext
-) {
+async function handleGet(req: NextRequest, { user }: AuthContext) {
   const { searchParams } = new URL(req.url)
-  const page  = parseInt(searchParams.get('page')  || '1', 10)
+  const page = parseInt(searchParams.get('page') || '1', 10)
   const limit = parseInt(searchParams.get('limit') || '10', 10)
   const search = searchParams.get('search') || ''
   const status = searchParams.get('status')
@@ -52,10 +49,7 @@ async function handleGet(
   })
 }
 
-async function handlePost(
-  req: NextRequest,
-  { user }: AuthContext
-) {
+async function handlePost(req: NextRequest, { user }: AuthContext) {
   const body = await req.json()
   const { jenis, nama, alamat, kota, provinsi, status } = body
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
@@ -64,10 +58,15 @@ async function handlePost(
 
   const newAset = await prisma.aset.create({
     data: {
-      jenis, nama, alamat, kota, provinsi,
+      jenis,
+      nama,
+      alamat,
+      kota,
+      provinsi,
       status: status !== undefined ? Boolean(status) : true,
       createdById: user.id,
-      updatedById: user.id
+      updatedById: user.id,
+      companyId: user.companyId || ''
     },
     include: {
       createdBy: { select: { id: true, username: true } },
@@ -78,5 +77,5 @@ async function handlePost(
   return NextResponse.json({ data: newAset, message: 'Aset berhasil ditambahkan' }, { status: 201 })
 }
 
-export const GET  = withAuth(handleGet)
+export const GET = withAuth(handleGet)
 export const POST = withAuth(handlePost)
