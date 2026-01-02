@@ -43,8 +43,10 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Type Imports
+import type { ButtonProps } from '@mui/material/Button'
+
 import type { ThemeColor } from '@core/types'
-import type { RuanganClient } from '@/src/types/apps/ruanganTypes'
+import type { TagihanClient } from '@/src/types/apps/tagihanTypes'
 import type { Locale } from '@configs/i18n'
 
 // Component Imports
@@ -59,8 +61,6 @@ import { getLocalizedUrl } from '@/src/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-
-import type { ButtonProps } from '@mui/material/Button'
 
 import AddEditRuang from '@components/dialogs/ruangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
@@ -117,24 +117,24 @@ const DebouncedInput = ({
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-type RuanganClientWithAction = RuanganClient & { action?: string }
+type TagihanClientWithAction = TagihanClient & { action?: string }
 
 // Column Definitions
-const columnHelper = createColumnHelper<RuanganClientWithAction>()
+const columnHelper = createColumnHelper<TagihanClientWithAction>()
 
-interface RuanganListTableProps {
+interface TagihanListTableProps {
   asetId?: string
-  initialData?: RuanganClient[]
+  initialData?: TagihanClient[]
 }
 
-const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProps) => {
+const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProps) => {
   const params = useParams()
   const id = asetId || (params?.id as string)
 
   const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<RuanganClientWithAction[]>(initialData)
-  const [filteredData, setFilteredData] = useState<RuanganClientWithAction[]>(initialData)
+  const [data, setData] = useState<TagihanClientWithAction[]>(initialData)
+  const [filteredData, setFilteredData] = useState<TagihanClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
@@ -143,6 +143,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -153,7 +154,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     severity: 'success'
   })
 
-  const fetchRuanganData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
+  const fetchTagihanData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
       setLoading(true)
       setError(null)
@@ -168,7 +169,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       }
 
       const result = await apiFetchClient<{
-        data: RuanganClient[]
+        data: TagihanClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -177,23 +178,24 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(`/api/ruangan?${params.toString()}`, undefined, {
+      }>(`/api/tagihan?${params.toString()}`, undefined, {
         redirectOn401: '/id/login'
       })
 
-      const ruanganData = result.data || []
+      const tagihanData = result.data || []
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
       const inferredTotalCount =
-        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : ruanganData.length)
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : tagihanData.length)
 
-      setData(ruanganData)
-      setFilteredData(ruanganData)
+      setData(tagihanData)
+      setFilteredData(tagihanData)
       setTotalCount(inferredTotalCount)
       setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
-      console.error('Failed to fetch ruangan data:', err)
+      console.error('Failed to fetch tagihan data:', err)
+
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -205,7 +207,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setCurrentPage(0)
-      fetchRuanganData(0, pageSize, searchQuery)
+      fetchTagihanData(0, pageSize, searchQuery)
     }, 500)
 
     return () => clearTimeout(timeoutId)
@@ -213,13 +215,13 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchRuanganData(currentPage, pageSize, searchQuery)
+      fetchTagihanData(currentPage, pageSize, searchQuery)
     }
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchRuanganData(currentPage, pageSize, searchQuery)
+      fetchTagihanData(currentPage, pageSize, searchQuery)
     }
   }, [currentPage])
 
@@ -233,6 +235,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
 
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
+
     setSearchQuery(searchValue)
     setGlobalFilter(searchValue)
   }
@@ -242,27 +245,20 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     children: 'Tambah'
   }
 
-  const columns = useMemo<ColumnDef<RuanganClientWithAction, any>[]>(
+  const columns = useMemo<ColumnDef<TagihanClientWithAction, any>[]>(
     () => [
       columnHelper.accessor('nama', {
-        header: 'Nama Ruangan',
+        header: 'Nama',
         cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
       }),
-      columnHelper.accessor('nominal', {
-        header: 'Nominal Sewa',
-        cell: ({ row }) => {
-          const formatNumber = (num: number): string => {
-            if (!num || num === 0) return '0'
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-          }
-
-          return <Typography>Rp{formatNumber(row.original.nominal)}</Typography>
-        }
+      columnHelper.accessor('jenis', {
+        header: 'Jenis',
+        cell: ({ row }) => <Typography>{`${row.original.jenis}`}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          return row.original.status === 'huni' ? (
+          return row.original.status === true ? (
             <Chip label='Aktif' color='success' size='small' variant='tonal' />
           ) : (
             <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
@@ -273,7 +269,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <OpenDialogOnElementClick
+            {/* <OpenDialogOnElementClick
               element={IconButton}
               elementProps={{
                 className: 'flex',
@@ -287,12 +283,12 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
                 mode: 'edit',
                 initialData: row.original
               }}
-            />
+            /> */}
             <IconButton
               onClick={async () => {
                 try {
                   await apiFetchClient(
-                    `/api/ruangan/${row.original.id}`,
+                    `/api/tagihan/${row.original.id}`,
                     {
                       method: 'DELETE'
                     },
@@ -306,6 +302,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
                 } catch (err) {
                   console.error('Delete failed:', err)
                   const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+
                   showSnackbar(errorMessage, 'error')
                 }
               }}
@@ -321,7 +318,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
   )
 
   const table = useReactTable({
-    data: filteredData as RuanganClient[],
+    data: filteredData as TagihanClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -343,6 +340,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
+
         setCurrentPage(newPagination.pageIndex)
         setPageSize(newPagination.pageSize)
       }
@@ -363,7 +361,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
         <CardContent>
           <Alert severity='error'>
             {error}
-            <Button onClick={() => fetchRuanganData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchTagihanData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -386,7 +384,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           >
             <CircularProgress size={60} />
             <Typography variant='body1' color='textSecondary'>
-              Memuat data ruangan...
+              Memuat data tagihan...
             </Typography>
           </Box>
         </CardContent>
@@ -436,6 +434,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
                 value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
+
                   setPageSize(newPageSize)
                   setCurrentPage(0)
                 }}
@@ -529,6 +528,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
+
             setPageSize(newPageSize)
             setCurrentPage(0)
             table.setPageSize(newPageSize)
