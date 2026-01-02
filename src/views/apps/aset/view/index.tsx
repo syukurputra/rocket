@@ -1,4 +1,3 @@
-import { useParams } from 'next/navigation'
 import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'

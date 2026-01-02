@@ -1,4 +1,3 @@
-import { useParams } from 'next/navigation'
 import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
@@ -19,7 +18,7 @@ const PenghuniList = ({ initialData, penghuniData, penghuniId }: PenghuniListPro
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h3'>Detail Aset</Typography>
+        <Typography variant='h3'>Detail Penghuni</Typography>
         <Divider />
       </Grid>
       <Grid size={{ xs: 12 }}>

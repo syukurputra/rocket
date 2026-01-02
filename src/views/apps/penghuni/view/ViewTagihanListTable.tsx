@@ -462,7 +462,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
             <DebouncedInput
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder='Search Aset'
+              placeholder='Cari Tagihan'
               className='max-sm:is-full sm:is-[250px]'
             />
           </div>
