@@ -153,11 +153,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     severity: 'success'
   })
 
-  const fetchRuanganData = async (
-    pageNum: number = 0,
-    limitNum: number = 10,
-    search: string = ''
-  ) => {
+  const fetchRuanganData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
       setLoading(true)
       setError(null)
@@ -172,7 +168,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       }
 
       const result = await apiFetchClient<{
-        data: RuanganClient[],
+        data: RuanganClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -181,9 +177,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(
-        `/api/ruangan?${params.toString()}`,
-        undefined, {
+      }>(`/api/ruangan?${params.toString()}`, undefined, {
         redirectOn401: '/id/login'
       })
 
@@ -191,7 +185,8 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
-      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : ruanganData.length)
+      const inferredTotalCount =
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : ruanganData.length)
 
       setData(ruanganData)
       setFilteredData(ruanganData)
@@ -261,17 +256,13 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
           }
 
-          return (
-            <Typography>
-              Rp{formatNumber(row.original.nominal)}
-            </Typography>
-          )
+          return <Typography>Rp{formatNumber(row.original.nominal)}</Typography>
         }
       }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          return row.original.status === true ? (
+          return row.original.status === 'huni' ? (
             <Chip label='Aktif' color='success' size='small' variant='tonal' />
           ) : (
             <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
@@ -297,22 +288,28 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
                 initialData: row.original
               }}
             />
-            <IconButton onClick={async () => {
-              try {
-                await apiFetchClient(`/api/ruangan/${row.original.id}`, {
-                  method: 'DELETE'
-                }, {
-                  redirectOn401: '/id/login'
-                })
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/ruangan/${row.original.id}`,
+                    {
+                      method: 'DELETE'
+                    },
+                    {
+                      redirectOn401: '/id/login'
+                    }
+                  )
 
-                fetchRuanganData(currentPage, pageSize, searchQuery)
-                showSnackbar('Ruangan berhasil dihapus', 'success')
-              } catch (err) {
-                console.error('Delete failed:', err)
-                const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
-                showSnackbar(errorMessage, 'error')
-              }
-            }}>
+                  fetchRuanganData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Ruangan berhasil dihapus', 'success')
+                } catch (err) {
+                  console.error('Delete failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
           </div>
@@ -343,7 +340,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: (updater) => {
+    onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
         setCurrentPage(newPagination.pageIndex)
@@ -364,7 +361,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
+          <Alert severity='error'>
             {error}
             <Button onClick={() => fetchRuanganData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
@@ -380,15 +377,15 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       <Card>
         <CardContent>
           <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="400px"
-            flexDirection="column"
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            minHeight='400px'
+            flexDirection='column'
             gap={2}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data ruangan...
             </Typography>
           </Box>
@@ -401,29 +398,29 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
     <>
       {loading && data.length > 0 && (
         <Box
-          position="fixed"
+          position='fixed'
           top={0}
           left={0}
           right={0}
           bottom={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          bgcolor="rgba(255, 255, 255, 0.8)"
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          bgcolor='rgba(255, 255, 255, 0.8)'
           zIndex={9999}
         >
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
+            display='flex'
+            flexDirection='column'
+            alignItems='center'
             gap={2}
-            bgcolor="white"
+            bgcolor='white'
             padding={4}
             borderRadius={2}
             boxShadow={3}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data...
             </Typography>
           </Box>
@@ -523,7 +520,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           </table>
         </div>
         <TablePagination
-          component="div"
+          component='div'
           count={totalCount || pageCountState * pageSize}
           rowsPerPage={pageSize}
           page={currentPage}
@@ -543,12 +540,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: RuanganListTableProp
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
