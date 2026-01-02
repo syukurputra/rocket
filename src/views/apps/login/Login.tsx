@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Next Imports
 import { useRouter } from 'next/navigation'
@@ -49,6 +49,9 @@ const LoginIllustration = styled('img')(({ theme }) => ({
   },
   [theme.breakpoints.down('lg')]: {
     maxBlockSize: 450
+  },
+  [theme.breakpoints.down('md')]: {
+    maxBlockSize: 400
   }
 }))
 
@@ -78,13 +81,21 @@ const useAuth = () => {
         localStorage.setItem('accessToken', data.accessToken)
         localStorage.setItem('refreshToken', data.refreshToken)
         localStorage.setItem('user', JSON.stringify(data.user))
+
+        // Store user menus for dynamic sidebar
+        if (data.menus && Array.isArray(data.menus)) {
+          localStorage.setItem('userMenus', JSON.stringify(data.menus))
+        }
+
         window.location.href = '/id/home'
+
         return { success: true }
       } else {
         return { success: false, message: data.message }
       }
     } catch (error) {
       console.error('Login error:', error)
+
       return { success: false, message: 'Network error occurred' }
     }
   }
@@ -101,6 +112,16 @@ const Login = ({ mode }: { mode: SystemMode }) => {
   const [loading, setLoading] = useState(false)
 
   const { login } = useAuth()
+
+  // Check if user already has valid token
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken')
+
+    if (accessToken) {
+      // Redirect to home if token exists
+      window.location.href = '/id/home'
+    }
+  }, [])
 
   // Vars
   const darkImg = '/images/pages/auth-mask-dark.png'
@@ -135,12 +156,14 @@ const Login = ({ mode }: { mode: SystemMode }) => {
     if (!username.trim()) {
       setError('Username or email is required')
       setLoading(false)
+
       return
     }
 
     if (!password.trim()) {
       setError('Password is required')
       setLoading(false)
+
       return
     }
 
@@ -150,6 +173,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
       if (!result.success) {
         setError(result.message || 'Login failed')
       }
+
       // If success, login function handles navigation
     } catch (error) {
       console.error('Login error:', error)

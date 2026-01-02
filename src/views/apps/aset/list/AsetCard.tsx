@@ -1,5 +1,8 @@
 'use client'
 
+// React Imports
+import { useState, useEffect } from 'react'
+
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -9,38 +12,89 @@ import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { Theme } from '@mui/material/styles'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // Third-party Imports
 import classnames from 'classnames'
 
-// Vars
-const data = [
-  {
-    title: 24,
-    subtitle: 'Clients',
-    icon: 'tabler-user'
-  },
-  {
-    title: 165,
-    subtitle: 'Invoices',
-    icon: 'tabler-file-invoice'
-  },
-  {
-    title: '$2.46k',
-    subtitle: 'Paid',
-    icon: 'tabler-checks'
-  },
-  {
-    title: '$876',
-    subtitle: 'Unpaid',
-    icon: 'tabler-circle-off'
-  }
-]
+// Utils
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
+
+interface SummaryData {
+  totalAset: number
+  totalAsetAktif: number
+  totalAsetNonAktif: number
+  totalRuanganDenganAsetAktif: number
+}
 
 const AsetCard = () => {
+  // State
+  const [summary, setSummary] = useState<SummaryData | null>(null)
+  const [loading, setLoading] = useState(true)
+
   // Hooks
   const isBelowMdScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const isBelowSmScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
+
+  // Fetch summary data
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        setLoading(true)
+        const result = await apiFetchClient<{ data: SummaryData; message?: string }>('/api/aset/summary')
+
+        if (result && result.data) {
+          setSummary(result.data)
+        }
+      } catch (error) {
+        console.error('Error fetching asset summary:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSummary()
+  }, [])
+
+  // Data array with dynamic values
+  const data = summary
+    ? [
+        {
+          title: summary.totalAset,
+          subtitle: 'Total Aset',
+          icon: 'tabler-building',
+          color: 'primary.main'
+        },
+        {
+          title: summary.totalAsetAktif,
+          subtitle: 'Total Aset Aktif',
+          icon: 'tabler-circle-check',
+          color: 'success.main'
+        },
+        {
+          title: summary.totalAsetNonAktif,
+          subtitle: 'Total Aset Non Aktif',
+          icon: 'tabler-circle-x',
+          color: 'error.main'
+        },
+        {
+          title: summary.totalRuanganDenganAsetAktif,
+          subtitle: 'Total Ruangan dengan Aset Aktif',
+          icon: 'tabler-door',
+          color: 'info.main'
+        }
+      ]
+    : []
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className='flex justify-center items-center' style={{ minHeight: '150px' }}>
+          <CircularProgress />
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>

@@ -14,125 +14,220 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Company {
+  id        String   @id @default(cuid())
+  nama      String
+  alamat    String?
+  telepon   String?
+  email     String?
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  aset     Aset[]
+  keuangan Keuangan[]
+  ruangan  Ruangan[]
+  penghuni Penghuni[]
+  tagihan  Tagihan[]
+  roles    Role[]
+  menus    Menu[]
+
+  @@map("company")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  nama        String
+  deskripsi   String?
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companyId   String?
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  users       User[]
+  roleMenus   RoleMenu[]
+
+  @@map("role")
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  nama      String
+  path      String?
+  icon      String?
+  urutan    Int      @default(0)
+  parentId  String?
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  parent    Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children  Menu[]     @relation("MenuHierarchy")
+  roleMenus RoleMenu[]
+
+  @@map("menu")
+}
+
+model RoleMenu {
+  id        String   @id @default(cuid())
+  canCreate Boolean  @default(false)
+  canRead   Boolean  @default(true)
+  canUpdate Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  menuId String
+  menu   Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@map("role_menu")
+}
+
 model User {
-  id                String    @id @default(cuid()) @db.VarChar(100)
-  username          String    @unique @db.VarChar(50)
-  email             String    @unique @db.VarChar(191)
-  password          String    @db.VarChar(191)
-  tokenVersion      Int       @default(0)
-  createdAt         DateTime  @default(now())
-  verifikasi        Boolean   @default(false)
-  updatedAt         DateTime  @updatedAt
-  resetToken        String?   @db.VarChar(255)
-  resetTokenExpiry  DateTime?
+  id               String    @id @default(cuid()) @db.VarChar(100)
+  username         String    @unique @db.VarChar(50)
+  email            String    @unique @db.VarChar(191)
+  password         String    @db.VarChar(191)
+  tokenVersion     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  verifikasi       Boolean   @default(false)
+  updatedAt        DateTime  @updatedAt
+  resetToken       String?   @db.VarChar(255)
+  resetTokenExpiry DateTime?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  roleId String?
+  role   Role?   @relation(fields: [roleId], references: [id])
+
+  asetCreated     Aset[]       @relation("CreatedBy")
+  asetUpdated     Aset[]       @relation("UpdatedBy")
+  iconCreated     MasterIcon[] @relation("IconCreatedBy")
+  iconUpdated     MasterIcon[] @relation("IconUpdatedBy")
+  keuanganCreated Keuangan[]   @relation("KeuanganCreatedBy")
+  keuanganUpdated Keuangan[]   @relation("KeuanganUpdatedBy")
+  ruanganCreated  Ruangan[]    @relation("RuanganCreatedBy")
+  ruanganUpdated  Ruangan[]    @relation("RuanganUpdatedBy")
+  penghuniCreated Penghuni[]   @relation("PenghuniCreatedBy")
+  penghuniUpdated Penghuni[]   @relation("PenghuniUpdatedBy")
+  tagihanCreated  Tagihan[]    @relation("TagihanCreatedBy")
+  tagihanUpdated  Tagihan[]    @relation("TagihanUpdatedBy")
 
   @@index([username])
   @@index([email])
-
-  asetCreated      Aset[]       @relation("CreatedBy")
-  asetUpdated      Aset[]       @relation("UpdatedBy")
-  iconCreated      MasterIcon[] @relation("IconCreatedBy")
-  iconUpdated      MasterIcon[] @relation("IconUpdatedBy")
-  keuanganCreated  Keuangan[]   @relation("KeuanganCreatedBy")
-  keuanganUpdated  Keuangan[]   @relation("KeuanganUpdatedBy")
-  ruanganCreated   Ruangan[]    @relation("RuanganCreatedBy")
-  ruanganUpdated   Ruangan[]    @relation("RuanganUpdatedBy")
-  penghuniCreated  Penghuni[]   @relation("PenghuniCreatedBy")
-  penghuniUpdated  Penghuni[]   @relation("PenghuniUpdatedBy")
-  tagihanCreated   Tagihan[]    @relation("TagihanCreatedBy")
-  tagihanUpdated   Tagihan[]    @relation("TagihanUpdatedBy")
-
+  @@index([companyId])
+  @@index([roleId])
   @@map("user")
 }
 
 model Aset {
-  id          String   @id @default(cuid())
-  jenis       String
-  nama        String
-  alamat      String
-  kota        String
-  provinsi    String
-  status      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  nominal     Decimal  @db.Decimal(15, 2) @default(0)
+  id        String   @id @default(cuid())
+  jenis     String
+  nama      String
+  alamat    String
+  kota      String
+  provinsi  String
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  nominal   Decimal  @default(0) @db.Decimal(15, 2)
 
   createdById String
   updatedById String
+  companyId   String
 
-  createdBy   User     @relation("CreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("UpdatedBy", fields: [updatedById], references: [id])
+  createdBy User    @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("UpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
 
-  keuangan    Keuangan[]
-  ruangan     Ruangan[]
-  penghuni    Penghuni[]
+  keuangan Keuangan[]
+  ruangan  Ruangan[]
+  penghuni Penghuni[]
 
+  @@index([companyId])
   @@map("aset")
 }
 
 model Ruangan {
-  id          String   @id @default(cuid())
-  nama        String
-  status      String   @default("tidak huni")
-  nominal     Decimal  @db.Decimal(15, 2) @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  nama      String
+  status    String   @default("tidak huni")
+  nominal   Decimal  @default(0) @db.Decimal(15, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   createdById String
   updatedById String
+  companyId   String
 
-  createdBy   User     @relation("RuanganCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+  createdBy User    @relation("RuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
 
-  asetId     String
-  aset       Aset       @relation(fields: [asetId], references: [id])
+  asetId String
+  aset   Aset   @relation(fields: [asetId], references: [id])
 
-  penghuni    Penghuni[]
+  penghuni Penghuni[]
 
+  @@index([companyId])
   @@map("ruangan")
 }
 
 model MasterIcon {
-  id          String   @id @default(cuid())
-  nama        String
-  code        String
-  jenis       String
-  color       String   @default("#000000")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  nama      String
+  code      String
+  jenis     String
+  color     String   @default("#000000")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   createdById String
   updatedById String
 
-  createdBy   User     @relation("IconCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("IconUpdatedBy", fields: [updatedById], references: [id])
+  createdBy User @relation("IconCreatedBy", fields: [createdById], references: [id])
+  updatedBy User @relation("IconUpdatedBy", fields: [updatedById], references: [id])
 
-  keuangan    Keuangan[]
+  keuangan Keuangan[]
 
   @@map("m_icon")
 }
 
 model Keuangan {
-  id          String   @id @default(cuid())
-  jenis       String
-  keterangan  String
-  tanggal     DateTime @default(now())
-  nominal     Decimal  @db.Decimal(15, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  jenis      String
+  keterangan String
+  tanggal    DateTime @default(now())
+  nominal    Decimal  @db.Decimal(15, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   createdById String
   updatedById String
+  companyId   String
 
-  createdBy   User     @relation("KeuanganCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("KeuanganUpdatedBy", fields: [updatedById], references: [id])
+  createdBy User    @relation("KeuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("KeuanganUpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
 
-  asetId     String
-  aset       Aset       @relation(fields: [asetId], references: [id])
+  asetId String
+  aset   Aset   @relation(fields: [asetId], references: [id])
 
-  iconId     String
-  icon       MasterIcon @relation(fields: [iconId], references: [id])
+  iconId String
+  icon   MasterIcon @relation(fields: [iconId], references: [id])
 
+  @@index([companyId])
   @@map("keuangan")
 }
 
@@ -147,18 +242,21 @@ model Penghuni {
 
   createdById String
   updatedById String
+  companyId   String
 
-  createdBy   User     @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
+  createdBy User    @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
 
-  asetId     String
-  aset       Aset      @relation(fields: [asetId], references: [id])
+  asetId String
+  aset   Aset   @relation(fields: [asetId], references: [id])
 
-  ruanganId  String
-  ruangan    Ruangan   @relation(fields: [ruanganId], references: [id])
+  ruanganId String
+  ruangan   Ruangan @relation(fields: [ruanganId], references: [id])
 
-  tagihan    Tagihan[]
+  tagihan Tagihan[]
 
+  @@index([companyId])
   @@map("penghuni")
 }
 
@@ -174,13 +272,15 @@ model Tagihan {
 
   createdById String
   updatedById String
+  companyId   String
 
-  createdBy   User     @relation("TagihanCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
+  createdBy User    @relation("TagihanCreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
 
-  penghuniId  String
-  penghuni    Penghuni @relation(fields: [penghuniId], references: [id])
+  penghuniId String
+  penghuni   Penghuni @relation(fields: [penghuniId], references: [id])
 
+  @@index([companyId])
   @@map("tagihan")
 }
-
