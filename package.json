@@ -10,7 +10,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "prisma generate && next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && npm run build:icons && next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
