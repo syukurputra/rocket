@@ -61,25 +61,25 @@ const AsetCard = () => {
     ? [
         {
           title: summary.totalAset,
-          subtitle: 'Total Aset',
+          subtitle: 'Aset',
           icon: 'tabler-building',
           color: 'primary.main'
         },
         {
           title: summary.totalAsetAktif,
-          subtitle: 'Total Aset Aktif',
+          subtitle: 'Aset Aktif',
           icon: 'tabler-circle-check',
           color: 'success.main'
         },
         {
           title: summary.totalAsetNonAktif,
-          subtitle: 'Total Aset Non Aktif',
+          subtitle: 'Aset Non Aktif',
           icon: 'tabler-circle-x',
           color: 'error.main'
         },
         {
           title: summary.totalRuanganDenganAsetAktif,
-          subtitle: 'Total Ruangan dengan Aset Aktif',
+          subtitle: 'Ruangan dengan Aset Aktif',
           icon: 'tabler-door',
           color: 'info.main'
         }

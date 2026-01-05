@@ -1,5 +1,8 @@
 'use client'
 
+// React Imports
+import { useState, useEffect } from 'react'
+
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -9,38 +12,73 @@ import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { Theme } from '@mui/material/styles'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
 // Third-party Imports
 import classnames from 'classnames'
 
-// Vars
-const data = [
-  {
-    title: 24,
-    subtitle: 'Clients',
-    icon: 'tabler-user'
-  },
-  {
-    title: 165,
-    subtitle: 'Invoices',
-    icon: 'tabler-file-invoice'
-  },
-  {
-    title: '$2.46k',
-    subtitle: 'Paid',
-    icon: 'tabler-checks'
-  },
-  {
-    title: '$876',
-    subtitle: 'Unpaid',
-    icon: 'tabler-circle-off'
-  }
-]
+// Utils
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
+
+interface PenghuniStats {
+  totalPenghuni: number
+  totalNonAktif: number
+}
 
 const PenghuniCard = () => {
   // Hooks
   const isBelowMdScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const isBelowSmScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
+
+  // State
+  const [stats, setStats] = useState<PenghuniStats>({ totalPenghuni: 0, totalNonAktif: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true)
+
+        const result = await apiFetchClient<{ data: PenghuniStats }>('/api/penghuni/stats', undefined, {
+          redirectOn401: '/id/login'
+        })
+
+        setStats(result.data)
+      } catch (error) {
+        console.error('Failed to fetch penghuni stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  const data = [
+    {
+      title: stats.totalPenghuni,
+      subtitle: 'Total Penghuni',
+      icon: 'tabler-users'
+    },
+    {
+      title: stats.totalNonAktif,
+      subtitle: 'Penghuni Non Aktif',
+      icon: 'tabler-user-off'
+    }
+  ]
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent>
+          <Box display='flex' justifyContent='center' alignItems='center' minHeight='150px'>
+            <CircularProgress />
+          </Box>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -48,7 +86,7 @@ const PenghuniCard = () => {
         <Grid container spacing={6}>
           {data.map((item, index) => (
             <Grid
-              size={{ xs: 12, sm: 6, md: 3 }}
+              size={{ xs: 12, sm: 6, md: 6, lg: 6 }}
               key={index}
               className={classnames({
                 '[&:nth-of-type(odd)>div]:pie-6 [&:nth-of-type(odd)>div]:border-ie':
