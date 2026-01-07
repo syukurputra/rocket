@@ -233,19 +233,9 @@ const UserListTable = () => {
         header: 'Company',
         cell: ({ row }) => <Typography>{row.original.company?.nama || '-'}</Typography>
       }),
-      columnHelper.accessor('role', {
+      columnHelper.accessor('role.nama', {
         header: 'Role',
         cell: ({ row }) => <Typography>{row.original.role?.nama || '-'}</Typography>
-      }),
-      columnHelper.accessor('isSuperAdmin', {
-        header: 'Super Admin',
-        cell: ({ row }) => {
-          return row.original.isSuperAdmin ? (
-            <Chip label='Yes' color='primary' size='small' variant='tonal' />
-          ) : (
-            <Chip label='No' color='default' size='small' variant='tonal' />
-          )
-        }
       }),
       columnHelper.accessor('verifikasi', {
         header: 'Verified',
