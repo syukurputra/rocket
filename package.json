@@ -11,13 +11,11 @@
     "postinstall": "prisma generate",
     "dev": "prisma generate && next dev",
     "build": "prisma generate && npm run build:icons && next build --no-lint",
-    "build:dev": "node -e \"require('fs').copyFileSync('.env.development', '.env')\" && npm run build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "deploy:dev": "npm run build:dev && npm start"
+    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
