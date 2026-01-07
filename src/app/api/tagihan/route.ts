@@ -92,6 +92,11 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     }
 
+    // Validate that user has a companyId
+    if (!user.companyId) {
+      return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+    }
+
     const newTagihan = await prisma.tagihan.create({
       data: {
         keterangan: keterangan,
@@ -100,7 +105,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         penghuniId: penghuniId,
         createdById: user.id,
         updatedById: user.id,
-        companyId: user.companyId || ''
+        companyId: user.companyId
       },
       include: {
         createdBy: {

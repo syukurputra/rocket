@@ -56,7 +56,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { username, email, password, roleId, verifikasi = false } = body
+    const { username, email, password, roleId, verifikasi = false, status = true } = body
 
     if (!username || !email || !password) {
       return NextResponse.json({ message: 'Username, email, and password are required' }, { status: 400 })
@@ -72,6 +72,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         email,
         password: hashedPassword,
         verifikasi,
+        status,
         companyId: user.companyId,
         roleId
       },

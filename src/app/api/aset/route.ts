@@ -56,6 +56,11 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
     return NextResponse.json({ message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' }, { status: 400 })
   }
 
+  // Validate that user has a companyId
+  if (!user.companyId) {
+    return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+  }
+
   const newAset = await prisma.aset.create({
     data: {
       jenis,
@@ -66,7 +71,7 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
       status: status !== undefined ? Boolean(status) : true,
       createdById: user.id,
       updatedById: user.id,
-      companyId: user.companyId || ''
+      companyId: user.companyId
     },
     include: {
       createdBy: { select: { id: true, username: true } },

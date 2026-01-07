@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import {
-  verifyAccessToken,
-  verifyRefreshToken,
-  signAccessToken,
-  signRefreshToken,
-  isJwtExpired, // tambahkan helper ini di lib/jwt
-} from '@/src/libs/jwt'
+import { verifyAccessToken, verifyRefreshToken, signAccessToken, signRefreshToken, isJwtExpired } from '@/src/libs/jwt'
 import {
   extractTokenFromRequest,
   getAccessTokenFromCookies,
@@ -18,10 +12,11 @@ export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   try {
-    // 1) Coba pakai ACCESS TOKEN (header/cookie)
-    const accessToken =
-      extractTokenFromRequest(req) ||
-      getAccessTokenFromCookies(req)
+    // Check if this is a redirect request (from browser navigation)
+    const shouldRedirect = req.nextUrl.searchParams.get('redirect') === 'true'
+
+    // 1) Try ACCESS TOKEN (header/cookie)
+    const accessToken = extractTokenFromRequest(req) || getAccessTokenFromCookies(req)
 
     if (accessToken) {
       try {
@@ -30,74 +25,91 @@ export async function GET(req: NextRequest) {
           where: { id: p.userId },
           select: { id: true, username: true, email: true, createdAt: true, updatedAt: true, tokenVersion: true }
         })
+
         if (user) {
           return NextResponse.json(
             { authenticated: true, source: 'access', user },
             { headers: { 'Cache-Control': 'no-store' } }
           )
         }
-        // user tidak ada → jangan fallback ke refresh; treat as unauthorized
-        return NextResponse.json(
-          { authenticated: false, message: 'Unauthorized' },
-          { status: 401 }
-        )
-      } catch (err) {
-        // ⬇️ hanya fallback kalau access token EXPIRED
-        if (!isJwtExpired(err)) {
-          return NextResponse.json(
-            { authenticated: false, message: 'Invalid access token' },
-            { status: 401 }
-          )
+
+        // User not found → redirect or return 401
+        if (shouldRedirect) {
+          return NextResponse.redirect(new URL('/id/login', req.url))
         }
-        // else: lanjut ke refresh
+
+        return NextResponse.json({ authenticated: false, message: 'User not found' }, { status: 401 })
+      } catch (err) {
+        // Only fallback to refresh if access token is EXPIRED
+        if (!isJwtExpired(err)) {
+          if (shouldRedirect) {
+            return NextResponse.redirect(new URL('/id/login', req.url))
+          }
+
+          return NextResponse.json({ authenticated: false, message: 'Invalid access token' }, { status: 401 })
+        }
+        // else: continue to refresh token check
       }
     }
 
-    // 2) Fallback: REFRESH TOKEN dari cookie (untuk kasus expired)
+    // 2) Fallback: REFRESH TOKEN from cookie
     const rt = getRefreshTokenFromCookies(req)
+
     if (!rt) {
-      return NextResponse.json(
-        { authenticated: false, message: 'No token provided' },
-        { status: 401 }
-      )
+      // No tokens at all → redirect to login immediately
+      if (shouldRedirect) {
+        return NextResponse.redirect(new URL('/id/login', req.url))
+      }
+
+      return NextResponse.json({ authenticated: false, message: 'No token provided' }, { status: 401 })
     }
 
     let rp: { userId: string; tokenVersion: number }
     try {
       rp = verifyRefreshToken(rt) as { userId: string; tokenVersion: number }
     } catch {
-      return NextResponse.json(
-        { authenticated: false, message: 'Invalid refresh token' },
-        { status: 401 }
-      )
+      // Invalid refresh token → redirect to login
+      if (shouldRedirect) {
+        return NextResponse.redirect(new URL('/id/login', req.url))
+      }
+
+      return NextResponse.json({ authenticated: false, message: 'Invalid refresh token' }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
       where: { id: rp.userId },
       select: { id: true, username: true, email: true, createdAt: true, updatedAt: true, tokenVersion: true }
     })
+
     if (!user || user.tokenVersion !== rp.tokenVersion) {
-      return NextResponse.json(
-        { authenticated: false, message: 'Unauthorized' },
-        { status: 401 }
-      )
+      // Token version mismatch or user not found → redirect to login
+      if (shouldRedirect) {
+        return NextResponse.redirect(new URL('/id/login', req.url))
+      }
+
+      return NextResponse.json({ authenticated: false, message: 'Token revoked or user not found' }, { status: 401 })
     }
 
-    // 3) Rotasi token & set cookies baru
+    // 3) Rotate tokens & set new cookies
     const newAT = signAccessToken({ userId: user.id, username: user.username, email: user.email })
     const newRT = signRefreshToken({ userId: user.id, tokenVersion: user.tokenVersion })
 
     const res = NextResponse.json(
       { authenticated: true, source: 'refresh', user },
-      { headers: { 'Cache-Control': 'no-store', 'Vary': 'Cookie' } }
+      { headers: { 'Cache-Control': 'no-store', Vary: 'Cookie' } }
     )
     setSessionCookies(res, { accessToken: newAT, refreshToken: newRT })
+
     return res
   } catch (err) {
     console.error('Auth check error:', err)
-    return NextResponse.json(
-      { authenticated: false, message: 'Server error' },
-      { status: 500 }
-    )
+
+    const shouldRedirect = req.nextUrl.searchParams.get('redirect') === 'true'
+
+    if (shouldRedirect) {
+      return NextResponse.redirect(new URL('/id/login', req.url))
+    }
+
+    return NextResponse.json({ authenticated: false, message: 'Server error' }, { status: 500 })
   }
 }

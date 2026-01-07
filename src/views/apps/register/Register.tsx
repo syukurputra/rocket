@@ -163,29 +163,29 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     <>
       {loading && (
         <Box
-          position="fixed"
+          position='fixed'
           top={0}
           left={0}
           right={0}
           bottom={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          bgcolor="rgba(255, 255, 255, 0.8)"
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          bgcolor='rgba(255, 255, 255, 0.8)'
           zIndex={9999}
         >
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
+            display='flex'
+            flexDirection='column'
+            alignItems='center'
             gap={2}
-            bgcolor="white"
+            bgcolor='white'
             padding={4}
             borderRadius={2}
             boxShadow={3}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memproses Buat Akun...
             </Typography>
           </Box>
@@ -210,10 +210,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
           )}
         </div>
         <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-          <Link
-            href='/'
-            className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'
-          >
+          <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
             <Logo />
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
@@ -221,23 +218,15 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               <Typography variant='h4'>Daftar</Typography>
               <Typography>Masukkan detail Anda di bawah ini untuk membuat akun Anda</Typography>
             </div>
-            <form
-              noValidate
-              autoComplete='off'
-              onSubmit={handleSubmit}
-              className='flex flex-col gap-6'>
-              {error && (
-                <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
-                  {error}
-                </div>
-              )}
+            <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-6'>
+              {error && <div className='p-4 rounded-lg bg-red-50 border border-red-200 text-red-800'>{error}</div>}
               <CustomTextField
                 autoFocus
                 fullWidth
                 label='Username'
                 placeholder='Masukkan username'
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 required
               />
               <CustomTextField
@@ -245,7 +234,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 label='Email'
                 placeholder='Masukkan email'
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
               />
               <CustomTextField
@@ -254,7 +243,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 placeholder='············'
                 type={isPasswordShown ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 slotProps={{
                   input: {
@@ -273,17 +262,30 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 variant='contained'
                 type='submit'
                 disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                startIcon={loading ? <CircularProgress size={20} color='inherit' /> : null}
               >
                 {loading ? 'Memproses...' : 'Buat Akun'}
               </Button>
+              <div className='flex items-center gap-2'>
+                <Divider className='flex-grow' />
+                <Typography variant='caption' color='textSecondary'>
+                  atau
+                </Typography>
+                <Divider className='flex-grow' />
+              </div>
+              <Button
+                fullWidth
+                variant='outlined'
+                color='secondary'
+                startIcon={<i className='tabler-brand-google-filled' />}
+                onClick={() => (window.location.href = '/api/auth/google')}
+                type='button'
+              >
+                Daftar dengan Google
+              </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Sudah Punya Akun? </Typography>
-                <Typography
-                  component={Link}
-                  href='/id/login'
-                  color='primary.main'
-                >
+                <Typography component={Link} href='/id/login' color='primary.main'>
                   Login
                 </Typography>
               </div>

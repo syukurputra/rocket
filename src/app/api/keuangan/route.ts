@@ -122,6 +122,11 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     const nominalValue = typeof nominal === 'string' ? parseFloat(nominal) : nominal
 
+    // Validate that user has a companyId
+    if (!user.companyId) {
+      return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+    }
+
     const newKeuangan = await prisma.keuangan.create({
       data: {
         jenis: jenis,
@@ -132,7 +137,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         iconId: iconId,
         createdById: user.id,
         updatedById: user.id,
-        companyId: user.companyId || ''
+        companyId: user.companyId
       },
       include: {
         createdBy: {

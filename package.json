@@ -11,11 +11,15 @@
     "postinstall": "prisma generate",
     "dev": "prisma generate && next dev",
     "build": "prisma generate && npm run build:icons && next build --no-lint",
+    "build:dev": "cp .env.development .env && npm run build",
+    "build:prod": "cp .env.production .env && npm run build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts"
+    "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
+    "deploy:dev": "npm run build:dev && npm start",
+    "deploy:prod": "npm run build:prod && npm start"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -46,7 +50,9 @@
     "react-dom": "18.3.1",
     "react-perfect-scrollbar": "1.5.8",
     "react-use": "17.6.0",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "apexcharts": "3.49.0",
+    "react-apexcharts": "1.4.1"
   },
   "devDependencies": {
     "@iconify/json": "2.2.286",

@@ -40,6 +40,7 @@ import type { UserClient } from '@/src/types/apps/userTypes'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
+import AddEditUserDialog from './AddEditUserDialog'
 
 // Util Imports
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
@@ -102,6 +103,10 @@ const UserListTable = () => {
   const [globalFilter, setGlobalFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
+  const [selectedUser, setSelectedUser] = useState<UserClient | null>(null)
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -142,6 +147,69 @@ const UserListTable = () => {
   useEffect(() => {
     fetchUserData()
   }, [])
+
+  const handleAdd = () => {
+    setDialogMode('add')
+    setSelectedUser(null)
+    setDialogOpen(true)
+  }
+
+  const handleEdit = (user: UserClient) => {
+    setDialogMode('edit')
+    setSelectedUser(user)
+    setDialogOpen(true)
+  }
+
+  const handleToggleStatus = async (user: UserClient) => {
+    const action = user.status ? 'menonaktifkan' : 'mengaktifkan'
+
+    if (!confirm(`Apakah Anda yakin ingin ${action} user ini?`)) return
+
+    try {
+      await apiFetchClient(`/api/user/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: !user.status })
+      })
+
+      fetchUserData()
+      showSnackbar(`User berhasil ${user.status ? 'dinonaktifkan' : 'diaktifkan'}`, 'success')
+    } catch (err) {
+      console.error('Toggle status failed:', err)
+
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user status'
+
+      showSnackbar(errorMessage, 'error')
+    }
+  }
+
+  const handleDelete = async (user: UserClient) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return
+
+    try {
+      await apiFetchClient(`/api/user/${user.id}`, {
+        method: 'DELETE'
+      })
+
+      fetchUserData()
+      showSnackbar('User berhasil dihapus', 'success')
+    } catch (err) {
+      console.error('Delete failed:', err)
+
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
+
+      showSnackbar(errorMessage, 'error')
+    }
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setSelectedUser(null)
+  }
+
+  const handleDialogSuccess = () => {
+    fetchUserData()
+    showSnackbar(dialogMode === 'add' ? 'User berhasil ditambahkan' : 'User berhasil diupdate', 'success')
+  }
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -188,6 +256,41 @@ const UserListTable = () => {
             <Chip label='Not Verified' color='warning' size='small' variant='tonal' />
           )
         }
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => {
+          return row.original.status ? (
+            <Chip label='Active' color='success' size='small' variant='tonal' />
+          ) : (
+            <Chip label='Inactive' color='error' size='small' variant='tonal' />
+          )
+        }
+      }),
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2'>
+            <IconButton onClick={() => handleEdit(row.original)} title='Edit'>
+              <i className='tabler-edit text-textSecondary' />
+            </IconButton>
+            <IconButton
+              onClick={() => handleToggleStatus(row.original)}
+              title={row.original.status ? 'Nonaktifkan User' : 'Aktifkan User'}
+            >
+              <i
+                className={classnames(
+                  'text-textSecondary',
+                  row.original.status ? 'tabler-toggle-right' : 'tabler-toggle-left'
+                )}
+              />
+            </IconButton>
+            <IconButton onClick={() => handleDelete(row.original)} title='Delete'>
+              <i className='tabler-trash text-textSecondary' />
+            </IconButton>
+          </div>
+        ),
+        enableSorting: false
       })
     ],
     []
@@ -265,6 +368,9 @@ const UserListTable = () => {
               placeholder='Search User'
               className='max-sm:is-full sm:is-[250px]'
             />
+            <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={handleAdd}>
+              Tambah User
+            </Button>
           </div>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -343,6 +449,13 @@ const UserListTable = () => {
           </Alert>
         </Snackbar>
       </Card>
+      <AddEditUserDialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        onSuccess={handleDialogSuccess}
+        userData={selectedUser}
+        mode={dialogMode}
+      />
     </>
   )
 }

@@ -41,6 +41,7 @@ import type { CompanyClient } from '@/src/types/apps/companyTypes'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
+import AddEditCompanyDialog from './AddEditCompanyDialog'
 
 // Util Imports
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
@@ -107,6 +108,9 @@ const CompanyListTable = () => {
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
+  const [selectedCompany, setSelectedCompany] = useState<CompanyClient | null>(null)
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -157,6 +161,39 @@ const CompanyListTable = () => {
     setSnackbar(prev => ({ ...prev, open: false }))
   }
 
+  const handleAdd = () => {
+    setDialogMode('add')
+    setSelectedCompany(null)
+    setDialogOpen(true)
+  }
+
+  const handleEdit = (company: CompanyClient) => {
+    setDialogMode('edit')
+    setSelectedCompany(company)
+    setDialogOpen(true)
+  }
+
+  const handleToggleStatus = async (company: CompanyClient) => {
+    const action = company.status ? 'menonaktifkan' : 'mengaktifkan'
+    if (!confirm(`Apakah Anda yakin ingin ${action} company ini?`)) return
+
+    try {
+      await apiFetchClient(`/api/company/${company.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: !company.status })
+      })
+
+      fetchCompanyData()
+      showSnackbar(`Company berhasil ${company.status ? 'dinonaktifkan' : 'diaktifkan'}`, 'success')
+    } catch (err) {
+      console.error('Toggle status failed:', err)
+
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update company status'
+
+      showSnackbar(errorMessage, 'error')
+    }
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus company ini?')) return
 
@@ -174,6 +211,16 @@ const CompanyListTable = () => {
 
       showSnackbar(errorMessage, 'error')
     }
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setSelectedCompany(null)
+  }
+
+  const handleDialogSuccess = () => {
+    fetchCompanyData()
+    showSnackbar(dialogMode === 'add' ? 'Company berhasil ditambahkan' : 'Company berhasil diupdate', 'success')
   }
 
   const columns = useMemo<ColumnDef<CompanyClientWithAction, any>[]>(
@@ -208,6 +255,20 @@ const CompanyListTable = () => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center gap-2'>
+            <IconButton onClick={() => handleEdit(row.original)} title='Edit'>
+              <i className='tabler-edit text-textSecondary' />
+            </IconButton>
+            <IconButton
+              onClick={() => handleToggleStatus(row.original)}
+              title={row.original.status ? 'Nonaktifkan' : 'Aktifkan'}
+            >
+              <i
+                className={classnames(
+                  'text-textSecondary',
+                  row.original.status ? 'tabler-toggle-right' : 'tabler-toggle-left'
+                )}
+              />
+            </IconButton>
             <IconButton onClick={() => handleDelete(row.original.id)} title='Delete'>
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
@@ -291,6 +352,9 @@ const CompanyListTable = () => {
               placeholder='Search Company'
               className='max-sm:is-full sm:is-[250px]'
             />
+            <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={handleAdd}>
+              Tambah Company
+            </Button>
           </div>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -369,6 +433,13 @@ const CompanyListTable = () => {
           </Alert>
         </Snackbar>
       </Card>
+      <AddEditCompanyDialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        onSuccess={handleDialogSuccess}
+        companyData={selectedCompany}
+        mode={dialogMode}
+      />
     </>
   )
 }

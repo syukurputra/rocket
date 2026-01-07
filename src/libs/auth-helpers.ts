@@ -15,19 +15,13 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<Respons
     const token = request.headers.get('authorization')?.replace('Bearer ', '')
 
     if (!token) {
-      return Response.json(
-        { message: 'Access token required' },
-        { status: 401 }
-      )
+      return Response.json({ message: 'Access token required' }, { status: 401 })
     }
 
     const payload = verifyAccessToken(token)
 
     if (!payload) {
-      return Response.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      )
+      return Response.json({ message: 'Invalid or expired token' }, { status: 401 })
     }
 
     // Add user info to request
@@ -48,3 +42,12 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<Respons
 //   // Your protected API logic here
 //   return Response.json({ message: 'Protected data', userId })
 // })
+
+export function generateRandomString(length: number): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length))
+  }
+  return result
+}

@@ -70,6 +70,11 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Jenis, status, dan nominal harus diisi' }, { status: 400 })
     }
 
+    // Validate that user has a companyId
+    if (!user.companyId) {
+      return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+    }
+
     const newRuangan = await prisma.ruangan.create({
       data: {
         asetId: asetId,
@@ -78,7 +83,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nominal: nominal,
         createdById: user.id,
         updatedById: user.id,
-        companyId: user.companyId || ''
+        companyId: user.companyId
       },
       include: {
         createdBy: {

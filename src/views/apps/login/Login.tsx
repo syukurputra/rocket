@@ -289,6 +289,23 @@ const Login = ({ mode }: { mode: SystemMode }) => {
               >
                 {loading ? 'Memproses...' : 'Login'}
               </Button>
+              <div className='flex items-center gap-2'>
+                <Divider className='flex-grow' />
+                <Typography variant='caption' color='textSecondary'>
+                  atau
+                </Typography>
+                <Divider className='flex-grow' />
+              </div>
+              <Button
+                fullWidth
+                variant='outlined'
+                color='secondary'
+                startIcon={<i className='tabler-brand-google-filled' />}
+                onClick={() => (window.location.href = '/api/auth/google')}
+                type='button'
+              >
+                Login dengan Google
+              </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Belum Punya Akun? </Typography>
                 <Typography component={Link} href='/id/register' color='primary.main'>

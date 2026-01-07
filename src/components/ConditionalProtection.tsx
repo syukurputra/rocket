@@ -52,18 +52,32 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
         // Verify token
         try {
           const response = await fetch('/api/auth/check', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include'
           })
 
           if (response.ok) {
             setIsAllowed(true)
           } else {
+            // Clear all auth data immediately
             localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            localStorage.removeItem('user')
+            localStorage.removeItem('userMenus')
+
+            // Redirect to login
             window.location.href = '/id/login'
             return
           }
         } catch (error) {
-          setIsAllowed(true) // Allow access if verification fails (network issue)
+          console.error('Auth check error:', error)
+          // On network error, clear tokens and redirect
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('user')
+          localStorage.removeItem('userMenus')
+          window.location.href = '/id/login'
+          return
         }
       }
 
@@ -87,10 +101,10 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
   // Show loading while checking
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Checking authentication...</p>
         </div>
       </div>
     )
@@ -103,11 +117,11 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
 
   // Fallback (shouldn't reach here due to redirects)
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-        <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
-        <a href="/id/login" className="bg-blue-500 text-white px-4 py-2 rounded">
+    <div className='min-h-screen flex items-center justify-center'>
+      <div className='text-center'>
+        <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
+        <p className='text-gray-600 mb-4'>You don't have permission to access this page.</p>
+        <a href='/id/login' className='bg-blue-500 text-white px-4 py-2 rounded'>
           Go to Login
         </a>
       </div>
