@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
 
     const passwordEnc = await bcrypt.hash(password, 10)
 
+    // Generate random company name
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const companyName = `Company-${randomSuffix}`
+
     // Create company for new user
     const company = await prisma.company.create({
       data: {
-        nama: `${username}'s Company`,
+        nama: companyName,
         status: true
       }
     })
@@ -33,8 +37,8 @@ export async function POST(request: NextRequest) {
     // Create default admin role for the company
     const adminRole = await prisma.role.create({
       data: {
-        nama: 'Administrator',
-        deskripsi: 'Full access to all features',
+        nama: 'ADMIN',
+        deskripsi: 'Administrator with full access',
         status: true,
         companyId: company.id
       }
@@ -63,8 +67,6 @@ export async function POST(request: NextRequest) {
 
     return res
   } catch (error) {
-    console.error('Register error:', error)
-
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
