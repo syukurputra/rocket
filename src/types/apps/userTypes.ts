@@ -2,10 +2,10 @@ export type UserClient = {
   id: string
   username: string
   email: string
-  verifikasi: boolean
   companyId: string | null
   roleId: string | null
-  isSuperAdmin?: boolean
+  verifikasi: boolean
+  status: boolean
   createdAt: Date
   updatedAt: Date
   company?: {
@@ -15,6 +15,7 @@ export type UserClient = {
   role?: {
     id: string
     nama: string
+    deskripsi: string | null
   } | null
 }
 
