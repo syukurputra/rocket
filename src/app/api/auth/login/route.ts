@@ -48,6 +48,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Username / password salah' }, { status: 401 })
     }
 
+    // Check if user has a password (users who signed up with Google won't have one)
+    if (!user.password) {
+      return NextResponse.json(
+        { message: 'Akun ini menggunakan Google Login. Silakan login dengan Google.' },
+        { status: 401 }
+      )
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password)
 
     if (!isValidPassword) {
