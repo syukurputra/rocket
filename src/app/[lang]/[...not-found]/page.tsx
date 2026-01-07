@@ -6,6 +6,9 @@ import NotFound from '@views/NotFound'
 // Util Imports
 import { getServerMode, getSystemMode } from '@core/utils/serverHelpers'
 
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic'
+
 const NotFoundPage = async () => {
   // Vars
   const direction = 'ltr'
