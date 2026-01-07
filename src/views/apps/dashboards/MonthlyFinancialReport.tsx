@@ -76,13 +76,15 @@ const MonthlyFinancialReport = () => {
         const response = await fetch(`/api/keuangan/report?year=${selectedYear}`)
         const result = await response.json()
 
-        if (response.ok) {
+        if (result.success && result.data) {
           setReportData(result.data)
         } else {
-          console.error('Failed to fetch report data:', result.message)
+          // Failed to fetch report data
+          setReportData(null)
         }
       } catch (error) {
-        console.error('Error fetching report data:', error)
+        // Error fetching report data
+        setReportData(null)
       } finally {
         setLoading(false)
       }
