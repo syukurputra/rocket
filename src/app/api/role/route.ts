@@ -66,7 +66,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nama,
         deskripsi,
         status,
-        companyId: user.companyId
+        companyId: user.companyId!
       }
     })
 
