@@ -10,7 +10,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     // Check if user is super admin by role name
     const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
 
-    const where = isSuperAdmin ? {} : { companyId: user.companyId }
+    const where = isSuperAdmin ? {} : { companyId: user.companyId! }
 
     const users = await prisma.user.findMany({
       where,
@@ -73,7 +73,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         password: hashedPassword,
         verifikasi,
         status,
-        companyId: user.companyId,
+        companyId: user.companyId!,
         roleId
       },
       select: {

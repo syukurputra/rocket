@@ -35,7 +35,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     // Fetch all transactions for the month grouped by category
     const transactions = await prisma.keuangan.findMany({
       where: {
-        companyId: user.companyId,
+        companyId: user.companyId!,
         tanggal: {
           gte: startOfMonth,
           lte: endOfMonth

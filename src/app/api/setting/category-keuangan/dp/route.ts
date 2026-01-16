@@ -13,7 +13,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const categories = await prisma.categoryKeuangan.findMany({
       where: {
-        companyId: user.companyId,
+        companyId: user.companyId!,
         status: true
       },
       select: {

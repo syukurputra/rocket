@@ -27,7 +27,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const transactions = await prisma.keuangan.findMany({
       where: {
-        companyId: user.companyId, // Filter by company instead of user
+        companyId: user.companyId!, // Filter by company instead of user
         tanggal: {
           gte: startOfYear,
           lte: endOfYear

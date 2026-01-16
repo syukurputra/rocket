@@ -10,7 +10,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     const category = await prisma.categoryKeuangan.findFirst({
       where: {
         id: params.id,
-        companyId: user.companyId
+        companyId: user.companyId!
       },
       include: {
         icon: {
@@ -66,7 +66,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const existingCategory = await prisma.categoryKeuangan.findFirst({
       where: {
         id: params.id,
-        companyId: user.companyId
+        companyId: user.companyId!
       }
     })
 
@@ -127,7 +127,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     const existingCategory = await prisma.categoryKeuangan.findFirst({
       where: {
         id: params.id,
-        companyId: user.companyId
+        companyId: user.companyId!
       }
     })
 

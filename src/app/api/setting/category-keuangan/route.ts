@@ -9,7 +9,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const categories = await prisma.categoryKeuangan.findMany({
       where: {
-        companyId: user.companyId
+        companyId: user.companyId!
       },
       include: {
         icon: {
@@ -96,7 +96,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         iconId: iconId || null,
         color: color || null,
         status,
-        companyId: user.companyId,
+        companyId: user.companyId!,
         createdById: user.id,
         updatedById: user.id
       },
