@@ -43,6 +43,10 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Type Imports
+import type { ButtonProps } from '@mui/material/Button'
+
+import { styled } from '@mui/material/styles'
+
 import type { IconClient } from '@/src/types/apps/iconTypes'
 
 // Component Imports
@@ -53,8 +57,6 @@ import CustomTextField from '@core/components/mui/TextField'
 import tableStyles from '@core/styles/table.module.css'
 
 // MUI Imports
-import type { ButtonProps } from '@mui/material/Button'
-import { styled } from '@mui/material/styles'
 
 import AddEditIcon from '@components/dialogs/master/icon'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
@@ -130,6 +132,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -140,11 +143,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
     severity: 'success'
   })
 
-  const fetchIconData = async (
-    pageNum: number = 0,
-    limitNum: number = 10,
-    search: string = ''
-  ) => {
+  const fetchIconData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
       setLoading(true)
       setError(null)
@@ -159,7 +158,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
       }
 
       const result = await apiFetchClient<{
-        data: IconClient[],
+        data: IconClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -168,17 +167,16 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(
-        `/api/master/icon?${params.toString()}`,
-        undefined, {
-        redirectOn401: '/id/login'
+      }>(`/api/master/icon?${params.toString()}`, undefined, {
+        redirectOn401: '/login'
       })
 
       const iconData = result.data || []
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
-      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : iconData.length)
+      const inferredTotalCount =
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : iconData.length)
 
       setData(iconData)
       setFilteredData(iconData)
@@ -186,6 +184,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
       setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch icon data:', err)
+
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -225,6 +224,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
 
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
+
     setSearchQuery(searchValue)
     setGlobalFilter(searchValue)
   }
@@ -237,39 +237,34 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   const columns = useMemo<ColumnDef<IconClientWithAction, any>[]>(
     () => [
       columnHelper.accessor('nama', {
-        header: 'Nama',
-        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
+        header: 'Nama Icon',
+        cell: ({ row }) => <Typography fontWeight={600}>{`${row.original.nama}`}</Typography>
       }),
-      columnHelper.accessor('jenis', {
-        header: 'Jenis',
-        cell: ({ row }) => {
-          return row.original.jenis === 'pemasukan' ? (
-            <Chip label='Pemasukan' color='success' size='small' variant='tonal' />
-          ) : (
-            <Chip label='Pengeluaran' color='error' size='small' variant='tonal' />
+      {
+        id: 'render',
+        header: 'Render Icon',
+        cell: ({ row }: any) => {
+          const iconCode = row.original.code
+
+          return (
+            <div className='flex items-center justify-center'>
+              {iconCode ? (
+                <>
+                  <Icon className={iconCode} sx={{ fontSize: '2rem', color: 'var(--mui-palette-text-primary)' }} />
+                </>
+              ) : (
+                <Typography variant='caption' color='text.secondary'>
+                  No icon
+                </Typography>
+              )}
+            </div>
           )
         }
-      }),
+      },
       columnHelper.accessor('code', {
-        header: 'Icon',
+        header: 'Code Icon',
         cell: ({ row }) => {
-          return (
-            <Icon
-              className={row.original.code}
-              sx={{ color: `var(--mui-palette-${row.original.code})` }}
-            />
-          )
-        }
-      }),
-      columnHelper.accessor('color', {
-        header: 'Warna',
-        cell: ({ row }) => {
-          return (
-            <Icon
-              className='tabler-color-filter'
-              sx={{ color: `var(--mui-palette-${row.original.color})` }}
-            />
-          )
+          return <Typography className='text-sm font-mono'>{row.original.code}</Typography>
         }
       }),
       columnHelper.accessor('action', {
@@ -280,8 +275,8 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
               element={IconButton}
               elementProps={{
                 className: 'flex',
-                'aria-label': 'Preview / Edit',
-                children: <i className='tabler-eye text-textSecondary' />
+                'aria-label': 'Edit',
+                children: <i className='tabler-edit text-textSecondary' />
               }}
               dialog={AddEditIcon}
               dialogProps={{
@@ -293,22 +288,29 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
                 }
               }}
             />
-            <IconButton onClick={async () => {
-              try {
-                await apiFetchClient(`/api/master/icon/${row.original.id}`, {
-                  method: 'DELETE'
-                }, {
-                  redirectOn401: '/id/login'
-                })
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/master/icon/${row.original.id}`,
+                    {
+                      method: 'DELETE'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
 
-                fetchIconData(currentPage, pageSize, searchQuery)
-                showSnackbar('Icon berhasil dihapus', 'success')
-              } catch (err) {
-                console.error('Delete failed:', err)
-                const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
-                showSnackbar(errorMessage, 'error')
-              }
-            }}>
+                  fetchIconData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Icon berhasil dihapus', 'success')
+                } catch (err) {
+                  console.error('Delete failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
           </div>
@@ -339,9 +341,10 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: (updater) => {
+    onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
+
         setCurrentPage(newPagination.pageIndex)
         setPageSize(newPagination.pageSize)
       }
@@ -360,7 +363,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
+          <Alert severity='error'>
             {error}
             <Button onClick={() => fetchIconData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
@@ -376,15 +379,15 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
       <Card>
         <CardContent>
           <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="400px"
-            flexDirection="column"
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            minHeight='400px'
+            flexDirection='column'
             gap={2}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data icon...
             </Typography>
           </Box>
@@ -397,29 +400,29 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
     <>
       {loading && data.length > 0 && (
         <Box
-          position="fixed"
+          position='fixed'
           top={0}
           left={0}
           right={0}
           bottom={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          bgcolor="rgba(255, 255, 255, 0.8)"
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          bgcolor='rgba(255, 255, 255, 0.8)'
           zIndex={9999}
         >
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
+            display='flex'
+            flexDirection='column'
+            alignItems='center'
             gap={2}
-            bgcolor="white"
+            bgcolor='white'
             padding={4}
             borderRadius={2}
             boxShadow={3}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data...
             </Typography>
           </Box>
@@ -435,6 +438,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
                 value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
+
                   setPageSize(newPageSize)
                   setCurrentPage(0)
                 }}
@@ -449,8 +453,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
               element={Button}
               elementProps={buttonProps}
               dialog={AddEditIcon}
-              dialogProps={{
-              }}
+              dialogProps={{}}
             />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
@@ -518,7 +521,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component="div"
+          component='div'
           count={totalCount || pageCountState * pageSize}
           rowsPerPage={pageSize}
           page={currentPage}
@@ -527,6 +530,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
+
             setPageSize(newPageSize)
             setCurrentPage(0)
           }}
@@ -537,12 +541,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
@@ -552,3 +551,5 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
 }
 
 export default IconListTable
+
+

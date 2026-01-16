@@ -7,19 +7,24 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 // GET /api/role/[id] - Get role by ID
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    const role = await prisma.role.findFirst({
+    console.log('GET /api/role/[id] - Params:', params)
+    console.log('GET /api/role/[id] - User:', { id: user.id, companyId: user.companyId })
+
+    const role = await prisma.role.findUnique({
       where: {
-        id: params.id,
-        companyId: user.companyId || undefined
+        id: params.id
       },
       include: {
-        roleMenus: {
+        company: true,
+        menuRoles: {
           include: {
             menu: true
           }
         }
       }
     })
+
+    console.log('GET /api/role/[id] - Role found:', role ? 'Yes' : 'No')
 
     if (!role) {
       return NextResponse.json({ message: 'Role not found' }, { status: 404 })
@@ -42,10 +47,9 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const body = await request.json()
     const { nama, deskripsi, status } = body
 
-    const role = await prisma.role.updateMany({
+    const role = await prisma.role.update({
       where: {
-        id: params.id,
-        companyId: user.companyId || undefined
+        id: params.id
       },
       data: {
         ...(nama && { nama }),
@@ -54,11 +58,8 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       }
     })
 
-    if (role.count === 0) {
-      return NextResponse.json({ message: 'Role not found or unauthorized' }, { status: 404 })
-    }
-
     return NextResponse.json({
+      data: role,
       message: 'Role updated successfully'
     })
   } catch (error) {
@@ -71,16 +72,11 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 // DELETE /api/role/[id] - Delete role
 async function handleDelete(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    const deleted = await prisma.role.deleteMany({
+    await prisma.role.delete({
       where: {
-        id: params.id,
-        companyId: user.companyId || undefined
+        id: params.id
       }
     })
-
-    if (deleted.count === 0) {
-      return NextResponse.json({ message: 'Role not found or unauthorized' }, { status: 404 })
-    }
 
     return NextResponse.json({
       message: 'Role deleted successfully'

@@ -9,13 +9,8 @@ import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import Paper from '@mui/material/Paper'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -34,18 +29,14 @@ type Props = {
   role: RoleClient | null
 }
 
-type MenuPermission = {
-  menuId: string
-  menuNama: string
-  canCreate: boolean
-  canRead: boolean
-  canUpdate: boolean
-  canDelete: boolean
+type MenuAssignment = {
+  id: string
+  nama: string
+  assigned: boolean
 }
 
 export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
-  const [menus, setMenus] = useState<MenuClient[]>([])
-  const [permissions, setPermissions] = useState<MenuPermission[]>([])
+  const [menus, setMenus] = useState<MenuAssignment[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
@@ -62,39 +53,18 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
       setLoading(true)
 
       try {
-        // Fetch all menus
-        const menusResult = await apiFetchClient<{ data: MenuClient[] }>('/api/menu')
-        const allMenus = menusResult.data || []
+        // Fetch menus filtered by company paket with current role assignments
+        const menusResult = await apiFetchClient<{ data: any[] }>(`/api/role/${role.id}/menus`)
+        const menusData = menusResult.data || []
 
-        setMenus(allMenus)
-
-        // Fetch current role with menu assignments
-        const roleResult = await apiFetchClient<{ data: any }>(`/api/role/${role.id}`)
-        const roleMenus = roleResult.data?.roleMenus || []
-
-        // Create permissions map
-        const permissionsMap = new Map()
-
-        roleMenus.forEach((rm: any) => {
-          permissionsMap.set(rm.menuId, {
-            canCreate: rm.canCreate,
-            canRead: rm.canRead,
-            canUpdate: rm.canUpdate,
-            canDelete: rm.canDelete
-          })
-        })
-
-        // Initialize permissions for all menus
-        const initialPermissions = allMenus.map(menu => ({
-          menuId: menu.id,
-          menuNama: menu.nama,
-          canCreate: permissionsMap.get(menu.id)?.canCreate || false,
-          canRead: permissionsMap.get(menu.id)?.canRead || false,
-          canUpdate: permissionsMap.get(menu.id)?.canUpdate || false,
-          canDelete: permissionsMap.get(menu.id)?.canDelete || false
+        // Initialize menu assignments
+        const menuAssignments = menusData.map((m: any) => ({
+          id: m.id,
+          nama: m.nama,
+          assigned: m.assigned || false
         }))
 
-        setPermissions(initialPermissions)
+        setMenus(menuAssignments)
       } catch (error) {
         console.error('Failed to fetch data:', error)
         setSnack({ open: true, message: 'Gagal memuat data', severity: 'error' })
@@ -106,14 +76,14 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
     fetchData()
   }, [open, role])
 
-  const handlePermissionChange = (menuId: string, permission: keyof Omit<MenuPermission, 'menuId' | 'menuNama'>) => {
-    setPermissions(prev => prev.map(p => (p.menuId === menuId ? { ...p, [permission]: !p[permission] } : p)))
+  const handleToggleMenu = (menuId: string) => {
+    setMenus(prev => prev.map(m => (m.id === menuId ? { ...m, assigned: !m.assigned } : m)))
   }
 
-  const handleSelectAll = (permission: keyof Omit<MenuPermission, 'menuId' | 'menuNama'>) => {
-    const allChecked = permissions.every(p => p[permission])
+  const handleSelectAll = () => {
+    const allAssigned = menus.every(m => m.assigned)
 
-    setPermissions(prev => prev.map(p => ({ ...p, [permission]: !allChecked })))
+    setMenus(prev => prev.map(m => ({ ...m, assigned: !allAssigned })))
   }
 
   const handleSubmit = async () => {
@@ -122,16 +92,8 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
     setSaving(true)
 
     try {
-      // Filter only menus with at least one permission
-      const menusToAssign = permissions
-        .filter(p => p.canCreate || p.canRead || p.canUpdate || p.canDelete)
-        .map(p => ({
-          menuId: p.menuId,
-          canCreate: p.canCreate,
-          canRead: p.canRead,
-          canUpdate: p.canUpdate,
-          canDelete: p.canDelete
-        }))
+      // Filter only assigned menus
+      const menusToAssign = menus.filter(m => m.assigned).map(m => ({ menuId: m.id }))
 
       await apiFetchClient(`/api/role/${role.id}/menu`, {
         method: 'PUT',
@@ -154,7 +116,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
 
   return (
     <>
-      <Dialog open={open} maxWidth='lg' fullWidth scroll='body'>
+      <Dialog open={open} maxWidth='md' fullWidth scroll='body'>
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           Assign Menu ke Role: {role?.nama}
         </DialogTitle>
@@ -168,90 +130,28 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper} variant='outlined'>
-              <Table size='small'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Menu</TableCell>
-                    <TableCell align='center'>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={permissions.every(p => p.canCreate)}
-                            onChange={() => handleSelectAll('canCreate')}
-                          />
-                        }
-                        label='Create'
-                      />
-                    </TableCell>
-                    <TableCell align='center'>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={permissions.every(p => p.canRead)}
-                            onChange={() => handleSelectAll('canRead')}
-                          />
-                        }
-                        label='Read'
-                      />
-                    </TableCell>
-                    <TableCell align='center'>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={permissions.every(p => p.canUpdate)}
-                            onChange={() => handleSelectAll('canUpdate')}
-                          />
-                        }
-                        label='Update'
-                      />
-                    </TableCell>
-                    <TableCell align='center'>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={permissions.every(p => p.canDelete)}
-                            onChange={() => handleSelectAll('canDelete')}
-                          />
-                        }
-                        label='Delete'
-                      />
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {permissions.map(perm => (
-                    <TableRow key={perm.menuId} hover>
-                      <TableCell>{perm.menuNama}</TableCell>
-                      <TableCell align='center'>
-                        <Checkbox
-                          checked={perm.canCreate}
-                          onChange={() => handlePermissionChange(perm.menuId, 'canCreate')}
-                        />
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Checkbox
-                          checked={perm.canRead}
-                          onChange={() => handlePermissionChange(perm.menuId, 'canRead')}
-                        />
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Checkbox
-                          checked={perm.canUpdate}
-                          onChange={() => handlePermissionChange(perm.menuId, 'canUpdate')}
-                        />
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Checkbox
-                          checked={perm.canDelete}
-                          onChange={() => handlePermissionChange(perm.menuId, 'canDelete')}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <>
+              <Box sx={{ mb: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox checked={menus.every(m => m.assigned)} onChange={handleSelectAll} color='primary' />
+                  }
+                  label='Pilih Semua'
+                />
+              </Box>
+              <List>
+                {menus.map(menu => (
+                  <ListItem key={menu.id} dense>
+                    <FormControlLabel
+                      control={
+                        <Checkbox checked={menu.assigned} onChange={() => handleToggleMenu(menu.id)} color='primary' />
+                      }
+                      label={menu.nama}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </>
           )}
         </DialogContent>
         <DialogActions className='justify-center pbs-0 sm:pbe-16 sm:pli-16'>

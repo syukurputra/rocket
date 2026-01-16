@@ -183,7 +183,7 @@ const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProp
       }>(
         `/api/ruangan?${params.toString()}`,
         undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const ruanganData = result.data || []
@@ -302,7 +302,7 @@ const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProp
                 await apiFetchClient(`/api/ruangan/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
-                  redirectOn401: '/id/login'
+                  redirectOn401: '/login'
                 })
 
                 fetchRuanganData(currentPage, pageSize, searchQuery)
@@ -558,3 +558,5 @@ const ViewRuanganListTable = ({ asetId, initialData = [] }: RuanganListTableProp
 }
 
 export default ViewRuanganListTable
+
+

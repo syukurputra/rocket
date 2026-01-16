@@ -26,8 +26,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       include: {
         _count: {
           select: {
-            users: true,
-            roleMenus: true
+            users: true
           }
         }
       }

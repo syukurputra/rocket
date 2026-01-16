@@ -123,7 +123,7 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
       if (response.ok) {
         setSuccess(true)
         setTimeout(() => {
-          router.push('/id/login')
+          router.push('/login')
         }, 3000)
       } else {
         setError(data.message || 'Terjadi kesalahan')
@@ -262,7 +262,7 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
               <Typography className='flex justify-center items-center' sx={{ mt: 2 }}>
                 <Typography
                   component={Link}
-                  href='/id/login'
+                  href='/login'
                   color='primary.main'
                   sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                 >
@@ -279,3 +279,4 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default ResetPassword
+

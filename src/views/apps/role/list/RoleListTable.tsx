@@ -181,6 +181,13 @@ const RoleListTable = () => {
   }
 
   const handleAssignMenu = (role: RoleClient) => {
+    if (!role || !role.id) {
+      showSnackbar('Role ID tidak valid', 'error')
+      console.error('handleAssignMenu: Invalid role or role ID', role)
+
+      return
+    }
+
     setSelectedRole(role)
     setAssignDialogOpen(true)
   }

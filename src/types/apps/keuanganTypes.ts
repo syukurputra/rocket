@@ -5,17 +5,22 @@ export type KeuanganClient = {
   tanggal: string | Date
   asetId: string
   nominal: number
-  iconId: string
+  categoryKeuanganId: string
   aset?: {
     id: string
     nama: string
     jenis: string
   }
-  icon?: {
+  categoryKeuangan?: {
     id: string
     nama: string
-    code: string
-    color: string
+    deskripsi: string | null
+    color: string | null
+    icon?: {
+      id: string
+      nama: string
+      code: string
+    } | null
   }
   createdBy?: {
     id: string

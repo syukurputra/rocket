@@ -51,7 +51,7 @@ export type Config = {
 
 const themeConfig: Config = {
   templateName: 'Bantu Sewa',
-  homePageUrl: '/id/home',
+  homePageUrl: '/home',
   settingsCookieName: 'vuexy-mui-next-demo-1',
   mode: 'system', // 'system', 'light', 'dark'
   skin: 'default', // 'default', 'bordered'

@@ -46,7 +46,7 @@ const DEFAULTS: FormValues = {
 const STATUS_OPTIONS = [
   { label: 'Pilih Status', value: '' },
   { label: 'Huni', value: 'huni' },
-  { label: 'Tidak Huni', value: 'tidak dihuni' },
+  { label: 'Tidak Huni', value: 'tidak dihuni' }
 ]
 
 export default function AddEditRuang({ open, setOpen, mode = 'create', initialData, asetId, onSaved }: Props) {
@@ -58,16 +58,9 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<RuanganClient | null>(null)
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    if (pendingSaved) {
-      onSaved?.(pendingSaved)
-      setPendingSaved(null)
-      router.refresh()
-    }
-    setOpen(false) // tutup dialog setelah snackbar ditutup
   }
 
   useEffect(() => {
@@ -84,10 +77,8 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
     }
   }, [open, mode, initialData])
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm(prev => ({ ...prev, [key]: e.target.value }))
+  const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [key]: e.target.value }))
 
   const formatNumber = (num: number): string => {
     if (!num) return ''
@@ -132,27 +123,37 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
           method: 'PUT',
           body: JSON.stringify(requestBody)
         })
-        setPendingSaved(json.data)
+
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
         setSnack({ open: true, message: json.message ?? 'Ruangan berhasil diupdate', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
       } else {
         const json = await apiFetchClient<{ data: RuanganClient; message?: string }>(`/api/ruangan`, {
           method: 'POST',
           body: JSON.stringify(requestBody)
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Ruangan berhasil ditambahkan', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
-      }
 
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Ruangan berhasil ditambahkan', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
       setSnack({ open: true, message: msg, severity: 'error' })
-    } finally {
       setSaving(false)
     }
   }
@@ -169,10 +170,12 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           {mode === 'edit' ? 'Ubah Ruangan' : 'Tambah Ruangan'}
         </DialogTitle>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          if (!saving) handleSubmit()
-        }}>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            if (!saving) handleSubmit()
+          }}
+        >
           <DialogContent className='pbs-0 sm:pli-16'>
             <DialogCloseButton onClick={() => setOpen(false)} disableRipple>
               <i className='tabler-x' />
@@ -189,7 +192,7 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
                   onChange={handleChange('nama')}
                 />
               </Grid>
-              <Grid size={{ xs: 12}}>
+              <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Nominal Sewa'
@@ -201,10 +204,10 @@ export default function AddEditRuang({ open, setOpen, mode = 'create', initialDa
                     inputMode: 'decimal',
                     pattern: '[0-9.,]*'
                   }}
-                  helperText="Contoh: 10.000.000"
+                  helperText='Contoh: 10.000.000'
                 />
               </Grid>
-              <Grid size={{ xs: 12}}>
+              <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   select
                   fullWidth

@@ -41,12 +41,6 @@ type UserMenu = {
   icon: string | null
   urutan: number
   parentId: string | null
-  permissions: {
-    canCreate: boolean
-    canRead: boolean
-    canUpdate: boolean
-    canDelete: boolean
-  }
   children?: UserMenu[]
 }
 
@@ -68,17 +62,33 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
   // Load menus from localStorage on mount
+  // Load menus from localStorage on mount and listen for updates
   useEffect(() => {
-    const menusData = localStorage.getItem('userMenus')
+    const loadMenus = () => {
+      const menusData = localStorage.getItem('userMenus')
 
-    if (menusData) {
-      try {
-        const menus = JSON.parse(menusData) as UserMenu[]
+      if (menusData) {
+        try {
+          const menus = JSON.parse(menusData) as UserMenu[]
 
-        setUserMenus(menus)
-      } catch (error) {
-        console.error('Failed to parse user menus:', error)
+          setUserMenus(menus)
+        } catch (error) {
+          console.error('Failed to parse user menus:', error)
+          setUserMenus([])
+        }
       }
+    }
+
+    // Initial load
+    loadMenus()
+
+    // Listen for updates
+    const handleMenuUpdate = () => loadMenus()
+
+    window.addEventListener('userMenusUpdated', handleMenuUpdate)
+
+    return () => {
+      window.removeEventListener('userMenusUpdated', handleMenuUpdate)
     }
   }, [])
 
@@ -110,9 +120,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
   // Render single menu item (recursive for children)
   const renderMenu = (menu: UserMenu): React.ReactNode => {
-    // Check read permission
-    if (!menu.permissions.canRead) return null
-
     // If menu has children, render as SubMenu
     if (menu.children && menu.children.length > 0) {
       return (
@@ -126,7 +133,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     return (
       <MenuItem
         key={menu.id}
-        href={menu.path ? `/id${menu.path}` : '#'}
+        href={menu.path ? menu.path : '#'}
         icon={menu.icon ? <i className={menu.icon} /> : <i className='tabler-circle' />}
       >
         {menu.nama}
@@ -136,26 +143,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
   // Render menu items dynamically
   const renderMenuItems = () => {
-    if (userMenus.length === 0) {
-      // Fallback to default menu if no user menus
-      return (
-        <>
-          <MenuItem href='/id/home' icon={<i className='tabler-smart-home' />}>
-            Home
-          </MenuItem>
-          <MenuItem href='/id/aset/list' icon={<i className='tabler-home-dollar' />}>
-            Aset
-          </MenuItem>
-          <MenuItem href='/id/keuangan/list' icon={<i className='tabler-chart-histogram' />}>
-            Keuangan
-          </MenuItem>
-          <MenuItem href='/id/penghuni/list' icon={<i className='tabler-friends' />}>
-            Penghuni
-          </MenuItem>
-        </>
-      )
-    }
-
     // Build tree and render
     const menuTree = buildMenuTree(userMenus)
 

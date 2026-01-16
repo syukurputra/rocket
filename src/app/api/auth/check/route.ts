@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
         // User not found → redirect or return 401
         if (shouldRedirect) {
-          return NextResponse.redirect(new URL('/id/login', req.url))
+          return NextResponse.redirect(new URL('/login', req.url))
         }
 
         return NextResponse.json({ authenticated: false, message: 'User not found' }, { status: 401 })
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         // Only fallback to refresh if access token is EXPIRED
         if (!isJwtExpired(err)) {
           if (shouldRedirect) {
-            return NextResponse.redirect(new URL('/id/login', req.url))
+            return NextResponse.redirect(new URL('/login', req.url))
           }
 
           return NextResponse.json({ authenticated: false, message: 'Invalid access token' }, { status: 401 })
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     if (!rt) {
       // No tokens at all → redirect to login immediately
       if (shouldRedirect) {
-        return NextResponse.redirect(new URL('/id/login', req.url))
+        return NextResponse.redirect(new URL('/login', req.url))
       }
 
       return NextResponse.json({ authenticated: false, message: 'No token provided' }, { status: 401 })
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     } catch {
       // Invalid refresh token → redirect to login
       if (shouldRedirect) {
-        return NextResponse.redirect(new URL('/id/login', req.url))
+        return NextResponse.redirect(new URL('/login', req.url))
       }
 
       return NextResponse.json({ authenticated: false, message: 'Invalid refresh token' }, { status: 401 })
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     if (!user || user.tokenVersion !== rp.tokenVersion) {
       // Token version mismatch or user not found → redirect to login
       if (shouldRedirect) {
-        return NextResponse.redirect(new URL('/id/login', req.url))
+        return NextResponse.redirect(new URL('/login', req.url))
       }
 
       return NextResponse.json({ authenticated: false, message: 'Token revoked or user not found' }, { status: 401 })
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     const shouldRedirect = req.nextUrl.searchParams.get('redirect') === 'true'
 
     if (shouldRedirect) {
-      return NextResponse.redirect(new URL('/id/login', req.url))
+      return NextResponse.redirect(new URL('/login', req.url))
     }
 
     return NextResponse.json({ authenticated: false, message: 'Server error' }, { status: 500 })

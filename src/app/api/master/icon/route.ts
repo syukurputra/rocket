@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const { searchParams } = new URL(request.url)
+    const all = searchParams.get('all') === 'true'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
@@ -15,9 +15,25 @@ async function handleGet(
     const whereClause: any = {}
 
     if (search) {
-      whereClause.OR = [
-        { nama: { contains: search.trim(), mode: 'insensitive' } },
-      ]
+      whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
+    }
+
+    // If 'all' parameter is true, return all icons without pagination
+    if (all) {
+      const data = await prisma.masterIcon.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          nama: true,
+          code: true
+        },
+        orderBy: { nama: 'asc' }
+      })
+
+      return NextResponse.json({
+        data,
+        message: 'Data retrieved successfully'
+      })
     }
 
     const [data, total] = await Promise.all([
@@ -41,7 +57,7 @@ async function handleGet(
         take: limit,
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.aset.count({ where: whereClause })
+      prisma.masterIcon.count({ where: whereClause })
     ])
 
     const totalPages = Math.ceil(total / limit)
@@ -58,37 +74,26 @@ async function handleGet(
       },
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get icon error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePost(
-  request: NextRequest,
-  { user }: AuthContext
-) {
+async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
     const { nama, jenis, code, color } = body
 
-    if (!nama || !jenis || !code) {
-      return NextResponse.json(
-        { message: 'Nama, jenis dan code harus diisi' },
-        { status: 400 }
-      )
+    if (!nama || !code) {
+      return NextResponse.json({ message: 'Nama dan code harus diisi' }, { status: 400 })
     }
 
     const newIcon = await prisma.masterIcon.create({
       data: {
         nama: nama,
-        jenis: jenis,
         code: code,
-        color: color,
         createdById: user.id,
         updatedById: user.id
       },
@@ -108,17 +113,17 @@ async function handlePost(
       }
     })
 
-    return NextResponse.json({
-      data: newIcon,
-      message: 'Icon berhasil ditambahkan'
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        data: newIcon,
+        message: 'Icon berhasil ditambahkan'
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Create icon error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 

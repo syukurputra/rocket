@@ -168,7 +168,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       }>(
         `/api/penghuni?${params.toString()}`,
         undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const penghuniData = result.data || []
@@ -308,7 +308,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 await apiFetchClient(`/api/penghuni/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
-                  redirectOn401: '/id/login'
+                  redirectOn401: '/login'
                 })
 
                 fetchPenghuniData(currentPage, pageSize, searchQuery)
@@ -566,3 +566,5 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 }
 
 export default PenghuniListTable
+
+

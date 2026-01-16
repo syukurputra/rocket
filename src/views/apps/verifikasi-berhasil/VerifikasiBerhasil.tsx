@@ -102,7 +102,7 @@ const VerifikasiBerhasil = ({ mode }: { mode: SystemMode }) => {
             type='button'
             className='mbe-5'
             component={Link}
-            href='/id/login'
+            href='/login'
           >
             Masuk ke Aplikasi
           </Button>
@@ -113,3 +113,4 @@ const VerifikasiBerhasil = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default VerifikasiBerhasil
+

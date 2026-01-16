@@ -38,3 +38,5 @@ const AsetList = ({ initialData, assetDetailData, assetId }: AsetListProps) => {
 }
 
 export default AsetList
+
+

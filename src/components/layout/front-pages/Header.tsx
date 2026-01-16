@@ -53,14 +53,14 @@ const Header = ({ mode }: { mode: Mode }) => {
               <IconButton onClick={() => setIsDrawerOpen(true)} className='-mis-2'>
                 <i className='tabler-menu-2 text-textPrimary' />
               </IconButton>
-              <Link href='/h/landing-page'>
+              <Link href='/'>
                 <Logo />
               </Link>
               <FrontMenu mode={mode} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
             </div>
           ) : (
             <div className='flex items-center gap-10'>
-              <Link href='/h/landing-page'>
+              <Link href='/'>
                 <Logo />
               </Link>
               <FrontMenu mode={mode} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
@@ -69,22 +69,18 @@ const Header = ({ mode }: { mode: Mode }) => {
           <div className='flex items-center gap-2 sm:gap-4'>
             {/*<ModeDropdown />*/}
             {isBelowLgScreen ? (
-              <CustomIconButton
-                component={Link}
-                variant='contained'
-                href='/id/login'
-                color='primary'
-              >
+              <CustomIconButton component={Link} variant='contained' href='/login' color='primary'>
                 <i className='tabler-login-2 text-xl' />
               </CustomIconButton>
             ) : (
               <Button
                 component={Link}
                 variant='contained'
-                href='/id/login'
+                href='/login'
                 startIcon={<i className='tabler-login-2 text-xl' />}
                 className='whitespace-nowrap'
-              >Login
+              >
+                Login
               </Button>
             )}
           </div>
@@ -95,3 +91,4 @@ const Header = ({ mode }: { mode: Mode }) => {
 }
 
 export default Header
+

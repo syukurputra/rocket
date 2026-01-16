@@ -2,6 +2,7 @@
 type FetchClientOpts = {
   /** redirect path saat 401; set false utk tidak redirect */
   redirectOn401?: string | false
+
   /** skip auto token refresh */
   skipTokenRefresh?: boolean
 }
@@ -9,7 +10,7 @@ type FetchClientOpts = {
 export async function apiFetchClient<T>(
   input: string,
   init?: RequestInit,
-  opts: FetchClientOpts = { redirectOn401: '/id/login' }
+  opts: FetchClientOpts = { redirectOn401: '/login' }
 ): Promise<T> {
   const headers = new Headers(init?.headers)
 
@@ -19,7 +20,8 @@ export async function apiFetchClient<T>(
   }
 
   // Inject Bearer token dari localStorage (kalau ada)
-  let token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
   }
@@ -32,9 +34,12 @@ export async function apiFetchClient<T>(
 
   // Coba parse json sekali (aman walau gagal)
   let body: any = null
+
   try {
     body = await res.clone().json()
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // Handle token expired (401) with automatic refresh
   if (res.status === 401 && !opts.skipTokenRefresh && typeof window !== 'undefined') {
@@ -49,6 +54,7 @@ export async function apiFetchClient<T>(
 
         // Update headers with new token
         const newToken = localStorage.getItem('accessToken')
+
         if (newToken) {
           headers.set('Authorization', `Bearer ${newToken}`)
         }
@@ -59,20 +65,23 @@ export async function apiFetchClient<T>(
         // Re-parse body for the new response
         try {
           body = await res.clone().json()
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     } catch (refreshError) {
       console.error('Token refresh failed:', refreshError)
+
       // If refresh fails, proceed to redirect logic below
     }
   }
 
   if (!res.ok) {
-    const msg = (body && body.message) ? body.message : `Request failed (${res.status})`
+    const msg = body && body.message ? body.message : `Request failed (${res.status})`
 
     // Khusus 401 → redirect (after refresh attempt)
     if (res.status === 401 && opts.redirectOn401 !== false && typeof window !== 'undefined') {
-      const target = typeof opts.redirectOn401 === 'string' ? opts.redirectOn401 : '/id/login'
+      const target = typeof opts.redirectOn401 === 'string' ? opts.redirectOn401 : '/login'
 
       console.log('Authentication failed, redirecting to login...')
 
@@ -83,6 +92,7 @@ export async function apiFetchClient<T>(
 
       // pakai replace agar tidak menambah history stack
       window.location.replace(target)
+
       // hentikan eksekusi selanjutnya
       throw new Error(msg)
     }
@@ -91,6 +101,7 @@ export async function apiFetchClient<T>(
   }
 
   if (res.status === 204) return undefined as unknown as T
+
   return (body ?? (await res.json())) as T
 }
 
@@ -98,6 +109,7 @@ export async function apiFetchClient<T>(
 async function refreshAccessToken(): Promise<boolean> {
   try {
     const refreshToken = localStorage.getItem('refreshToken')
+
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }
@@ -105,14 +117,27 @@ async function refreshAccessToken(): Promise<boolean> {
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ refreshToken }),
       cache: 'no-store'
     })
 
     if (!response.ok) {
-      throw new Error(`Refresh failed: ${response.status}`)
+      // Try to get error message from response body
+      let errorMessage = `Refresh failed: ${response.status}`
+
+      try {
+        const errorData = await response.json()
+
+        if (errorData.error) {
+          errorMessage = errorData.error
+        }
+      } catch {
+        // If JSON parsing fails, use default error message
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
@@ -125,7 +150,14 @@ async function refreshAccessToken(): Promise<boolean> {
         localStorage.setItem('refreshToken', data.refreshToken)
       }
 
+      // Update user menus if provided
+      if (data.menus && Array.isArray(data.menus)) {
+        localStorage.setItem('userMenus', JSON.stringify(data.menus))
+        window.dispatchEvent(new Event('userMenusUpdated'))
+      }
+
       console.log('Tokens refreshed successfully')
+
       return true
     }
 

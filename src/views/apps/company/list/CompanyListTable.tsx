@@ -130,7 +130,7 @@ const CompanyListTable = () => {
         data: CompanyClient[]
         message?: string
       }>('/api/company', undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const companyData = result.data || []
@@ -445,3 +445,5 @@ const CompanyListTable = () => {
 }
 
 export default CompanyListTable
+
+

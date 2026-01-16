@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { id } })
     if (!user) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/id/verifikasi-gagal`)
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/verifikasi-gagal`)
     }
 
     await prisma.user.update({
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       data: { verifikasi: true }
     })
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/id/verifikasi-berhasil`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/verifikasi-berhasil`)
   } catch (err) {
     return NextResponse.json({ message: 'Terjadi kesalahan', error: (err as Error).message }, { status: 500 })
   }

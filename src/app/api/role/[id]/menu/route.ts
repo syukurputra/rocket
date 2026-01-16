@@ -8,7 +8,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handlePut(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await request.json()
-    const { menus } = body // Array of { menuId, canCreate, canRead, canUpdate, canDelete }
+    const { menus } = body // Array of { menuId }
 
     if (!Array.isArray(menus)) {
       return NextResponse.json({ message: 'Menus must be an array' }, { status: 400 })
@@ -27,7 +27,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     }
 
     // Delete existing role-menu assignments
-    await prisma.roleMenu.deleteMany({
+    await prisma.menuRole.deleteMany({
       where: {
         roleId: params.id
       }
@@ -35,14 +35,10 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     // Create new assignments
     if (menus.length > 0) {
-      await prisma.roleMenu.createMany({
+      await prisma.menuRole.createMany({
         data: menus.map(menu => ({
           roleId: params.id,
-          menuId: menu.menuId,
-          canCreate: menu.canCreate || false,
-          canRead: menu.canRead !== false, // Default to true
-          canUpdate: menu.canUpdate || false,
-          canDelete: menu.canDelete || false
+          menuId: menu.menuId
         }))
       })
     }

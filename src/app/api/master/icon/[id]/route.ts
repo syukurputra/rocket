@@ -4,10 +4,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
-async function handleGet(
-  request: NextRequest,
-  { params }: ParamCtx
-) {
+async function handleGet(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
 
@@ -30,53 +27,38 @@ async function handleGet(
     })
 
     if (!icon) {
-      return NextResponse.json(
-        { message: 'Icon tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Icon tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: icon,
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get icon by ID error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePut(
-  request: NextRequest,
-  { user, params }: ParamCtx
-) {
+async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, jenis, code, color } = body
+    const { nama, code } = body
 
     const existingIcon = await prisma.masterIcon.findUnique({
       where: { id }
     })
 
     if (!existingIcon) {
-      return NextResponse.json(
-        { message: 'Icon tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Icon tidak ditemukan' }, { status: 404 })
     }
 
     const updatedAset = await prisma.masterIcon.update({
       where: { id },
       data: {
         ...(nama && { nama }),
-        ...(jenis && { jenis }),
         ...(code && { code }),
-        ...(color && { color }),
         updatedById: user.id
       },
       include: {
@@ -99,20 +81,13 @@ async function handlePut(
       data: updatedAset,
       message: 'Icon berhasil diupdate'
     })
-
   } catch (error) {
     console.error('Update icon error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handleDelete(
-  request: NextRequest,
-  { user, params }: ParamCtx
-) {
+async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
 
@@ -121,10 +96,7 @@ async function handleDelete(
     })
 
     if (!existingIcon) {
-      return NextResponse.json(
-        { message: 'Aset tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Aset tidak ditemukan' }, { status: 404 })
     }
 
     await prisma.masterIcon.delete({
@@ -134,16 +106,12 @@ async function handleDelete(
     return NextResponse.json({
       message: 'Icon berhasil dihapus'
     })
-
   } catch (error) {
     console.error('Delete icon error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-export const GET    = withAuth<{ id: string }>(handleGet)
-export const PUT    = withAuth<{ id: string }>(handlePut)
+export const GET = withAuth<{ id: string }>(handleGet)
+export const PUT = withAuth<{ id: string }>(handlePut)
 export const DELETE = withAuth<{ id: string }>(handleDelete)

@@ -24,14 +24,17 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users    User[]
-  aset     Aset[]
-  keuangan Keuangan[]
-  ruangan  Ruangan[]
-  penghuni Penghuni[]
-  tagihan  Tagihan[]
-  roles    Role[]
-  menus    Menu[]
+  paketId String?
+  paket   MasterPaket? @relation("CompanyActivePaket", fields: [paketId], references: [id])
+
+  users            User[]
+  aset             Aset[]
+  keuangan         Keuangan[]
+  ruangan          Ruangan[]
+  penghuni         Penghuni[]
+  tagihan          Tagihan[]
+  roles            Role[]
+  categoryKeuangan CategoryKeuangan[]
 
   @@map("company")
 }
@@ -44,13 +47,28 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  companyId   String?
-  company     Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   users       User[]
-  roleMenus   RoleMenu[]
+  menuRoles   MenuRole[]
 
   @@map("role")
+}
+
+model MenuRole {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roleId String
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  menuId String
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@map("menu_role")
 }
 
 model Menu {
@@ -64,33 +82,12 @@ model Menu {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  parent    Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id])
-  children  Menu[]     @relation("MenuHierarchy")
-  roleMenus RoleMenu[]
+  parent     Menu?       @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children   Menu[]      @relation("MenuHierarchy")
+  paketMenus PaketMenu[]
+  menuRoles  MenuRole[]
 
   @@map("menu")
-}
-
-model RoleMenu {
-  id        String   @id @default(cuid())
-  canCreate Boolean  @default(false)
-  canRead   Boolean  @default(true)
-  canUpdate Boolean  @default(false)
-  canDelete Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  roleId String
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  menuId String
-  menu   Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
-  @@unique([roleId, menuId])
-  @@map("role_menu")
 }
 
 model User {
@@ -122,8 +119,10 @@ model User {
   ruanganUpdated  Ruangan[]    @relation("RuanganUpdatedBy")
   penghuniCreated Penghuni[]   @relation("PenghuniCreatedBy")
   penghuniUpdated Penghuni[]   @relation("PenghuniUpdatedBy")
-  tagihanCreated  Tagihan[]    @relation("TagihanCreatedBy")
-  tagihanUpdated  Tagihan[]    @relation("TagihanUpdatedBy")
+  tagihanCreated          Tagihan[]          @relation("TagihanCreatedBy")
+  tagihanUpdated          Tagihan[]          @relation("TagihanUpdatedBy")
+  categoryKeuanganCreated CategoryKeuangan[] @relation("CategoryKeuanganCreatedBy")
+  categoryKeuanganUpdated CategoryKeuangan[] @relation("CategoryKeuanganUpdatedBy")
 
   @@index([username])
   @@index([email])
@@ -188,9 +187,7 @@ model Ruangan {
 model MasterIcon {
   id        String   @id @default(cuid())
   nama      String
-  code      String
-  jenis     String
-  color     String   @default("#000000")
+  code      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -200,9 +197,39 @@ model MasterIcon {
   createdBy User @relation("IconCreatedBy", fields: [createdById], references: [id])
   updatedBy User @relation("IconUpdatedBy", fields: [updatedById], references: [id])
 
-  keuangan Keuangan[]
+  categoryKeuangan CategoryKeuangan[]
 
   @@map("m_icon")
+}
+
+model MasterPaket {
+  id        String   @id @default(cuid())
+  nama      String
+  deskripsi String?
+  harga     Decimal  @db.Decimal(15, 2)
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companies  Company[]   @relation("CompanyActivePaket")
+  paketMenus PaketMenu[]
+
+  @@map("m_paket")
+}
+
+model PaketMenu {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paketId String
+  paket   MasterPaket @relation(fields: [paketId], references: [id], onDelete: Cascade)
+
+  menuId String
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([paketId, menuId])
+  @@map("paket_menu")
 }
 
 model Keuangan {
@@ -225,8 +252,8 @@ model Keuangan {
   asetId String
   aset   Aset   @relation(fields: [asetId], references: [id])
 
-  iconId String
-  icon   MasterIcon @relation(fields: [iconId], references: [id])
+  categoryKeuanganId String
+  categoryKeuangan   CategoryKeuangan @relation(fields: [categoryKeuanganId], references: [id])
 
   @@index([companyId])
   @@map("keuangan")
@@ -285,3 +312,32 @@ model Tagihan {
   @@index([companyId])
   @@map("tagihan")
 }
+
+model CategoryKeuangan {
+  id        String   @id @default(cuid())
+  nama      String
+  jenis     String   // "Pengeluaran" or "Pemasukan"
+  deskripsi String?
+  color     String?
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String
+  updatedById String
+  companyId   String
+
+  createdBy User    @relation("CategoryKeuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy User    @relation("CategoryKeuanganUpdatedBy", fields: [updatedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  iconId String?
+  icon   MasterIcon? @relation(fields: [iconId], references: [id])
+
+  keuangan Keuangan[]
+
+  @@index([companyId])
+  @@map("category_keuangan")
+}
+
+

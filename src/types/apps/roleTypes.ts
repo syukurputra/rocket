@@ -18,18 +18,10 @@ export type RoleMenuClient = {
   id: string
   roleId: string
   menuId: string
-  canCreate: boolean
-  canRead: boolean
-  canUpdate: boolean
-  canDelete: boolean
   createdAt: Date
   updatedAt: Date
 }
 
 export type RoleMenuFormData = {
   menuId: string
-  canCreate: boolean
-  canRead: boolean
-  canUpdate: boolean
-  canDelete: boolean
 }

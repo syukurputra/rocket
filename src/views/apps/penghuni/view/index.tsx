@@ -38,3 +38,4 @@ const PenghuniList = ({ initialData, penghuniData, penghuniId }: PenghuniListPro
 }
 
 export default PenghuniList
+

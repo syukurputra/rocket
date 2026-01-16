@@ -11,7 +11,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ data: [], message: 'User has no role assigned' })
     }
 
-    const roleMenus = await prisma.roleMenu.findMany({
+    const roleMenus = await prisma.menuRole.findMany({
       where: {
         roleId: user.roleId,
         menu: {
@@ -31,16 +31,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       }
     })
 
-    const menusWithPermissions = roleMenus.map(rm => ({
-      menu: rm.menu,
-      canCreate: rm.canCreate,
-      canRead: rm.canRead,
-      canUpdate: rm.canUpdate,
-      canDelete: rm.canDelete
-    }))
+    const menus = roleMenus.map(rm => rm.menu)
 
     return NextResponse.json({
-      data: menusWithPermissions,
+      data: menus,
       message: 'User menus retrieved successfully'
     })
   } catch (error) {

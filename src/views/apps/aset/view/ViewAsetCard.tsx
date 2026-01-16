@@ -59,7 +59,7 @@ const ViewAsetCard = ({ assetId, initialData }: ViewAsetCardProps) => {
         const result = await apiFetchClient<{data: DetailAsetClient, total: number}>(
         `/api/aset/${id}`,
         undefined, {
-          redirectOn401: '/id/login'
+          redirectOn401: '/login'
         })
 
         if (result && result.data) {
@@ -197,3 +197,5 @@ const ViewAsetCard = ({ assetId, initialData }: ViewAsetCardProps) => {
 }
 
 export default ViewAsetCard
+
+

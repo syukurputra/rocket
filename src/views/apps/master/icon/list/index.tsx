@@ -19,3 +19,5 @@ const MasterIconList = ({ initialData }: IconListProps) => {
 }
 
 export default MasterIconList
+
+

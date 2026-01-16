@@ -43,7 +43,7 @@ type FormValues = {
 const STATUS_OPTIONS = [
   { label: 'Pilih Status', value: '' },
   { label: 'Huni', value: 'huni' },
-  { label: 'Tidak Huni', value: 'tidak dihuni' },
+  { label: 'Tidak Huni', value: 'tidak dihuni' }
 ]
 
 type AsetOption = {
@@ -75,19 +75,12 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<PenghuniClient | null>(null)
 
   const [asetOptions, setAsetOptions] = useState<AsetOption[]>([])
   const [ruanganOptions, setRuanganOptions] = useState<RuanganOption[]>([])
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    if (pendingSaved) {
-      onSaved?.(pendingSaved)
-      setPendingSaved(null)
-      router.refresh()
-    }
-    setOpen(false) // tutup dialog setelah snackbar ditutup
   }
 
   // Load dropdown data saat dialog dibuka
@@ -103,9 +96,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
           const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>('/api/ruangan/dp')
           setRuanganOptions(ruanganResponse.data || [])
         } catch (iconError) {
-          setRuanganOptions([
-            { id: 'temp-1', nama: 'Ruangan 1', asetId: '1' }
-          ])
+          setRuanganOptions([{ id: 'temp-1', nama: 'Ruangan 1', asetId: '1' }])
         }
       } catch (error) {
         console.error('Error loading dropdown data:', error)
@@ -126,18 +117,18 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
     const loadRuangansByAset = async () => {
       try {
         try {
-          const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>(`/api/ruangan/dp?asetId=${form.asetId}`)
+          const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>(
+            `/api/ruangan/dp?asetId=${form.asetId}`
+          )
           setRuanganOptions(ruanganResponse.data || [])
         } catch (apiError) {
-          const filteredRuangans = ruanganOptions.filter(ruangan =>
-            !ruangan.asetId || ruangan.asetId === form.asetId
-          )
+          const filteredRuangans = ruanganOptions.filter(ruangan => !ruangan.asetId || ruangan.asetId === form.asetId)
           setRuanganOptions(filteredRuangans)
         }
 
         if (form.ruanganId) {
-          const iconExists = ruanganOptions.some(ruangan =>
-            ruangan.id === form.ruanganId && (!ruangan.asetId || ruangan.asetId === form.asetId)
+          const iconExists = ruanganOptions.some(
+            ruangan => ruangan.id === form.ruanganId && (!ruangan.asetId || ruangan.asetId === form.asetId)
           )
           if (!iconExists) {
             setForm(prev => ({ ...prev, iconId: '' }))
@@ -151,11 +142,9 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
     loadRuangansByAset()
   }, [form.asetId])
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm(prev => ({ ...prev, [key]: e.target.value }))
-      }
+  const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, [key]: e.target.value }))
+  }
 
   useEffect(() => {
     if (!open) return
@@ -167,7 +156,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
         mulaiHuni: initialData.mulaiHuni ? new Date(initialData.mulaiHuni) : new Date(),
         selesaiHuni: initialData.selesaiHuni ? new Date(initialData.selesaiHuni) : new Date(),
         asetId: initialData.asetId ?? '',
-        ruanganId: initialData.ruanganId ?? '',
+        ruanganId: initialData.ruanganId ?? ''
       })
     } else {
       setForm(DEFAULTS)
@@ -194,11 +183,17 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
             selesaiHuni: form.selesaiHuni.toISOString()
           })
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil diupdate', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
+
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Penghuni berhasil diupdate', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
       } else {
         const json = await apiFetchClient<{ data: PenghuniClient; message?: string }>(`/api/penghuni`, {
           method: 'POST',
@@ -211,17 +206,21 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
             selesaiHuni: form.selesaiHuni.toISOString()
           })
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Penghuni berhasil ditambahkan', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
-      }
 
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Penghuni berhasil ditambahkan', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
       setSnack({ open: true, message: msg, severity: 'error' })
-    } finally {
       setSaving(false)
     }
   }
@@ -238,10 +237,12 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           {mode === 'edit' ? 'Ubah Penghuni' : 'Tambah Penghuni'}
         </DialogTitle>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          if (!saving) handleSubmit()
-        }}>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            if (!saving) handleSubmit()
+          }}
+        >
           <DialogContent className='pbs-0 sm:pli-16'>
             <DialogCloseButton onClick={() => setOpen(false)} disableRipple>
               <i className='tabler-x' />
@@ -258,7 +259,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   onChange={handleChange('asetId')}
                   disabled={loading}
                 >
-                  <MenuItem value="">
+                  <MenuItem value=''>
                     <em>Pilih Aset</em>
                   </MenuItem>
                   {asetOptions.map(aset => (
@@ -279,13 +280,13 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   onChange={handleChange('ruanganId')}
                   disabled={loading}
                 >
-                  <MenuItem value="">
+                  <MenuItem value=''>
                     <em>Pilih Ruangan</em>
                   </MenuItem>
                   {ruanganOptions.map(ruangan => (
                     <MenuItem key={ruangan.id} value={ruangan.id}>
-                      <div className="flex items-center gap-2">
-                        <Typography className="capitalize" color="text.primary">
+                      <div className='flex items-center gap-2'>
+                        <Typography className='capitalize' color='text.primary'>
                           {ruangan.nama}
                         </Typography>
                       </div>
@@ -293,7 +294,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6}}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   select
                   fullWidth
@@ -316,12 +317,8 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiHuni: date }))}
                   placeholderText='MM/DD/YYYY'
                   customInput={
-                  <CustomTextField
-                    fullWidth
-                    label='Tanggal Mulai Huni'
-                    placeholder='MM-DD-YYYY'
-                    required
-                  />}
+                    <CustomTextField fullWidth label='Tanggal Mulai Huni' placeholder='MM-DD-YYYY' required />
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -330,20 +327,16 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   onChange={(date: Date | null) => setForm(prev => ({ ...prev, selesaiHuni: date }))}
                   placeholderText='MM/DD/YYYY'
                   customInput={
-                    <CustomTextField
-                      fullWidth
-                      label='Tanggal Selesai Huni'
-                      placeholder='MM-DD-YYYY'
-                      required
-                    />}
+                    <CustomTextField fullWidth label='Tanggal Selesai Huni' placeholder='MM-DD-YYYY' required />
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label="Nama"
-                  name="nama"
-                  variant="outlined"
+                  label='Nama'
+                  name='nama'
+                  variant='outlined'
                   placeholder='Nama'
                   value={form.nama}
                   onChange={handleChange('nama')}
@@ -355,7 +348,11 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
             <Button variant='text' onClick={() => setOpen(false)} disabled={saving}>
               Batal
             </Button>
-            <Button variant='contained' type='submit' disabled={saving || !form.nama || !form.asetId || !form.ruanganId}>
+            <Button
+              variant='contained'
+              type='submit'
+              disabled={saving || !form.nama || !form.asetId || !form.ruanganId}
+            >
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>

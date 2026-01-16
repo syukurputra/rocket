@@ -59,16 +59,9 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<AsetClient | null>(null)
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    if (pendingSaved) {
-      onSaved?.(pendingSaved)
-      setPendingSaved(null)
-      router.refresh()
-    }
-    setOpen(false) // tutup dialog setelah snackbar ditutup
   }
 
   useEffect(() => {
@@ -88,10 +81,8 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
     }
   }, [open, mode, initialData])
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm(prev => ({ ...prev, [key]: e.target.value }))
+  const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [key]: e.target.value }))
 
   const handleSubmit = async () => {
     // validasi singkat
@@ -115,11 +106,17 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
             status: form.status
           })
         })
-        setPendingSaved(json.data)
+
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
         setSnack({ open: true, message: json.message ?? 'Aset berhasil diupdate', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
       } else {
         // POST /api/aset
         const json = await apiFetchClient<{ data: AsetClient; message?: string }>(`/api/aset`, {
@@ -133,17 +130,21 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
             status: form.status
           })
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Aset berhasil ditambahkan', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
-      }
 
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Aset berhasil ditambahkan', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
       setSnack({ open: true, message: msg, severity: 'error' })
-    } finally {
       setSaving(false)
     }
   }
@@ -160,10 +161,12 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           {mode === 'edit' ? 'Ubah Aset' : 'Tambah Aset'}
         </DialogTitle>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          if (!saving) handleSubmit()
-        }}>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            if (!saving) handleSubmit()
+          }}
+        >
           <DialogContent className='pbs-0 sm:pli-16'>
             <DialogCloseButton onClick={() => setOpen(false)} disableRipple>
               <i className='tabler-x' />
@@ -235,11 +238,12 @@ export default function AddEditAset({ open, setOpen, mode = 'create', initialDat
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel
                   control={
-                  <Switch
-                    checked={form.status}
-                    onChange={(_, checked) => setForm(prev => ({ ...prev, status: checked }))}
-                  />
-                } label={form.status ? 'Aset Aktif' : 'Aset Nonaktif'}
+                    <Switch
+                      checked={form.status}
+                      onChange={(_, checked) => setForm(prev => ({ ...prev, status: checked }))}
+                    />
+                  }
+                  label={form.status ? 'Aset Aktif' : 'Aset Nonaktif'}
                 />
               </Grid>
             </Grid>

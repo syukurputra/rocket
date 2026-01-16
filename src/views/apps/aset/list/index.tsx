@@ -23,3 +23,5 @@ const AsetList = ({ initialData }: AsetListProps) => {
 }
 
 export default AsetList
+
+

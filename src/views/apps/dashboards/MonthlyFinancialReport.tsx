@@ -2,7 +2,6 @@
 
 // React Imports
 import { useState, useEffect } from 'react'
-import type { SyntheticEvent } from 'react'
 
 // Next Imports
 import dynamic from 'next/dynamic'
@@ -11,25 +10,19 @@ import dynamic from 'next/dynamic'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
 import Typography from '@mui/material/Typography'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
-import type { Theme } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
 
 // Third Party Imports
-import classnames from 'classnames'
 import type { ApexOptions } from 'apexcharts'
 
-// Components Imports
-import CustomAvatar from '@core/components/mui/Avatar'
+// Utils Imports
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/src/libs/styles/AppReactApexCharts'))
@@ -72,18 +65,19 @@ const MonthlyFinancialReport = () => {
   useEffect(() => {
     const fetchReportData = async () => {
       setLoading(true)
-      try {
-        const response = await fetch(`/api/keuangan/report?year=${selectedYear}`)
-        const result = await response.json()
 
-        if (result.success && result.data) {
+      try {
+        const result = await apiFetchClient<{ data: ReportData; message?: string }>(
+          `/api/keuangan/report?year=${selectedYear}`
+        )
+
+        if (result.data) {
           setReportData(result.data)
         } else {
-          // Failed to fetch report data
           setReportData(null)
         }
       } catch (error) {
-        // Error fetching report data
+        console.error('Error fetching report:', error)
         setReportData(null)
       } finally {
         setLoading(false)
@@ -93,8 +87,8 @@ const MonthlyFinancialReport = () => {
     fetchReportData()
   }, [selectedYear])
 
-  const handleTabChange = (event: SyntheticEvent, newValue: TabCategory) => {
-    setValue(newValue)
+  const handleCategoryChange = (event: any) => {
+    setValue(event.target.value)
   }
 
   const handleYearChange = (event: any) => {
@@ -156,6 +150,7 @@ const MonthlyFinancialReport = () => {
     } else if (value >= 1000) {
       return `${(value / 1000).toFixed(0)}rb`
     }
+
     return value.toString()
   }
 
@@ -259,51 +254,51 @@ const MonthlyFinancialReport = () => {
     ]
   }
 
-  const tabData = [
-    {
-      type: 'gabungan' as TabCategory,
-      label: 'Gabungan',
-      avatarIcon: 'tabler-chart-bar',
-      color: 'primary' as const
-    },
-    {
-      type: 'pemasukan' as TabCategory,
-      label: 'Pemasukan',
-      avatarIcon: 'tabler-trending-up',
-      color: 'success' as const
-    },
-    {
-      type: 'pengeluaran' as TabCategory,
-      label: 'Pengeluaran',
-      avatarIcon: 'tabler-trending-down',
-      color: 'error' as const
-    }
-  ]
-
   return (
     <Card>
       <CardHeader
         title='Laporan Keuangan'
         subheader={`Laporan Bulanan Tahun ${selectedYear}`}
         action={
-          <FormControl size='small' sx={{ minWidth: 120 }}>
-            <Select
-              value={selectedYear}
-              onChange={handleYearChange}
-              displayEmpty
-              sx={{
-                '& .MuiSelect-select': {
-                  py: 1
-                }
-              }}
-            >
-              {yearOptions.map(year => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box display='flex' gap={2}>
+            {/* Category Dropdown - First */}
+            <FormControl size='small' sx={{ minWidth: 140 }}>
+              <Select
+                value={value}
+                onChange={handleCategoryChange}
+                displayEmpty
+                sx={{
+                  '& .MuiSelect-select': {
+                    py: 1
+                  }
+                }}
+              >
+                <MenuItem value='gabungan'>Gabungan</MenuItem>
+                <MenuItem value='pemasukan'>Pemasukan</MenuItem>
+                <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Year Dropdown - Second */}
+            <FormControl size='small' sx={{ minWidth: 120 }}>
+              <Select
+                value={selectedYear}
+                onChange={handleYearChange}
+                displayEmpty
+                sx={{
+                  '& .MuiSelect-select': {
+                    py: 1
+                  }
+                }}
+              >
+                {yearOptions.map(year => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         }
       />
       <CardContent>
@@ -312,89 +307,39 @@ const MonthlyFinancialReport = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TabContext value={value}>
-            <TabList
-              variant='scrollable'
-              scrollButtons='auto'
-              onChange={handleTabChange}
-              aria-label='financial report tabs'
-              className='!border-0 mbe-6'
-              sx={{
-                '& .MuiTabs-indicator': { display: 'none !important' },
-                '& .MuiTab-root': { padding: '0 !important', border: '0 !important' }
-              }}
-            >
-              {tabData.map((item, index) => (
-                <Tab
-                  key={index}
-                  value={item.type}
-                  className='mie-4'
-                  label={
-                    <div
-                      className={classnames(
-                        'flex flex-col items-center justify-center gap-2 is-[110px] bs-[100px] border rounded-xl',
-                        item.type === value ? 'border-solid border-[var(--mui-palette-primary-main)]' : 'border-dashed'
-                      )}
-                    >
-                      <CustomAvatar
-                        variant='rounded'
-                        skin='light'
-                        size={38}
-                        {...(item.type === value && { color: item.color })}
-                      >
-                        <i
-                          className={classnames(
-                            'text-[22px]',
-                            { 'text-textSecondary': item.type !== value },
-                            item.avatarIcon
-                          )}
-                        />
-                      </CustomAvatar>
-                      <Typography className='font-medium capitalize' color='text.primary'>
-                        {item.label}
-                      </Typography>
-                    </div>
-                  }
-                />
-              ))}
-            </TabList>
+          <>
+            <AppReactApexCharts type='bar' height={350} width='100%' options={options} series={chartData.series} />
 
-            {tabData.map((item, index) => (
-              <TabPanel key={index} value={item.type} className='!p-0'>
-                <AppReactApexCharts type='bar' height={350} width='100%' options={options} series={chartData.series} />
-
-                {/* Summary */}
-                {reportData && (
-                  <Box mt={4} display='flex' justifyContent='space-around' flexWrap='wrap' gap={2}>
-                    <Box textAlign='center'>
-                      <Typography variant='body2' color='text.secondary'>
-                        Total Pemasukan
-                      </Typography>
-                      <Typography variant='h6' color='success.main'>
-                        Rp {reportData.summary.totalPemasukan.toLocaleString('id-ID')}
-                      </Typography>
-                    </Box>
-                    <Box textAlign='center'>
-                      <Typography variant='body2' color='text.secondary'>
-                        Total Pengeluaran
-                      </Typography>
-                      <Typography variant='h6' color='error.main'>
-                        Rp {reportData.summary.totalPengeluaran.toLocaleString('id-ID')}
-                      </Typography>
-                    </Box>
-                    <Box textAlign='center'>
-                      <Typography variant='body2' color='text.secondary'>
-                        Saldo
-                      </Typography>
-                      <Typography variant='h6' color={reportData.summary.total >= 0 ? 'success.main' : 'error.main'}>
-                        Rp {reportData.summary.total.toLocaleString('id-ID')}
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
-              </TabPanel>
-            ))}
-          </TabContext>
+            {/* Summary */}
+            {reportData && (
+              <Box mt={4} display='flex' justifyContent='space-around' flexWrap='wrap' gap={2}>
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Total Pemasukan
+                  </Typography>
+                  <Typography variant='h6' color='success.main'>
+                    Rp {reportData.summary.totalPemasukan.toLocaleString('id-ID')}
+                  </Typography>
+                </Box>
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Total Pengeluaran
+                  </Typography>
+                  <Typography variant='h6' color='error.main'>
+                    Rp {reportData.summary.totalPengeluaran.toLocaleString('id-ID')}
+                  </Typography>
+                </Box>
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Saldo
+                  </Typography>
+                  <Typography variant='h6' color={reportData.summary.total >= 0 ? 'success.main' : 'error.main'}>
+                    Rp {reportData.summary.total.toLocaleString('id-ID')}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

@@ -88,7 +88,7 @@ const UserDropdown = () => {
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include',           // ⬅️ kirim cookies httpOnly
+        credentials: 'include', // ⬅️ kirim cookies httpOnly
         headers: { 'Cache-Control': 'no-store' }
       })
     } catch (e) {
@@ -98,7 +98,7 @@ const UserDropdown = () => {
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('user')
       setOpen(false)
-      router.replace('/id/login')
+      router.replace('/login')
       setLogoutLoading(false)
     }
   }
@@ -166,7 +166,9 @@ const UserDropdown = () => {
                       variant='contained'
                       color='error'
                       size='small'
-                      endIcon={logoutLoading ? <CircularProgress size={16} color="inherit" /> : <i className='tabler-logout' />}
+                      endIcon={
+                        logoutLoading ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-logout' />
+                      }
                       onClick={handleUserLogout}
                       disabled={logoutLoading}
                       sx={{

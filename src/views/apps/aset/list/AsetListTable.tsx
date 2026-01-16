@@ -180,7 +180,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       }>(
         `/api/aset?${params.toString()}`,
         undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const asetData = result.data || []
@@ -307,7 +307,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 await apiFetchClient(`/api/aset/${row.original.id}`, {
                   method: 'DELETE'
                 }, {
-                  redirectOn401: '/id/login'
+                  redirectOn401: '/login'
                 })
 
                 fetchAsetData(currentPage, pageSize, searchQuery)
@@ -559,3 +559,5 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 }
 
 export default AsetListTable
+
+

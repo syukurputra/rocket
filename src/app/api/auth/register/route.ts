@@ -27,17 +27,22 @@ export async function POST(request: NextRequest) {
     const companyName = `Company-${randomSuffix}`
 
     // Create company for new user
+    // Create company for new user
+    // Fixed paket ID as requested
+    const defaultPaketId = 'cmkf1ia1e00005kf4wckr0x8x'
+
     const company = await prisma.company.create({
       data: {
         nama: companyName,
-        status: true
+        status: true,
+        paketId: defaultPaketId
       }
     })
 
     // Create default admin role for the company
     const adminRole = await prisma.role.create({
       data: {
-        nama: 'ADMIN',
+        nama: 'Super Admin',
         deskripsi: 'Administrator with full access',
         status: true,
         companyId: company.id
@@ -54,6 +59,26 @@ export async function POST(request: NextRequest) {
         roleId: adminRole.id
       }
     })
+
+    // Assign menus based on paket
+    try {
+      const paketMenus = await prisma.paketMenu.findMany({
+        where: { paketId: defaultPaketId }
+      })
+
+      if (paketMenus.length > 0) {
+        await prisma.menuRole.createMany({
+          data: paketMenus.map(pm => ({
+            roleId: adminRole.id,
+            menuId: pm.menuId
+          }))
+        })
+      }
+    } catch (menuError) {
+      console.error('Error assigning menus:', menuError)
+
+      // Continue execution, non-fatal
+    }
 
     await verifyEmailConnection(userInsert.id, userInsert.email, userInsert.username)
 

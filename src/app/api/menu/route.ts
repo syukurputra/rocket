@@ -9,7 +9,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const menus = await prisma.menu.findMany({
       where: {
-        OR: [{ companyId: user.companyId }, { companyId: null }] // Global menus or company-specific
+        status: true // Only active menus
       },
       orderBy: [{ urutan: 'asc' }, { nama: 'asc' }],
       include: {
@@ -45,8 +45,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         icon,
         urutan,
         parentId,
-        status,
-        companyId: user.companyId
+        status
       }
     })
 

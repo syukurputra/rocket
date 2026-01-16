@@ -23,3 +23,5 @@ const PenghuniList = ({ initialData }: PenghuniListProps) => {
 }
 
 export default PenghuniList
+
+

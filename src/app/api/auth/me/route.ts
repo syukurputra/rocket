@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     const token =
       extractTokenFromRequest(req) || // Authorization: Bearer <token>
-      getAccessTokenFromCookies(req)   // httpOnly cookie
+      getAccessTokenFromCookies(req) // httpOnly cookie
 
     if (!token) {
       return NextResponse.json({ message: 'Access token required' }, { status: 401 })
@@ -24,14 +24,70 @@ export async function GET(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, username: true, email: true, createdAt: true, updatedAt: true }
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+        role: {
+          include: {
+            menuRoles: {
+              where: {
+                menu: {
+                  status: true
+                }
+              },
+              include: {
+                menu: true
+              },
+              orderBy: {
+                menu: {
+                  urutan: 'asc'
+                }
+              }
+            }
+          }
+        },
+        company: {
+          select: {
+            id: true,
+            nama: true
+          }
+        }
+      }
     })
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ user }, { headers: { 'Cache-Control': 'no-store' } })
+    // Format menus from menuRoles
+    const menus =
+      user.role?.menuRoles.map(mr => ({
+        id: mr.menu.id,
+        nama: mr.menu.nama,
+        path: mr.menu.path,
+        icon: mr.menu.icon,
+        urutan: mr.menu.urutan,
+        parentId: mr.menu.parentId
+      })) || []
+
+    const userData = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      company: user.company,
+      role: user.role
+        ? {
+            id: user.role.id,
+            nama: user.role.nama,
+            deskripsi: user.role.deskripsi
+          }
+        : null
+    }
+
+    return NextResponse.json({ user: userData, menus }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (err) {
     console.error('Get user error:', err)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })

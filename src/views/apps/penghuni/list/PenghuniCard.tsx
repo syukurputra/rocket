@@ -41,7 +41,7 @@ const PenghuniCard = () => {
         setLoading(true)
 
         const result = await apiFetchClient<{ data: PenghuniStats }>('/api/penghuni/stats', undefined, {
-          redirectOn401: '/id/login'
+          redirectOn401: '/login'
         })
 
         setStats(result.data)
@@ -120,3 +120,5 @@ const PenghuniCard = () => {
 }
 
 export default PenghuniCard
+
+

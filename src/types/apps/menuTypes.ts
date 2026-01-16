@@ -23,8 +23,4 @@ export type MenuFormData = {
 
 export type UserMenuAccess = {
   menu: MenuClient
-  canCreate: boolean
-  canRead: boolean
-  canUpdate: boolean
-  canDelete: boolean
 }

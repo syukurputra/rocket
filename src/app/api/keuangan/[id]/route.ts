@@ -4,10 +4,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
-async function handleGet(
-  _req: NextRequest, 
-  { params }: ParamCtx
-) {
+async function handleGet(_req: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
 
@@ -28,14 +25,11 @@ async function handleGet(
   }
 }
 
-async function handlePut(
-  req: NextRequest, 
-  { user, params }: ParamCtx
-) {
+async function handlePut(req: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await req.json()
-    const { jenis, keterangan, nominal, asetId, iconId, tanggal } = body
+    const { jenis, keterangan, nominal, asetId, categoryKeuanganId, tanggal } = body
 
     let transactionDate = tanggal ? new Date(tanggal) : new Date()
     if (isNaN(transactionDate.getTime())) {
@@ -55,7 +49,7 @@ async function handlePut(
         keterangan: keterangan || '',
         nominal: nominalValue,
         asetId,
-        iconId,
+        categoryKeuanganId,
         tanggal: transactionDate,
         updatedById: user.id
       },
@@ -72,10 +66,7 @@ async function handlePut(
   }
 }
 
-async function handleDelete(
-  _req: NextRequest, 
-  { params }: ParamCtx
-) {
+async function handleDelete(_req: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
 
@@ -90,6 +81,6 @@ async function handleDelete(
   }
 }
 
-export const GET    = withAuth<{ id: string }>(handleGet)
-export const PUT    = withAuth<{ id: string }>(handlePut)
+export const GET = withAuth<{ id: string }>(handleGet)
+export const PUT = withAuth<{ id: string }>(handlePut)
 export const DELETE = withAuth<{ id: string }>(handleDelete)

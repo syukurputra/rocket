@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -10,17 +13,21 @@ import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
+
+import Snackbar from '@mui/material/Snackbar'
+
+import Alert from '@mui/material/Alert'
+
+import Typography from '@mui/material/Typography'
+
+import { styled } from '@mui/material/styles'
+
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-import Typography from '@mui/material/Typography'
-import { styled } from '@mui/material/styles'
-import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 
-import { useRouter } from 'next/navigation'
+import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 
 type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
@@ -38,14 +45,14 @@ type FormValues = {
   keterangan: string
   nominal: number
   asetId: string
-  iconId: string
+  categoryKeuanganId: string
   tanggal: Date | null
 }
 
 const JENIS_OPTIONS = [
   { label: 'Jenis Keuangan', value: '' },
   { label: 'Pemasukan', value: 'pemasukan' },
-  { label: 'Pengeluaran', value: 'pengeluaran' },
+  { label: 'Pengeluaran', value: 'pengeluaran' }
 ]
 
 type AsetOption = {
@@ -54,12 +61,17 @@ type AsetOption = {
   jenis: string
 }
 
-type IconOption = {
+type CategoryOption = {
   id: string
   nama: string
-  code: string
-  color: string
+  deskripsi: string | null
+  color: string | null
   jenis: string
+  icon: {
+    id: string
+    nama: string
+    code: string
+  } | null
 }
 
 const DEFAULTS: FormValues = {
@@ -67,7 +79,7 @@ const DEFAULTS: FormValues = {
   keterangan: '',
   nominal: 0.0,
   asetId: '',
-  iconId: '',
+  categoryKeuanganId: '',
   tanggal: new Date()
 }
 
@@ -79,20 +91,13 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<KeuanganClient | null>(null)
 
   const [asetOptions, setAsetOptions] = useState<AsetOption[]>([])
-  const [iconOptions, setIconOptions] = useState<IconOption[]>([])
-  const [allIcons, setAllIcons] = useState<IconOption[]>([]) // Menyimpan semua icon untuk referensi
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
+  const [allCategories, setAllCategories] = useState<CategoryOption[]>([]) // Menyimpan semua kategori untuk referensi
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    if (pendingSaved) {
-      onSaved?.(pendingSaved)
-      setPendingSaved(null)
-      router.refresh()
-    }
-    setOpen(false)
   }
 
   // Load initial data saat dialog dibuka
@@ -101,21 +106,39 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
 
     const loadInitialData = async () => {
       setLoading(true)
+
       try {
         // Load aset options
         const asetResponse = await apiFetchClient<{ data: AsetOption[] }>('/api/aset/dp')
+
         setAsetOptions(asetResponse.data || [])
 
-        // Load all icons untuk referensi
+        // Load all categories untuk referensi
         try {
-          const iconResponse = await apiFetchClient<{ data: IconOption[] }>('/api/master-icon/dp')
-          setAllIcons(iconResponse.data || [])
-        } catch (iconError) {
-          const fallbackIcons = [
-            { id: 'temp-1', nama: 'Kategori 1', code: 'tabler-home', jenis: 'pemasukan', color: 'primary-main' },
-            { id: 'temp-2', nama: 'Kategori 2', code: 'tabler-cash', jenis: 'pengeluaran', color: 'primary-main' }
+          const categoryResponse = await apiFetchClient<{ data: CategoryOption[] }>('/api/setting/category-keuangan/dp')
+
+          setAllCategories(categoryResponse.data || [])
+        } catch (categoryError) {
+          const fallbackCategories: CategoryOption[] = [
+            {
+              id: 'temp-1',
+              nama: 'Kategori 1',
+              deskripsi: null,
+              color: 'primary',
+              jenis: 'Pemasukan',
+              icon: { id: '1', nama: 'Home', code: 'tabler-home' }
+            },
+            {
+              id: 'temp-2',
+              nama: 'Kategori 2',
+              deskripsi: null,
+              color: 'success',
+              jenis: 'Pengeluaran',
+              icon: { id: '2', nama: 'Cash', code: 'tabler-cash' }
+            }
           ]
-          setAllIcons(fallbackIcons)
+
+          setAllCategories(fallbackCategories)
         }
 
         // Set form data untuk mode edit
@@ -126,9 +149,10 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             keterangan: initialData.keterangan ?? '',
             nominal: initialData.nominal ?? 0.0,
             asetId: initialData.asetId ?? '',
-            iconId: initialData.iconId ?? '',
+            categoryKeuanganId: initialData.categoryKeuanganId ?? '',
             tanggal: initialData.tanggal ? new Date(initialData.tanggal) : new Date()
           }
+
           setForm(formData)
         } else {
           setForm(DEFAULTS)
@@ -144,68 +168,47 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
     loadInitialData()
   }, [open, mode, initialData])
 
-  // Load icons berdasarkan jenis yang dipilih
+  // Filter category options based on selected jenis
   useEffect(() => {
-    if (!form.jenis || allIcons.length === 0) {
-      setIconOptions([])
+    if (!form.jenis || allCategories.length === 0) {
+      setCategoryOptions(allCategories)
+
       return
     }
 
-    const loadIconsByJenis = async () => {
-      try {
-        let filteredIcons: IconOption[] = []
+    // Filter categories by jenis (case insensitive)
+    const filtered = allCategories.filter(category => {
+      if (!category.jenis) return false
 
-        try {
-          // Coba load dari API dengan filter jenis
-          const iconResponse = await apiFetchClient<{ data: IconOption[] }>(`/api/master/icon/dp?jenis=${form.jenis}`)
-          filteredIcons = iconResponse.data || []
-        } catch (apiError) {
-          // Fallback: filter dari allIcons
-          filteredIcons = allIcons.filter(icon =>
-            !icon.jenis || icon.jenis === form.jenis
-          )
-        }
+      return category.jenis.toLowerCase() === form.jenis.toLowerCase()
+    })
 
-        // Jika mode edit dan iconId ada, pastikan icon tersebut tetap tersedia
-        if (mode === 'edit' && form.iconId) {
-          const currentIcon = allIcons.find(icon => icon.id === form.iconId)
-          if (currentIcon && !filteredIcons.some(icon => icon.id === form.iconId)) {
-            // Tambahkan icon yang sedang digunakan ke dalam options
-            filteredIcons.unshift(currentIcon)
-          }
-        }
+    setCategoryOptions(filtered)
 
-        setIconOptions(filteredIcons)
+    // Reset categoryKeuanganId if current selection is not in filtered list
+    if (form.categoryKeuanganId) {
+      const isValidCategory = filtered.some(cat => cat.id === form.categoryKeuanganId)
 
-        // Reset iconId hanya jika icon tidak valid untuk jenis yang dipilih
-        if (form.iconId && mode === 'create') {
-          const iconExists = filteredIcons.some(icon => icon.id === form.iconId)
-          if (!iconExists) {
-            setForm(prev => ({ ...prev, iconId: '' }))
-          }
-        }
-      } catch (error) {
-        console.error('Error loading icons by jenis:', error)
+      if (!isValidCategory) {
+        setForm(prev => ({ ...prev, categoryKeuanganId: '' }))
       }
     }
+  }, [form.jenis, allCategories])
 
-    loadIconsByJenis()
-  }, [form.jenis, allIcons, mode, form.iconId])
+  const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (key === 'nominal') {
+      const rawValue = e.target.value.replace(/[^\d.]/g, '')
+      const numericValue = parseFloat(rawValue) || 0
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (key === 'nominal') {
-          const rawValue = e.target.value.replace(/[^\d.]/g, '')
-          const numericValue = parseFloat(rawValue) || 0
-          setForm(prev => ({ ...prev, [key]: numericValue }))
-        } else {
-          setForm(prev => ({ ...prev, [key]: e.target.value }))
-        }
-      }
+      setForm(prev => ({ ...prev, [key]: numericValue }))
+    } else {
+      setForm(prev => ({ ...prev, [key]: e.target.value }))
+    }
+  }
 
   const formatNumber = (num: number): string => {
     if (!num) return ''
+
     return num.toLocaleString('id-ID', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
@@ -214,18 +217,22 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
 
   const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let rawValue = e.target.value.replace(/[^\d,]/g, '')
+
     rawValue = rawValue.replace(',', '.')
     const numericValue = parseFloat(rawValue) || 0
+
     setForm(prev => ({ ...prev, nominal: numericValue }))
   }
 
   const handleSubmit = async () => {
-    if (!form.jenis || !form.asetId || !form.iconId || form.nominal <= 0 || !form.tanggal) {
+    if (!form.jenis || !form.asetId || !form.categoryKeuanganId || form.nominal <= 0 || !form.tanggal) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+
       return
     }
 
     setSaving(true)
+
     try {
       if (mode === 'edit' && form.id) {
         const json = await apiFetchClient<{ data: KeuanganClient; message?: string }>(`/api/keuangan/${form.id}`, {
@@ -235,15 +242,21 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             keterangan: form.keterangan,
             nominal: form.nominal,
             asetId: form.asetId,
-            iconId: form.iconId,
+            categoryKeuanganId: form.categoryKeuanganId,
             tanggal: form.tanggal.toISOString()
           })
         })
-        setPendingSaved(json.data)
+
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
         setSnack({ open: true, message: json.message ?? 'Keuangan berhasil diupdate', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
       } else {
         const json = await apiFetchClient<{ data: KeuanganClient; message?: string }>(`/api/keuangan`, {
           method: 'POST',
@@ -252,21 +265,26 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
             keterangan: form.keterangan,
             nominal: form.nominal,
             asetId: form.asetId,
-            iconId: form.iconId,
+            categoryKeuanganId: form.categoryKeuanganId,
             tanggal: form.tanggal.toISOString()
           })
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil ditambahkan', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
-      }
 
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil ditambahkan', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
+
       setSnack({ open: true, message: msg, severity: 'error' })
-    } finally {
       setSaving(false)
     }
   }
@@ -283,16 +301,18 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           {mode === 'edit' ? 'Ubah Keuangan' : 'Tambah Keuangan'}
         </DialogTitle>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          if (!saving) handleSubmit()
-        }}>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            if (!saving) handleSubmit()
+          }}
+        >
           <DialogContent className='pbs-0 sm:pli-16'>
             <DialogCloseButton onClick={() => setOpen(false)} disableRipple>
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6}}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   select
                   fullWidth
@@ -320,7 +340,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   onChange={handleChange('asetId')}
                   disabled={loading}
                 >
-                  <MenuItem value="">
+                  <MenuItem value=''>
                     <em>Pilih Aset</em>
                   </MenuItem>
                   {asetOptions.map(aset => (
@@ -335,24 +355,26 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   select
                   fullWidth
                   label='Kategori Keuangan'
-                  name='iconId'
+                  name='categoryKeuanganId'
                   variant='outlined'
-                  value={form.iconId}
-                  onChange={handleChange('iconId')}
+                  value={form.categoryKeuanganId}
+                  onChange={handleChange('categoryKeuanganId')}
                   disabled={loading}
                 >
-                  <MenuItem value="">
+                  <MenuItem value=''>
                     <em>Pilih Kategori</em>
                   </MenuItem>
-                  {iconOptions.map(icon => (
-                    <MenuItem key={icon.id} value={icon.id}>
-                      <div className="flex items-center gap-2">
-                        <Icon
-                          className={icon.code}
-                          sx={{ color: `var(--mui-palette-${icon.color})` }}
-                        />
-                        <Typography className="capitalize" color="text.primary">
-                          {icon.nama}
+                  {categoryOptions.map(category => (
+                    <MenuItem key={category.id} value={category.id}>
+                      <div className='flex items-center gap-2'>
+                        {category.icon && (
+                          <Icon
+                            className={category.icon.code}
+                            sx={{ color: category.color ? `var(--mui-palette-${category.color})` : 'inherit' }}
+                          />
+                        )}
+                        <Typography className='capitalize' color='text.primary'>
+                          {category.nama}
                         </Typography>
                       </div>
                     </MenuItem>
@@ -365,20 +387,16 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                   onChange={(date: Date | null) => setForm(prev => ({ ...prev, tanggal: date }))}
                   placeholderText='MM/DD/YYYY'
                   customInput={
-                    <CustomTextField
-                      fullWidth
-                      label='Tanggal Transaksi'
-                      placeholder='MM-DD-YYYY'
-                      required
-                    />}
+                    <CustomTextField fullWidth label='Tanggal Transaksi' placeholder='MM-DD-YYYY' required />
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
-                  label="Keterangan"
-                  name="keterangan"
-                  variant="outlined"
+                  label='Keterangan'
+                  name='keterangan'
+                  variant='outlined'
                   placeholder='Keterangan'
                   value={form.keterangan}
                   onChange={handleChange('keterangan')}
@@ -396,7 +414,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
                     inputMode: 'decimal',
                     pattern: '[0-9.,]*'
                   }}
-                  helperText="Contoh: 10.000.000"
+                  helperText='Contoh: 10.000.000'
                 />
               </Grid>
             </Grid>

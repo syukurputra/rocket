@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -14,13 +16,18 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Invalid year parameter' }, { status: 400 })
     }
 
-    // Get all transactions for the specified year
+    // Validate user has company
+    if (!user.companyId) {
+      return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+    }
+
+    // Get all transactions for the specified year filtered by company
     const startOfYear = new Date(year, 0, 1)
     const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999)
 
     const transactions = await prisma.keuangan.findMany({
       where: {
-        createdById: user.id,
+        companyId: user.companyId, // Filter by company instead of user
         tanggal: {
           gte: startOfYear,
           lte: endOfYear
@@ -81,6 +88,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
   } catch (error) {
     console.error('Get keuangan report error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -10,14 +13,17 @@ import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
+
+import Snackbar from '@mui/material/Snackbar'
+
+import Alert from '@mui/material/Alert'
+
+import { styled } from '@mui/material/styles'
+
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { IconClient } from '@/src/types/apps/iconTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-import { styled } from '@mui/material/styles'
-import { useRouter } from 'next/navigation'
 
 type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
@@ -32,73 +38,12 @@ type Props = {
 type FormValues = {
   id?: string
   nama: string
-  jenis: string
   code: string
-  color: string
 }
-
-const JENIS_OPTIONS = [
-  { label: 'Jenis Keuangan', value: '' },
-  { label: 'Pemasukan', value: 'pemasukan' },
-  { label: 'Pengeluaran', value: 'pengeluaran' },
-]
-
-const COLOR_OPTIONS = [
-  { value: 'primary-light' },
-  { value: 'primary-main' },
-  { value: 'primary-dark' },
-  { value: 'secondary-light' },
-  { value: 'secondary-main' },
-  { value: 'secondary-dark' },
-  { value: 'error-light' },
-  { value: 'error-main' },
-  { value: 'error-dark' },
-  { value: 'warning-light' },
-  { value: 'warning-main' },
-  { value: 'warning-dark' },
-  { value: 'info-light' },
-  { value: 'info-main' },
-  { value: 'info-dark' },
-  { value: 'success-light' },
-  { value: 'success-main' },
-  { value: 'success-dark' },
-  { value: 'primary-lighterOpacity' },
-  { value: 'primary-lightOpacity' },
-  { value: 'primary-mainOpacity' },
-  { value: 'primary-darkOpacity' },
-  { value: 'primary-darkerOpacity' },
-  { value: 'secondary-lighterOpacity' },
-  { value: 'secondary-lightOpacity' },
-  { value: 'secondary-mainOpacity' },
-  { value: 'secondary-darkOpacity' },
-  { value: 'secondary-darkerOpacity' },
-  { value: 'error-lighterOpacity' },
-  { value: 'error-lightOpacity' },
-  { value: 'error-mainOpacity' },
-  { value: 'error-darkOpacity' },
-  { value: 'error-darkerOpacity' },
-  { value: 'warning-lighterOpacity' },
-  { value: 'warning-lightOpacity' },
-  { value: 'warning-mainOpacity' },
-  { value: 'warning-darkOpacity' },
-  { value: 'warning-darkerOpacity' },
-  { value: 'info-lighterOpacity' },
-  { value: 'info-lightOpacity' },
-  { value: 'info-mainOpacity' },
-  { value: 'info-darkOpacity' },
-  { value: 'info-darkerOpacity' },
-  { value: 'success-lighterOpacity' },
-  { value: 'success-lightOpacity' },
-  { value: 'success-mainOpacity' },
-  { value: 'success-darkOpacity' },
-  { value: 'success-darkerOpacity' },
-]
 
 const DEFAULTS: FormValues = {
   nama: '',
-  jenis: '',
-  code: '',
-  color: ''
+  code: ''
 }
 
 const Icon = styled('i')({})
@@ -108,82 +53,81 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [pendingSaved, setPendingSaved] = useState<IconClient | null>(null)
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    if (pendingSaved) {
-      onSaved?.(pendingSaved)
-      setPendingSaved(null)
-      router.refresh()
-    }
-    setOpen(false) // tutup dialog setelah snackbar ditutup
   }
 
   useEffect(() => {
     if (!open) return
+
     if (mode === 'edit' && initialData) {
       setForm({
         id: initialData.id,
         nama: initialData.nama ?? '',
-        jenis: initialData.jenis ?? '',
-        code: initialData.code ?? '',
-        color: initialData.color ?? ''
+        code: initialData.code ?? ''
       })
     } else {
       setForm(DEFAULTS)
     }
   }, [open, mode, initialData])
 
-  const handleChange =
-    (key: keyof FormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm(prev => ({ ...prev, [key]: e.target.value }))
+  const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [key]: e.target.value }))
 
   const handleSubmit = async () => {
-    if (!form.nama || !form.jenis || !form.code || !form.color) {
-      setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+    if (!form.nama || !form.code) {
+      setSnack({ open: true, message: 'Nama dan Code Icon harus diisi', severity: 'error' })
+
       return
     }
 
     setSaving(true)
+
     try {
       if (mode === 'edit' && form.id) {
         const json = await apiFetchClient<{ data: IconClient; message?: string }>(`/api/master/icon/${form.id}`, {
           method: 'PUT',
           body: JSON.stringify({
             nama: form.nama,
-            jenis: form.jenis,
-            code: form.code,
-            color: form.color
+            code: form.code
           })
         })
-        setPendingSaved(json.data)
+
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
         setSnack({ open: true, message: json.message ?? 'Icon berhasil diupdate', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
       } else {
         const json = await apiFetchClient<{ data: IconClient; message?: string }>(`/api/master/icon`, {
           method: 'POST',
           body: JSON.stringify({
             nama: form.nama,
-            jenis: form.jenis,
-            code: form.code,
-            color: form.color
+            code: form.code
           })
         })
-        setPendingSaved(json.data)
-        setSnack({ open: true, message: json.message ?? 'Icon berhasil ditambahkan', severity: 'success' })
-        setTimeout(() => {
-          window.location.reload()
-        }, 3000)
-      }
 
+        // Close dialog immediately for better UX
+        setOpen(false)
+        setSaving(false)
+
+        // Show success message
+        setSnack({ open: true, message: json.message ?? 'Icon berhasil ditambahkan', severity: 'success' })
+
+        // Callback and refresh in background
+        onSaved?.(json.data)
+        setTimeout(() => router.refresh(), 300)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
+
       setSnack({ open: true, message: msg, severity: 'error' })
-    } finally {
       setSaving(false)
     }
   }
@@ -200,83 +144,49 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
         <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
           {mode === 'edit' ? 'Ubah Icon' : 'Tambah Icon'}
         </DialogTitle>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          if (!saving) handleSubmit()
-        }}>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            if (!saving) handleSubmit()
+          }}
+        >
           <DialogContent className='pbs-0 sm:pli-16'>
             <DialogCloseButton onClick={() => setOpen(false)} disableRipple>
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Nama Icon'
                   name='nama'
                   variant='outlined'
-                  placeholder='Nama Icon'
+                  placeholder='Contoh: Listrik'
                   value={form.nama}
                   onChange={handleChange('nama')}
+                  required
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Jenis Keuangan'
-                  name='jenis'
-                  variant='outlined'
-                  value={form.jenis}
-                  onChange={handleChange('jenis')}
-                >
-                  {JENIS_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Code Icon'
                   name='code'
                   variant='outlined'
-                  placeholder='Code Icon'
+                  placeholder='Contoh: tabler-home, tabler-user, tabler-settings'
                   value={form.code}
                   onChange={handleChange('code')}
+                  required
+                  helperText='Gunakan format: tabler-[nama-icon]. Lihat icon di https://tabler.io/icons'
                 />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Warna'
-                  name='color'
-                  variant='outlined'
-                  value={form.color}
-                  onChange={handleChange('color')}
-                >
-                  {COLOR_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      <div className="flex items-center gap-2">
-                        <Icon
-                          className='tabler-circle-filled'
-                          sx={{ color: `var(--mui-palette-${opt.value})` }}
-                        />
-                      </div>
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions className="justify-center pbs-0 sm:pbe-16 sm:pli-16">
-            <Button variant="text" onClick={() => setOpen(false)} disabled={saving}>
+          <DialogActions className='justify-center pbs-0 sm:pbe-16 sm:pli-16'>
+            <Button variant='text' onClick={() => setOpen(false)} disabled={saving}>
               Batal
             </Button>
-            <Button variant="contained" type="submit" disabled={saving || !form.jenis || !form.nama}>
+            <Button variant='contained' type='submit' disabled={saving || !form.nama || !form.code}>
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>

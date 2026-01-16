@@ -105,6 +105,7 @@ const MenuListTable = () => {
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuClient | null>(null)
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -124,7 +125,7 @@ const MenuListTable = () => {
         data: MenuClient[]
         message?: string
       }>('/api/menu', undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const menuData = result.data || []
@@ -157,6 +158,35 @@ const MenuListTable = () => {
   const handleEdit = (menu: MenuClient) => {
     setSelectedMenu(menu)
     setDialogOpen(true)
+  }
+
+  const handleDelete = async (menu: MenuClient) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus menu "${menu.nama}"?`)) {
+      return
+    }
+
+    try {
+      await apiFetchClient(
+        `/api/menu/${menu.id}`,
+        {
+          method: 'DELETE'
+        },
+        {
+          redirectOn401: '/login'
+        }
+      )
+
+      showSnackbar('Menu berhasil dihapus', 'success')
+      fetchMenuData()
+    } catch (err) {
+      console.error('Failed to delete menu:', err)
+
+      if (err instanceof Error) {
+        showSnackbar(err.message || 'Gagal menghapus menu', 'error')
+      } else {
+        showSnackbar('Gagal menghapus menu', 'error')
+      }
+    }
   }
 
   const handleCloseDialog = () => {
@@ -203,6 +233,9 @@ const MenuListTable = () => {
           <div className='flex items-center gap-2'>
             <IconButton onClick={() => handleEdit(row.original)} title='Edit'>
               <i className='tabler-edit text-textSecondary' />
+            </IconButton>
+            <IconButton onClick={() => handleDelete(row.original)} title='Delete' color='error'>
+              <i className='tabler-trash text-error' />
             </IconButton>
           </div>
         ),
@@ -380,3 +413,5 @@ const MenuListTable = () => {
 }
 
 export default MenuListTable
+
+

@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     const { refreshToken } = body
 
     if (!refreshToken) {
-      return NextResponse.json(
-        { error: 'Refresh token required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Refresh token required' }, { status: 400 })
     }
 
     // Verify refresh token
@@ -24,23 +21,36 @@ export async function POST(request: NextRequest) {
         id: true,
         username: true,
         email: true,
-        tokenVersion: true
+        tokenVersion: true,
+        role: {
+          include: {
+            menuRoles: {
+              where: {
+                menu: {
+                  status: true
+                }
+              },
+              include: {
+                menu: true
+              },
+              orderBy: {
+                menu: {
+                  urutan: 'asc'
+                }
+              }
+            }
+          }
+        }
       }
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'User not found' }, { status: 401 })
     }
 
     // Check token version (to handle revoked tokens)
     if (user.tokenVersion !== payload.tokenVersion) {
-      return NextResponse.json(
-        { error: 'Token revoked' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Token revoked' }, { status: 401 })
     }
 
     // Generate new access token
@@ -56,6 +66,17 @@ export async function POST(request: NextRequest) {
       tokenVersion: user.tokenVersion
     })
 
+    // Format menus from menuRoles
+    const menus =
+      user.role?.menuRoles.map(mr => ({
+        id: mr.menu.id,
+        nama: mr.menu.nama,
+        path: mr.menu.path,
+        icon: mr.menu.icon,
+        urutan: mr.menu.urutan,
+        parentId: mr.menu.parentId
+      })) || []
+
     console.log('Token refresh successful for user:', user.username)
 
     return NextResponse.json({
@@ -65,14 +86,11 @@ export async function POST(request: NextRequest) {
         id: user.id,
         username: user.username,
         email: user.email
-      }
+      },
+      menus
     })
-
   } catch (error) {
     console.error('Refresh token error:', error)
-    return NextResponse.json(
-      { error: 'Invalid refresh token' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 })
   }
 }

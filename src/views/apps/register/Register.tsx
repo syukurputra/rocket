@@ -73,7 +73,7 @@ const useRegister = () => {
       const data = await response.json()
 
       if (response.ok) {
-        window.location.href = '/id/login'
+        window.location.href = '/login'
         return { success: true }
       } else {
         return { success: false, message: data.message }
@@ -285,7 +285,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Sudah Punya Akun? </Typography>
-                <Typography component={Link} href='/id/login' color='primary.main'>
+                <Typography component={Link} href='/login' color='primary.main'>
                   Login
                 </Typography>
               </div>
@@ -298,3 +298,4 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default Register
+

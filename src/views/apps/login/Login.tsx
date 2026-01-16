@@ -36,6 +36,7 @@ import themeConfig from '@configs/themeConfig'
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -64,45 +65,6 @@ const MaskImg = styled('img')({
   zIndex: -1
 })
 
-const useAuth = () => {
-  const login = async (username: string, password: string) => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('accessToken', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        localStorage.setItem('user', JSON.stringify(data.user))
-
-        // Store user menus for dynamic sidebar
-        if (data.menus && Array.isArray(data.menus)) {
-          localStorage.setItem('userMenus', JSON.stringify(data.menus))
-        }
-
-        window.location.href = '/id/home'
-
-        return { success: true }
-      } else {
-        return { success: false, message: data.message }
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-
-      return { success: false, message: 'Network error occurred' }
-    }
-  }
-
-  return { login }
-}
-
 const Login = ({ mode }: { mode: SystemMode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
@@ -119,7 +81,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 
     if (accessToken) {
       // Redirect to home if token exists
-      window.location.href = '/id/home'
+      window.location.href = '/home'
     }
   }, [])
 
@@ -276,7 +238,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
               />
               <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
                 <FormControlLabel control={<Checkbox disabled={loading} />} label='Remember me' />
-                <Typography className='text-end' color='primary.main' component={Link} href='/id/forgot-password'>
+                <Typography className='text-end' color='primary.main' component={Link} href='/forgot-password'>
                   Lupa password?
                 </Typography>
               </div>
@@ -308,7 +270,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
               </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Belum Punya Akun? </Typography>
-                <Typography component={Link} href='/id/register' color='primary.main'>
+                <Typography component={Link} href='/register' color='primary.main'>
                   Daftar disini
                 </Typography>
               </div>
@@ -321,3 +283,6 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default Login
+
+
+

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       include: {
         role: {
           include: {
-            roleMenus: {
+            menuRoles: {
               where: {
                 menu: {
                   status: true
@@ -77,21 +77,15 @@ export async function POST(request: NextRequest) {
       tokenVersion: user.tokenVersion || 0
     })
 
-    // Format menus with permissions
+    // Format menus from menuRoles
     const menus =
-      user.role?.roleMenus.map(rm => ({
-        id: rm.menu.id,
-        nama: rm.menu.nama,
-        path: rm.menu.path,
-        icon: rm.menu.icon,
-        urutan: rm.menu.urutan,
-        parentId: rm.menu.parentId,
-        permissions: {
-          canCreate: rm.canCreate,
-          canRead: rm.canRead,
-          canUpdate: rm.canUpdate,
-          canDelete: rm.canDelete
-        }
+      user.role?.menuRoles.map(mr => ({
+        id: mr.menu.id,
+        nama: mr.menu.nama,
+        path: mr.menu.path,
+        icon: mr.menu.icon,
+        urutan: mr.menu.urutan,
+        parentId: mr.menu.parentId
       })) || []
 
     const res = NextResponse.json(

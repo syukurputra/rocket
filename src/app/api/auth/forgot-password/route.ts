@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Kirim email
-    const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/id/reset-password?token=${resetToken}`
+    const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${resetToken}`
 
     const emailResult = await sendEmail({
       to: email,

@@ -23,3 +23,5 @@ const AsetList = ({ initialData }: KeuanganListProps) => {
 }
 
 export default AsetList
+
+
