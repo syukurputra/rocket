@@ -3,6 +3,9 @@
 // React Imports
 import { useEffect, useState } from 'react'
 
+// Next Imports
+import { usePathname } from 'next/navigation'
+
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
 
@@ -54,6 +57,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   // Hooks
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
+  const pathname = usePathname()
   const [userMenus, setUserMenus] = useState<UserMenu[]>([])
 
   // Vars
@@ -92,6 +96,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     }
   }, [])
 
+  // Track which menus should be open
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set())
+
   // Build menu tree from flat array
   const buildMenuTree = (menus: UserMenu[]): UserMenu[] => {
     const menuMap = new Map<string, UserMenu>()
@@ -118,12 +125,58 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     return roots
   }
 
+  // Check if any child menu is active
+  const isChildActive = (menu: UserMenu): boolean => {
+    // Direct path match
+    if (menu.path && pathname === menu.path) {
+      return true
+    }
+
+    // Check if pathname starts with menu path (for nested routes)
+    if (menu.path && pathname.startsWith(menu.path)) {
+      return true
+    }
+
+    // Recursively check children
+    if (menu.children && menu.children.length > 0) {
+      return menu.children.some(child => isChildActive(child))
+    }
+
+    return false
+  }
+
+  // Update open menus when pathname or menus change
+  useEffect(() => {
+    const newOpenMenus = new Set<string>()
+    const menuTree = buildMenuTree(userMenus)
+
+    const checkAndMarkOpen = (menu: UserMenu) => {
+      if (menu.children && menu.children.length > 0) {
+        if (isChildActive(menu)) {
+          newOpenMenus.add(menu.id)
+        }
+
+        menu.children.forEach(checkAndMarkOpen)
+      }
+    }
+
+    menuTree.forEach(checkAndMarkOpen)
+    setOpenMenus(newOpenMenus)
+  }, [pathname, userMenus])
+
   // Render single menu item (recursive for children)
   const renderMenu = (menu: UserMenu): React.ReactNode => {
     // If menu has children, render as SubMenu
     if (menu.children && menu.children.length > 0) {
+      const shouldBeOpen = openMenus.has(menu.id)
+
       return (
-        <SubMenu key={menu.id} label={menu.nama} icon={menu.icon ? <i className={menu.icon} /> : undefined}>
+        <SubMenu
+          key={`${menu.id}-${shouldBeOpen ? 'open' : 'closed'}`}
+          label={menu.nama}
+          icon={menu.icon ? <i className={menu.icon} /> : undefined}
+          defaultOpen={shouldBeOpen}
+        >
           {menu.children.map(child => renderMenu(child))}
         </SubMenu>
       )
