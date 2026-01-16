@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/',
-        destination: '/h',
+        destination: '/landing',
         permanent: true,
         locale: false
       }

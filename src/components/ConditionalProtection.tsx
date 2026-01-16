@@ -1,5 +1,7 @@
 'use client'
-import { useEffect, useState, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
+
 import { usePathname } from 'next/navigation'
 
 interface ConditionalProtectionProps {
@@ -15,9 +17,9 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
     const checkAccess = async () => {
       console.log('🔍 Checking access for:', pathname)
 
-      const protectedRoutes = ['/id/home', '/id/aset/list']
-      const authRoutes = ['/id/login', '/id/register']
-      const publicRoutes = ['/about', '/contact', '/public']
+      const protectedRoutes = ['/home', '/aset/list']
+      const authRoutes = ['/login', '/register']
+      const publicRoutes = ['/about', '/contact', '/public', '/landing']
 
       const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
       const isAuth = authRoutes.some(route => pathname.startsWith(route))
@@ -27,25 +29,24 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       if (isPublic) {
         setIsAllowed(true)
         setIsChecking(false)
+
         return
       }
 
       const token = localStorage.getItem('accessToken')
 
-      // Handle root path
+      // Handle root path - always redirect to landing
       if (pathname === '/') {
-        if (token) {
-          window.location.href = '/id/home'
-        } else {
-          window.location.href = '/id/login'
-        }
+        window.location.href = '/landing'
+
         return
       }
 
       // Handle protected routes
       if (isProtected) {
         if (!token) {
-          window.location.href = '/id/login'
+          window.location.href = '/login'
+
           return
         }
 
@@ -67,16 +68,19 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
 
             // Redirect to login
             window.location.href = '/id/login'
+
             return
           }
         } catch (error) {
           console.error('Auth check error:', error)
+
           // On network error, clear tokens and redirect
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('user')
           localStorage.removeItem('userMenus')
-          window.location.href = '/id/login'
+          window.location.href = '/login'
+
           return
         }
       }
@@ -84,6 +88,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       // Handle auth routes when logged in
       if (isAuth && token) {
         window.location.href = '/id/home'
+
         return
       }
 
@@ -121,7 +126,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       <div className='text-center'>
         <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
         <p className='text-gray-600 mb-4'>You don't have permission to access this page.</p>
-        <a href='/id/login' className='bg-blue-500 text-white px-4 py-2 rounded'>
+        <a href='/login' className='bg-blue-500 text-white px-4 py-2 rounded'>
           Go to Login
         </a>
       </div>

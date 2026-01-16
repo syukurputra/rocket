@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 interface User {
   id: string
@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
 
   // Logout function
   const logout = useCallback(async () => {
@@ -166,6 +167,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
+    // Define public routes that don't need authentication
+    const publicRoutes = ['/landing', '/about', '/contact', '/public']
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
+    // Skip auth initialization for public routes
+    if (isPublicRoute) {
+      setLoading(false)
+
+      return
+    }
+
     // Get token from localStorage on mount
     const storedToken = localStorage.getItem('accessToken')
 
@@ -176,13 +188,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkAuth()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
+    // Define public routes
+    const publicRoutes = ['/landing', '/about', '/contact', '/public']
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
+    // Skip auth check for public routes
+    if (isPublicRoute) {
+      return
+    }
+
     if (accessToken) {
       checkAuth()
     }
-  }, [accessToken, checkAuth])
+  }, [accessToken, checkAuth, pathname])
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, refreshToken, isAuthenticated: !!user }}>
