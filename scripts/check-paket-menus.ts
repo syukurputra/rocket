@@ -22,7 +22,7 @@ async function main() {
 
     pakets.forEach(paket => {
       console.log(`\n  ├─ ${paket.nama} (ID: ${paket.id})`)
-      console.log(`     Harga: Rp ${paket.harga.toLocaleString('id-ID')}`)
+      console.log(`     Harga: Rp ${Number(paket.harga).toLocaleString('id-ID')}`)
       console.log(`     Status: ${paket.status ? 'Aktif' : 'Nonaktif'}`)
 
       if (paket.paketMenus.length > 0) {
