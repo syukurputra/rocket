@@ -11,8 +11,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         select: {
           id: true,
           nama: true,
-          code: true,
-          color: true
+          code: true
         },
         orderBy: { nama: 'desc' }
       })
