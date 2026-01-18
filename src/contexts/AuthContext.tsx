@@ -168,7 +168,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Define public routes that don't need authentication
-    const publicRoutes = ['/landing', '/about', '/contact', '/public']
+    const publicRoutes = [
+      '/landing',
+      '/about',
+      '/contact',
+      '/public',
+      '/login',
+      '/register',
+      '/invitation',
+      '/forgot-password',
+      '/reset-password'
+    ]
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth initialization for public routes
@@ -192,7 +202,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Define public routes
-    const publicRoutes = ['/landing', '/about', '/contact', '/public']
+    const publicRoutes = [
+      '/landing',
+      '/about',
+      '/contact',
+      '/public',
+      '/login',
+      '/register',
+      '/invitation',
+      '/forgot-password',
+      '/reset-password'
+    ]
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth check for public routes

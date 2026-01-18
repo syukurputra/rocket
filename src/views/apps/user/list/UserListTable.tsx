@@ -104,7 +104,7 @@ const UserListTable = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
+  const [dialogMode, setDialogMode] = useState<'add' | 'edit' | 'invite'>('add')
   const [selectedUser, setSelectedUser] = useState<UserClient | null>(null)
 
   const [snackbar, setSnackbar] = useState<{
@@ -160,6 +160,12 @@ const UserListTable = () => {
     setDialogOpen(true)
   }
 
+  const handleInvite = () => {
+    setDialogMode('invite')
+    setSelectedUser(null)
+    setDialogOpen(true)
+  }
+
   const handleToggleStatus = async (user: UserClient) => {
     const action = user.status ? 'menonaktifkan' : 'mengaktifkan'
 
@@ -208,7 +214,14 @@ const UserListTable = () => {
 
   const handleDialogSuccess = () => {
     fetchUserData()
-    showSnackbar(dialogMode === 'add' ? 'User berhasil ditambahkan' : 'User berhasil diupdate', 'success')
+    const message =
+      dialogMode === 'add'
+        ? 'User berhasil ditambahkan'
+        : dialogMode === 'invite'
+          ? 'Undangan berhasil dikirim'
+          : 'User berhasil diupdate'
+
+    showSnackbar(message, 'success')
   }
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
@@ -358,8 +371,8 @@ const UserListTable = () => {
               placeholder='Search User'
               className='max-sm:is-full sm:is-[250px]'
             />
-            <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={handleAdd}>
-              Tambah User
+            <Button variant='contained' startIcon={<i className='tabler-mail' />} onClick={handleInvite}>
+              Undang User
             </Button>
           </div>
         </CardContent>

@@ -80,7 +80,14 @@ export async function POST(request: NextRequest) {
       // Continue execution, non-fatal
     }
 
-    await verifyEmailConnection(userInsert.id, userInsert.email, userInsert.username)
+    // Send verification email (non-blocking)
+    try {
+      await verifyEmailConnection(userInsert.id, userInsert.email, userInsert.username)
+    } catch (emailError) {
+      console.error('Error sending verification email:', emailError)
+
+      // Continue execution, email sending failure should not block registration
+    }
 
     const res = NextResponse.json(
       {
@@ -92,6 +99,8 @@ export async function POST(request: NextRequest) {
 
     return res
   } catch (error) {
+    console.error('Registration error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

@@ -18,8 +18,17 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       console.log('🔍 Checking access for:', pathname)
 
       const protectedRoutes = ['/home', '/aset/list']
-      const authRoutes = ['/login', '/register']
-      const publicRoutes = ['/about', '/contact', '/public', '/landing']
+      const authRoutes = ['/login']
+      const publicRoutes = [
+        '/about',
+        '/contact',
+        '/public',
+        '/landing',
+        '/invitation',
+        '/register',
+        '/forgot-password',
+        '/reset-password'
+      ]
 
       const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
       const isAuth = authRoutes.some(route => pathname.startsWith(route))

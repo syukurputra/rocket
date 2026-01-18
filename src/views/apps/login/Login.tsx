@@ -3,18 +3,13 @@
 // React Imports
 import { useState, useEffect } from 'react'
 
-// Next Imports
-import { useRouter } from 'next/navigation'
-
 // MUI Imports
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
@@ -29,9 +24,6 @@ import type { SystemMode } from '@core/types'
 import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
 import CustomTextField from '@core/components/mui/TextField'
-
-// Config Imports
-import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
@@ -94,7 +86,6 @@ const Login = ({ mode }: { mode: SystemMode }) => {
   const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png'
 
   // Hooks
-  const router = useRouter()
   const { settings } = useSettings()
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
@@ -197,7 +188,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           )}
         </div>
         <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-          <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+          <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
             <Logo />
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
@@ -236,8 +227,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   }
                 }}
               />
-              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-                <FormControlLabel control={<Checkbox disabled={loading} />} label='Remember me' />
+              <div className='flex justify-end items-center gap-x-3 gap-y-1 flex-wrap'>
                 <Typography className='text-end' color='primary.main' component={Link} href='/forgot-password'>
                   Lupa password?
                 </Typography>
@@ -283,6 +273,3 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default Login
-
-
-

@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
-import { sendEmail } from '@/src/libs/mailer'
+import { sendResetPasswordEmail } from '@/src/mails/resetPasswordEmail'
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,29 +38,11 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // Kirim email
-    const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${resetToken}`
-
-    const emailResult = await sendEmail({
-      to: email,
-      subject: 'Reset Password - Bantu Sewa',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Reset Password</h2>
-          <p>Anda menerima email ini karena ada permintaan untuk mereset password akun Anda.</p>
-          <p>Klik tombol di bawah ini untuk mereset password:</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Reset Password</a>
-          <p>Atau copy link berikut ke browser Anda:</p>
-          <p style="word-break: break-all; color: #666;">${resetUrl}</p>
-          <p style="color: #999; font-size: 12px; margin-top: 30px;">Link ini akan kadaluarsa dalam 1 jam.</p>
-          <p style="color: #999; font-size: 12px;">Jika Anda tidak meminta reset password, abaikan email ini.</p>
-        </div>
-      `,
-      text: `Reset password Anda dengan mengklik link berikut: ${resetUrl}\n\nLink ini akan kadaluarsa dalam 1 jam.`
-    })
-
-    if (!emailResult.success) {
-      console.error('Failed to send email:', emailResult.error)
+    // Kirim email menggunakan template baru
+    try {
+      await sendResetPasswordEmail(email, user.username, resetToken)
+    } catch (emailError) {
+      console.error('Failed to send reset password email:', emailError)
 
       return NextResponse.json({ message: 'Gagal mengirim email reset password' }, { status: 500 })
     }

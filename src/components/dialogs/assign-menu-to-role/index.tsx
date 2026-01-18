@@ -63,8 +63,8 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
       setLoading(true)
 
       try {
-        // Fetch all menus
-        const menusResult = await apiFetchClient<{ data: MenuClient[] }>('/api/menu')
+        // Fetch menus available in company's paket
+        const menusResult = await apiFetchClient<{ data: MenuClient[] }>('/api/menu/by-paket')
 
         setMenus(menusResult.data || [])
 

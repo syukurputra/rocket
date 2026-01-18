@@ -134,7 +134,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     }
 
     if (!email.trim()) {
-      setError('Username is required')
+      setError('Email is required')
       setLoading(false)
       return
     }
@@ -171,7 +171,9 @@ const Register = ({ mode }: { mode: SystemMode }) => {
           display='flex'
           justifyContent='center'
           alignItems='center'
-          bgcolor='rgba(255, 255, 255, 0.8)'
+          sx={{
+            bgcolor: theme => (theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)')
+          }}
           zIndex={9999}
         >
           <Box
@@ -179,14 +181,16 @@ const Register = ({ mode }: { mode: SystemMode }) => {
             flexDirection='column'
             alignItems='center'
             gap={2}
-            bgcolor='white'
-            padding={4}
-            borderRadius={2}
-            boxShadow={3}
+            sx={{
+              bgcolor: theme => theme.palette.background.paper,
+              padding: 4,
+              borderRadius: 2,
+              boxShadow: 3
+            }}
           >
             <CircularProgress size={60} />
             <Typography variant='body1' color='textSecondary'>
-              Memproses Buat Akun...
+              Memproses pendaftaran akun Anda...
             </Typography>
           </Box>
         </Box>
@@ -280,6 +284,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 startIcon={<i className='tabler-brand-google-filled' />}
                 onClick={() => (window.location.href = '/api/auth/google')}
                 type='button'
+                disabled={loading}
               >
                 Daftar dengan Google
               </Button>
@@ -298,4 +303,3 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default Register
-
