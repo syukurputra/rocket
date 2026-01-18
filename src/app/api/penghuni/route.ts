@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -70,6 +72,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
   } catch (error) {
     console.error('Get penghuni error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
@@ -84,16 +87,20 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     }
 
     let mulaiHuniDate = new Date()
+
     if (mulaiHuni) {
       mulaiHuniDate = new Date(mulaiHuni)
+
       if (isNaN(mulaiHuniDate.getTime())) {
         return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
       }
     }
 
     let selesaiHuniDate = new Date()
+
     if (selesaiHuni) {
       selesaiHuniDate = new Date(selesaiHuni)
+
       if (isNaN(selesaiHuniDate.getTime())) {
         return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
       }
@@ -132,6 +139,12 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     })
 
+    // Auto-update ruangan status to 'Huni'
+    await prisma.ruangan.update({
+      where: { id: ruanganId },
+      data: { status: 'Huni' }
+    })
+
     return NextResponse.json(
       {
         data: newPenghuni,
@@ -141,6 +154,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     )
   } catch (error) {
     console.error('Buat penghuni error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

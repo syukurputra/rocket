@@ -179,7 +179,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
           hasPrev: boolean
         }
       }>(`/api/tagihan?${params.toString()}`, undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const tagihanData = result.data || []
@@ -293,7 +293,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
                       method: 'DELETE'
                     },
                     {
-                      redirectOn401: '/id/login'
+                      redirectOn401: '/login'
                     }
                   )
 

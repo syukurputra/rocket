@@ -39,10 +39,12 @@ const BadgeContentSpan = styled('span')({
 const UserDropdown = () => {
   const [open, setOpen] = useState(false)
   const [logoutLoading, setLogoutLoading] = useState(false)
+
   const [user, setUser] = useState<{
     id: string
     username: string
     email: string
+    role?: { nama: string } | null
   } | null>(null)
 
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -51,16 +53,74 @@ const UserDropdown = () => {
   const { settings } = useSettings()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        try {
-          setUser(JSON.parse(userData))
-        } catch (error) {
-          console.error('Error parsing user data:', error)
+    const fetchUserData = async () => {
+      if (typeof window !== 'undefined') {
+        const userData = localStorage.getItem('user')
+        const accessToken = localStorage.getItem('accessToken')
+
+        if (userData) {
+          try {
+            const parsedUser = JSON.parse(userData)
+
+            // If user data exists but doesn't have role, fetch from API
+            if (!parsedUser.role) {
+              if (accessToken) {
+                try {
+                  const response = await fetch('/api/auth/me', {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`
+                    }
+                  })
+
+                  if (response.ok) {
+                    const data = await response.json()
+
+                    if (data.user) {
+                      setUser(data.user)
+                      localStorage.setItem('user', JSON.stringify(data.user))
+                    }
+                  } else {
+                    setUser(parsedUser)
+                  }
+                } catch (error) {
+                  setUser(parsedUser)
+                }
+              } else {
+                setUser(parsedUser)
+              }
+            } else {
+              setUser(parsedUser)
+            }
+          } catch (error) {
+            console.error('UserDropdown - Error parsing user data:', error)
+          }
+        } else if (accessToken) {
+          // If no user data in localStorage but has token, fetch from API
+          try {
+            const response = await fetch('/api/auth/me', {
+              headers: {
+                Authorization: `Bearer ${accessToken}`
+              }
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+
+              if (data.user) {
+                setUser(data.user)
+                localStorage.setItem('user', JSON.stringify(data.user))
+              }
+            }
+          } catch (error) {
+            console.error('UserDropdown - Error fetching user data:', error)
+          }
+        } else {
+          console.log('UserDropdown - No user data and no access token')
         }
       }
     }
+
+    fetchUserData()
   }, [])
 
   const handleDropdownOpen = () => {
@@ -142,9 +202,9 @@ const UserDropdown = () => {
                     <Avatar alt='John Doe' src='/images/avatars/1.png' />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        {user?.username || 'Loading...'}
+                        {user?.email || 'Loading...'}
                       </Typography>
-                      <Typography variant='caption'>{user?.email || 'Loading...'}</Typography>
+                      <Typography variant='caption'>{user?.role?.nama || 'Loading...'}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />

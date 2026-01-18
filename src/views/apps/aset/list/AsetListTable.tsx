@@ -149,11 +149,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     severity: 'success'
   })
 
-  const fetchAsetData = async (
-    pageNum: number = 0,
-    limitNum: number = 10,
-    search: string = ''
-  ) => {
+  const fetchAsetData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
       setLoading(true)
       setError(null)
@@ -168,7 +164,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       }
 
       const result = await apiFetchClient<{
-        data: AsetClient[],
+        data: AsetClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -177,9 +173,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(
-        `/api/aset?${params.toString()}`,
-        undefined, {
+      }>(`/api/aset?${params.toString()}`, undefined, {
         redirectOn401: '/login'
       })
 
@@ -187,7 +181,8 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
-      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : asetData.length)
+      const inferredTotalCount =
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : asetData.length)
 
       setData(asetData)
       setFilteredData(asetData)
@@ -280,7 +275,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         cell: ({ row }) => (
           <div className='flex items-center'>
             <IconButton>
-              <Link href={`/id/aset/view/${row.original.id}`} className='flex'>
+              <Link href={`/aset/view/${row.original.id}`} className='flex'>
                 <i className='tabler-dots-vertical text-textSecondary' />
               </Link>
             </IconButton>
@@ -302,22 +297,28 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 }
               }}
             />
-            <IconButton onClick={async () => {
-              try {
-                await apiFetchClient(`/api/aset/${row.original.id}`, {
-                  method: 'DELETE'
-                }, {
-                  redirectOn401: '/login'
-                })
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/aset/${row.original.id}`,
+                    {
+                      method: 'DELETE'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
 
-                fetchAsetData(currentPage, pageSize, searchQuery)
-                showSnackbar('Aset berhasil dihapus', 'success')
-              } catch (err) {
-                console.error('Delete failed:', err)
-                const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
-                showSnackbar(errorMessage, 'error')
-              }
-            }}>
+                  fetchAsetData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Aset berhasil dihapus', 'success')
+                } catch (err) {
+                  console.error('Delete failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
           </div>
@@ -348,7 +349,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: (updater) => {
+    onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
         setCurrentPage(newPagination.pageIndex)
@@ -369,7 +370,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
+          <Alert severity='error'>
             {error}
             <Button onClick={() => fetchAsetData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
@@ -385,15 +386,15 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       <Card>
         <CardContent>
           <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="400px"
-            flexDirection="column"
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            minHeight='400px'
+            flexDirection='column'
             gap={2}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data aset...
             </Typography>
           </Box>
@@ -406,29 +407,29 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     <>
       {loading && data.length > 0 && (
         <Box
-          position="fixed"
+          position='fixed'
           top={0}
           left={0}
           right={0}
           bottom={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          bgcolor="rgba(255, 255, 255, 0.8)"
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          bgcolor='rgba(255, 255, 255, 0.8)'
           zIndex={9999}
         >
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
+            display='flex'
+            flexDirection='column'
+            alignItems='center'
             gap={2}
-            bgcolor="white"
+            bgcolor='white'
             padding={4}
             borderRadius={2}
             boxShadow={3}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data...
             </Typography>
           </Box>
@@ -454,11 +455,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 <MenuItem value='50'>50</MenuItem>
               </CustomTextField>
             </div>
-            <OpenDialogOnElementClick
-              element={Button}
-              elementProps={buttonProps}
-              dialog={AddEditAset}
-            />
+            <OpenDialogOnElementClick element={Button} elementProps={buttonProps} dialog={AddEditAset} />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
@@ -502,7 +499,11 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading ? 'Memuat data...' : searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
+                    {loading
+                      ? 'Memuat data...'
+                      : searchQuery
+                        ? `Tidak ditemukan data untuk pencarian "${searchQuery}"`
+                        : 'No data available'}
                   </td>
                 </tr>
               </tbody>
@@ -525,7 +526,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component="div"
+          component='div'
           count={totalCount || pageCountState * pageSize}
           rowsPerPage={pageSize}
           page={currentPage}
@@ -544,12 +545,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
@@ -559,5 +555,3 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 }
 
 export default AsetListTable
-
-

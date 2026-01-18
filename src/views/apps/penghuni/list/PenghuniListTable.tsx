@@ -43,6 +43,10 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
+import type { ButtonProps } from '@mui/material/Button'
+
+import dayjs from 'dayjs'
+
 import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
 
 // Component Imports
@@ -51,8 +55,6 @@ import CustomTextField from '@core/components/mui/TextField'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-import type { ButtonProps } from '@mui/material/Button'
-import dayjs from "dayjs"
 
 import AddEditPenghuni from '@components/dialogs/penghuni'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
@@ -127,6 +129,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -137,11 +140,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     severity: 'success'
   })
 
-  const fetchPenghuniData = async (
-    pageNum: number = 0,
-    limitNum: number = 10,
-    search: string = ''
-    ) => {
+  const fetchPenghuniData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
       setLoading(true)
       setError(null)
@@ -156,7 +155,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       }
 
       const result = await apiFetchClient<{
-        data: PenghuniClient[],
+        data: PenghuniClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -165,9 +164,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(
-        `/api/penghuni?${params.toString()}`,
-        undefined, {
+      }>(`/api/penghuni?${params.toString()}`, undefined, {
         redirectOn401: '/login'
       })
 
@@ -175,7 +172,8 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
-      const inferredTotalCount = totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : penghuniData.length)
+      const inferredTotalCount =
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : penghuniData.length)
 
       setData(penghuniData)
       setFilteredData(penghuniData)
@@ -183,6 +181,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch penghuni data:', err)
+
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
@@ -222,6 +221,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
+
     setSearchQuery(searchValue)
     setGlobalFilter(searchValue) // Keep local filter in sync for UI
   }
@@ -237,22 +237,16 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         header: 'Aset',
         cell: ({ row }) => {
           const aset = (row.original as any).aset
-          return (
-            <Typography>
-              {aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}
-            </Typography>
-          )
+
+          return <Typography>{aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}</Typography>
         }
       }),
       columnHelper.accessor('ruanganId', {
         header: 'Ruangan',
         cell: ({ row }) => {
           const ruangan = (row.original as any).ruangan
-          return (
-            <Typography>
-              {ruangan ? `${ruangan.nama}` : 'Penghuni tidak ditemukan'}
-            </Typography>
-          )
+
+          return <Typography>{ruangan ? `${ruangan.nama}` : 'Penghuni tidak ditemukan'}</Typography>
         }
       }),
       columnHelper.accessor('nama', {
@@ -264,29 +258,30 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         cell: ({ row }) => {
           const status = row.original.status
 
-          let label = ''
           switch (status) {
-            case 'huni':
-              return <Chip label='Huni' color='success' size='small' variant='tonal' />
+            case 'sudah bayar':
+              return <Chip label='Sudah Bayar' color='success' size='small' variant='tonal' />
+            case 'belum bayar':
+              return <Chip label='Belum Bayar' color='warning' size='small' variant='tonal' />
             default:
-              return <Chip label='Huni' color='success' size='small' variant='tonal' />
+              return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
           }
         }
       }),
       columnHelper.accessor('mulaiHuni', {
         header: 'Tanggal Mulai Huni',
-        cell: ({ row }) => <Typography>{dayjs(row.original.mulaiHuni).format("DD-MM-YYYY")}</Typography>
+        cell: ({ row }) => <Typography>{dayjs(row.original.mulaiHuni).format('DD-MM-YYYY')}</Typography>
       }),
       columnHelper.accessor('selesaiHuni', {
         header: 'Tanggal Selesai Huni',
-        cell: ({ row }) => <Typography>{dayjs(row.original.selesaiHuni).format("DD-MM-YYYY")}</Typography>
+        cell: ({ row }) => <Typography>{dayjs(row.original.selesaiHuni).format('DD-MM-YYYY')}</Typography>
       }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
             <IconButton>
-              <Link href={`/id/penghuni/view/${row.original.id}`} className='flex'>
+              <Link href={`/penghuni/view/${row.original.id}`} className='flex'>
                 <i className='tabler-dots-vertical text-textSecondary' />
               </Link>
             </IconButton>
@@ -300,25 +295,32 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
               dialog={AddEditPenghuni}
               dialogProps={{
                 mode: 'edit',
-                initialData: row.original,
+                initialData: row.original
               }}
             />
-            <IconButton onClick={async () => {
-              try {
-                await apiFetchClient(`/api/penghuni/${row.original.id}`, {
-                  method: 'DELETE'
-                }, {
-                  redirectOn401: '/login'
-                })
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/penghuni/${row.original.id}`,
+                    {
+                      method: 'DELETE'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
 
-                fetchPenghuniData(currentPage, pageSize, searchQuery)
-                showSnackbar('Keuangan berhasil dihapus', 'success')
-              } catch (err) {
-                console.error('Delete failed:', err)
-                const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
-                showSnackbar(errorMessage, 'error')
-              }
-            }}>
+                  fetchPenghuniData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Keuangan berhasil dihapus', 'success')
+                } catch (err) {
+                  console.error('Delete failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
               <i className='tabler-trash text-textSecondary' />
             </IconButton>
           </div>
@@ -349,9 +351,10 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: (updater) => {
+    onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
+
         setCurrentPage(newPagination.pageIndex)
         setPageSize(newPagination.pageSize)
       }
@@ -370,7 +373,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
+          <Alert severity='error'>
             {error}
             <Button onClick={() => fetchPenghuniData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
@@ -386,15 +389,15 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       <Card>
         <CardContent>
           <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="400px"
-            flexDirection="column"
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            minHeight='400px'
+            flexDirection='column'
             gap={2}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data penghuni...
             </Typography>
           </Box>
@@ -407,29 +410,29 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     <>
       {loading && data.length > 0 && (
         <Box
-          position="fixed"
+          position='fixed'
           top={0}
           left={0}
           right={0}
           bottom={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          bgcolor="rgba(255, 255, 255, 0.8)"
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          bgcolor='rgba(255, 255, 255, 0.8)'
           zIndex={9999}
         >
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
+            display='flex'
+            flexDirection='column'
+            alignItems='center'
             gap={2}
-            bgcolor="white"
+            bgcolor='white'
             padding={4}
             borderRadius={2}
             boxShadow={3}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data...
             </Typography>
           </Box>
@@ -445,6 +448,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
+
                   setPageSize(newPageSize)
                   setCurrentPage(0)
                 }}
@@ -532,7 +536,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           </table>
         </div>
         <TablePagination
-          component="div"
+          component='div'
           count={totalCount || pageCountState * pageSize}
           rowsPerPage={pageSize}
           page={currentPage}
@@ -541,6 +545,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
+
             setPageSize(newPageSize)
             setCurrentPage(0)
           }}
@@ -551,12 +556,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
@@ -566,5 +566,3 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 }
 
 export default PenghuniListTable
-
-

@@ -146,6 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         setUser(data.user)
 
+        // Store user data including role
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user))
+        }
+
         // Store user menus
         if (data.menus && Array.isArray(data.menus)) {
           localStorage.setItem('userMenus', JSON.stringify(data.menus))

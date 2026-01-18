@@ -21,7 +21,7 @@ import Button from '@mui/material/Button'
 // Third-party Imports
 import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import dayjs from "dayjs"
+import dayjs from 'dayjs'
 
 type PenghuniClientWithAction = PenghuniClient & { action?: string }
 
@@ -39,7 +39,6 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-
     if (initialData && penghuniId === id) {
       setPenghuniData(initialData)
       setLoading(false)
@@ -57,10 +56,8 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
         setLoading(true)
         setError(null)
 
-        const result = await apiFetchClient<{data: PenghuniClient, total: number}>(
-        `/api/penghuni/${id}`,
-        undefined, {
-          redirectOn401: '/id/login'
+        const result = await apiFetchClient<{ data: PenghuniClient; total: number }>(`/api/penghuni/${id}`, undefined, {
+          redirectOn401: '/login'
         })
 
         if (result && result.data) {
@@ -84,15 +81,15 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
       <Card>
         <CardContent>
           <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="400px"
-            flexDirection="column"
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            minHeight='400px'
+            flexDirection='column'
             gap={2}
           >
             <CircularProgress size={60} />
-            <Typography variant="body1" color="textSecondary">
+            <Typography variant='body1' color='textSecondary'>
               Memuat data penghuni...
             </Typography>
           </Box>
@@ -105,9 +102,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
-            {error}
-          </Alert>
+          <Alert severity='error'>{error}</Alert>
         </CardContent>
       </Card>
     )
@@ -117,9 +112,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
-            {error}
-          </Alert>
+          <Alert severity='error'>{error}</Alert>
         </CardContent>
       </Card>
     )
@@ -176,7 +169,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='mulaiHuni'
               variant='outlined'
               disabled
-              value={dayjs(penghuniData.mulaiHuni).format("DD-MM-YYYY")}
+              value={dayjs(penghuniData.mulaiHuni).format('DD-MM-YYYY')}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -186,7 +179,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='selesaiHuni'
               variant='outlined'
               disabled
-              value={dayjs(penghuniData.mulaiHuni).format("DD-MM-YYYY")}
+              value={dayjs(penghuniData.mulaiHuni).format('DD-MM-YYYY')}
             />
           </Grid>
         </Grid>

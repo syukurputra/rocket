@@ -126,7 +126,7 @@ const RoleListTable = () => {
         data: RoleClient[]
         message?: string
       }>('/api/role', undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const roleData = result.data || []

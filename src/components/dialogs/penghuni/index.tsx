@@ -60,7 +60,7 @@ type RuanganOption = {
 
 const DEFAULTS: FormValues = {
   nama: '',
-  status: '',
+  status: 'belum bayar', // Auto-set to 'belum bayar'
   asetId: '',
   ruanganId: '',
   mulaiHuni: new Date(),
@@ -164,7 +164,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
   }, [open, mode, initialData])
 
   const handleSubmit = async () => {
-    if (!form.nama || !form.status || !form.asetId || !form.ruanganId || !form.mulaiHuni || !form.selesaiHuni) {
+    if (!form.nama || !form.asetId || !form.ruanganId || !form.mulaiHuni || !form.selesaiHuni) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
       return
     }
@@ -294,23 +294,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Pilih Status'
-                  name='status'
-                  variant='outlined'
-                  value={form.status}
-                  onChange={handleChange('status')}
-                >
-                  {STATUS_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <AppReactDatepicker
                   selected={form.mulaiHuni}

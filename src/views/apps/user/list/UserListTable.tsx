@@ -126,7 +126,7 @@ const UserListTable = () => {
         data: UserClient[]
         message?: string
       }>('/api/user', undefined, {
-        redirectOn401: '/id/login'
+        redirectOn401: '/login'
       })
 
       const userData = result.data || []

@@ -53,20 +53,20 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
     const run = async () => {
       const isProtected = protectedRoutes.some(r => r.test(pathname))
       const isAuth = authRoutes.some(r => r.test(pathname))
-      const isRoot = pathname === '/id/'
+      const isRoot = pathname === '/'
 
       if (isProtected || isRoot) {
         const user = await check()
         if (cancelled) return
         if (!user) {
-          router.replace('/id/login')
+          router.replace('/login')
         } else if (isRoot) {
-          router.replace('/id/home')
+          router.replace('/home')
         }
 
         if (isAuth) {
           const user = await check()
-          if (!cancelled && user) router.replace('/id/home')
+          if (!cancelled && user) router.replace('/home')
         }
         return
       }

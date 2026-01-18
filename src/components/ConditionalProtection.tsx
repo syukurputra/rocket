@@ -17,8 +17,9 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
     const checkAccess = async () => {
       console.log('🔍 Checking access for:', pathname)
 
-      const protectedRoutes = ['/home', '/aset/list']
+      const protectedRoutes = ['/home', '/aset', '/keuangan', '/penghuni']
       const authRoutes = ['/login']
+
       const publicRoutes = [
         '/about',
         '/contact',
@@ -76,7 +77,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
             localStorage.removeItem('userMenus')
 
             // Redirect to login
-            window.location.href = '/id/login'
+            window.location.href = '/login'
 
             return
           }
@@ -96,7 +97,7 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
 
       // Handle auth routes when logged in
       if (isAuth && token) {
-        window.location.href = '/id/home'
+        window.location.href = '/home'
 
         return
       }
