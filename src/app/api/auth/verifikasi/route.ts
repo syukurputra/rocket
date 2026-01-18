@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     if (!id) {
       console.error('No token provided')
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
       return NextResponse.redirect(`${baseUrl}/verifikasi-gagal`)
     }
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       console.error('User not found for token:', id)
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
       return NextResponse.redirect(`${baseUrl}/verifikasi-gagal`)
     }
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     })
 
     console.log('Verification successful for user:', user.username)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
     return NextResponse.redirect(`${baseUrl}/verifikasi-berhasil`)
   } catch (err) {
