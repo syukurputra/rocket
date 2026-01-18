@@ -201,7 +201,8 @@ export async function GET(request: NextRequest) {
       })) || []
 
     // Create URL with tokens and menus as query params for client-side storage
-    const authSuccessUrl = new URL('/auth-success', request.url)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const authSuccessUrl = new URL('/auth-success', baseUrl)
     authSuccessUrl.searchParams.set('accessToken', accessToken)
     authSuccessUrl.searchParams.set('refreshToken', refreshToken)
     authSuccessUrl.searchParams.set('menus', JSON.stringify(menus))
