@@ -62,7 +62,7 @@ import { getLocalizedUrl } from '@/src/utils/i18n'
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-import AddEditRuang from '@components/dialogs/ruangan'
+import AddEditTagihan from '@components/dialogs/tagihan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -247,21 +247,38 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
 
   const columns = useMemo<ColumnDef<TagihanClientWithAction, any>[]>(
     () => [
-      columnHelper.accessor('nama', {
-        header: 'Nama',
-        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
+      columnHelper.accessor('keterangan', {
+        header: 'Keterangan',
+        cell: ({ row }) => <Typography>{`${row.original.keterangan}`}</Typography>
       }),
-      columnHelper.accessor('jenis', {
-        header: 'Jenis',
-        cell: ({ row }) => <Typography>{`${row.original.jenis}`}</Typography>
+      columnHelper.accessor('mulaiSewa', {
+        header: 'Periode Sewa',
+        cell: ({ row }) => {
+          const start = new Date(row.original.mulaiSewa).toLocaleDateString('id-ID')
+          const end = new Date(row.original.selesaiSewa).toLocaleDateString('id-ID')
+
+          return <Typography>{`${start} - ${end}`}</Typography>
+        }
+      }),
+      columnHelper.accessor('nominal', {
+        header: 'Total',
+        cell: ({ row }) => {
+          const formatNumber = (num: number): string => {
+            if (!num || num === 0) return '0'
+
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+          }
+
+          return <Typography>Rp {formatNumber(row.original.nominal)}</Typography>
+        }
       }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          return row.original.status === true ? (
-            <Chip label='Aktif' color='success' size='small' variant='tonal' />
+          return row.original.status === 'LUNAS' ? (
+            <Chip label='Lunas' color='success' size='small' variant='tonal' />
           ) : (
-            <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
+            <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
           )
         }
       }),
@@ -269,21 +286,44 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            {/* <OpenDialogOnElementClick
+            <OpenDialogOnElementClick
               element={IconButton}
               elementProps={{
                 className: 'flex',
-                'aria-label': 'Preview / Edit',
-                children: <i className='tabler-eye text-textSecondary' />
+                'aria-label': 'Edit',
+                children: <i className='tabler-edit text-textSecondary' />
               }}
-              dialog={AddEditRuang}
-              // kirim prop ke dialog untuk mode edit + data awal
+              dialog={AddEditTagihan}
               dialogProps={{
-                asetId: asetId,
+                penghuniId: asetId,
                 mode: 'edit',
                 initialData: row.original
               }}
-            /> */}
+            />
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/tagihan/${row.original.id}/send-email`,
+                    {
+                      method: 'POST'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
+
+                  showSnackbar('Email berhasil dikirim', 'success')
+                } catch (err) {
+                  console.error('Send email failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to send email'
+
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
+              <i className='tabler-mail text-textSecondary' />
+            </IconButton>
             <IconButton
               onClick={async () => {
                 try {
@@ -448,9 +488,9 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
-              dialog={AddEditRuang}
+              dialog={AddEditTagihan}
               dialogProps={{
-                asetId: asetId
+                penghuniId: asetId
               }}
             />
           </div>

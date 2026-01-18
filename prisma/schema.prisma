@@ -241,6 +241,8 @@ model Keuangan {
 model Penghuni {
   id          String    @id @default(cuid())
   nama        String
+  email       String?   @db.VarChar(191)
+  nomorTelepon String?  @db.VarChar(20)
   status      String    @default("KOSONG")
   mulaiHuni   DateTime  @default(now())
   selesaiHuni DateTime  @default(now())
@@ -269,6 +271,8 @@ model Tagihan {
   metodeBayar String?
   mulaiSewa   DateTime @default(now())
   selesaiSewa DateTime @default(now())
+  nominal          Decimal  @default(0) @db.Decimal(15, 2)
+  buktiPembayaran  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdById String

@@ -1,19 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
-async function handleGet(
-  request: NextRequest,
-  { params }: ParamCtx
-) {
+async function handleGet(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = await params
 
     const tagihan = await prisma.tagihan.findUnique({
       where: { id },
       include: {
+        penghuni: {
+          select: {
+            id: true,
+            nama: true,
+            email: true
+          }
+        },
         createdBy: {
           select: {
             id: true,
@@ -30,78 +37,83 @@ async function handleGet(
     })
 
     if (!tagihan) {
-      return NextResponse.json(
-        { message: 'Tagihan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Tagihan tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: tagihan,
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get tagihan by ID error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePut(
-  request: NextRequest,
-  { user, params }: ParamCtx
-) {
+async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { keterangan, mulaiSewa, selesaiSewa, status } = body
+    const { keterangan, mulaiSewa, selesaiSewa, status, nominal, metodeBayar, buktiPembayaran } = body
 
     const existingTagihan = await prisma.tagihan.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        penghuni: {
+          select: {
+            id: true,
+            nama: true,
+            email: true
+          }
+        }
+      }
     })
 
     if (!existingTagihan) {
-      return NextResponse.json(
-        { message: 'Tagihan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Tagihan tidak ditemukan' }, { status: 404 })
     }
 
-    let mulaiSewaDate = new Date()
+    let mulaiSewaDate = existingTagihan.mulaiSewa
+
     if (mulaiSewa) {
       mulaiSewaDate = new Date(mulaiSewa)
+
       if (isNaN(mulaiSewaDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Format tanggal mulai sewa tidak valid' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
-    let selesaiSewaDate = new Date()
+    let selesaiSewaDate = existingTagihan.selesaiSewa
+
     if (selesaiSewa) {
       selesaiSewaDate = new Date(selesaiSewa)
+
       if (isNaN(selesaiSewaDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Format tanggal mulai sewa tidak valid' },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
       }
     }
 
-    const updatedRuangan = await prisma.ruangan.update({
+    const updatedTagihan = await prisma.tagihan.update({
       where: { id },
       data: {
         ...(keterangan && { keterangan }),
-        ...(mulaiSewa && { mulaiSewaDate }),
-        ...(selesaiSewa && { selesaiSewaDate }),
+        ...(mulaiSewa && { mulaiSewa: mulaiSewaDate }),
+        ...(selesaiSewa && { selesaiSewa: selesaiSewaDate }),
         ...(status && { status }),
+        ...(nominal !== undefined && { nominal }),
+        ...(metodeBayar !== undefined && { metodeBayar }),
+        ...(buktiPembayaran !== undefined && { buktiPembayaran }),
         updatedById: user.id
       },
       include: {
+        penghuni: {
+          select: {
+            id: true,
+            nama: true,
+            email: true
+          }
+        },
         createdBy: {
           select: {
             id: true,
@@ -117,24 +129,56 @@ async function handlePut(
       }
     })
 
+    // If status changed to LUNAS, update Penghuni data
+    if (status && status.toUpperCase() === 'LUNAS' && updatedTagihan.penghuniId) {
+      console.log('Updating penghuni with dates:', {
+        mulaiHuni: updatedTagihan.mulaiSewa,
+        selesaiHuni: updatedTagihan.selesaiSewa
+      })
+
+      await prisma.penghuni.update({
+        where: { id: updatedTagihan.penghuniId },
+        data: {
+          mulaiHuni: updatedTagihan.mulaiSewa,
+          selesaiHuni: updatedTagihan.selesaiSewa,
+          status: 'sudah terbayar',
+          updatedById: user.id
+        }
+      })
+
+      // Send email notification if penghuni has email
+      if (updatedTagihan.penghuni?.email) {
+        try {
+          await sendPaymentConfirmationEmail(
+            updatedTagihan.penghuni.email,
+            updatedTagihan.penghuni.nama,
+            updatedTagihan.keterangan,
+            updatedTagihan.mulaiSewa.toISOString(),
+            updatedTagihan.selesaiSewa.toISOString(),
+            Number(updatedTagihan.nominal),
+            updatedTagihan.metodeBayar || undefined
+          )
+          console.log('Payment confirmation email sent to:', updatedTagihan.penghuni.email)
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError)
+
+          // Don't fail the request if email fails
+        }
+      }
+    }
+
     return NextResponse.json({
-      data: updatedRuangan,
+      data: updatedTagihan,
       message: 'Tagihan berhasil diupdate'
     })
-
   } catch (error) {
     console.error('Update tagihan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handleDelete(
-  request: NextRequest,
-  { params }: ParamCtx
-) {
+async function handleDelete(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = await params
 
@@ -143,10 +187,7 @@ async function handleDelete(
     })
 
     if (!existingTagihan) {
-      return NextResponse.json(
-        { message: 'Tagihan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Tagihan tidak ditemukan' }, { status: 404 })
     }
 
     await prisma.tagihan.delete({
@@ -156,16 +197,13 @@ async function handleDelete(
     return NextResponse.json({
       message: 'Tagihan berhasil dihapus'
     })
-
   } catch (error) {
     console.error('Delete tagihan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-export const GET    = withAuth<{ id: string }>(handleGet)
-export const PUT    = withAuth<{ id: string }>(handlePut)
+export const GET = withAuth<{ id: string }>(handleGet)
+export const PUT = withAuth<{ id: string }>(handlePut)
 export const DELETE = withAuth<{ id: string }>(handleDelete)

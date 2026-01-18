@@ -80,7 +80,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, status, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
 
     if (!nama || !status || !mulaiHuni || !selesaiHuni || !asetId || !ruanganId) {
       return NextResponse.json({ message: 'nama, status, mulai huni, aset dan ruangan harus diisi' }, { status: 400 })
@@ -114,6 +114,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const newPenghuni = await prisma.penghuni.create({
       data: {
         nama: nama,
+        email: email || null,
+        nomorTelepon: nomorTelepon || null,
         status: status,
         mulaiHuni: mulaiHuniDate,
         selesaiHuni: selesaiHuniDate,

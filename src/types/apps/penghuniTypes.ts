@@ -1,6 +1,8 @@
 export type PenghuniClient = {
   id: string
   nama: string
+  email?: string | null
+  nomorTelepon?: string | null
   status: string
   mulaiHuni: string | Date
   selesaiHuni: string | Date

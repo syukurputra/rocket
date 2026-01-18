@@ -179,7 +179,27 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='selesaiHuni'
               variant='outlined'
               disabled
-              value={dayjs(penghuniData.mulaiHuni).format('DD-MM-YYYY')}
+              value={dayjs(penghuniData.selesaiHuni).format('DD-MM-YYYY')}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Email'
+              name='email'
+              variant='outlined'
+              disabled
+              value={penghuniData.email || '-'}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Nomor Telepon'
+              name='nomorTelepon'
+              variant='outlined'
+              disabled
+              value={penghuniData.nomorTelepon || '-'}
             />
           </Grid>
         </Grid>

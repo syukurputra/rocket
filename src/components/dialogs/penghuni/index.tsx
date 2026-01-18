@@ -33,6 +33,8 @@ type Props = {
 type FormValues = {
   id?: string
   nama: string
+  email: string
+  nomorTelepon: string
   status: string
   mulaiHuni: Date | null
   selesaiHuni: Date | null
@@ -60,6 +62,8 @@ type RuanganOption = {
 
 const DEFAULTS: FormValues = {
   nama: '',
+  email: '',
+  nomorTelepon: '',
   status: 'belum bayar', // Auto-set to 'belum bayar'
   asetId: '',
   ruanganId: '',
@@ -152,6 +156,8 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
       setForm({
         id: initialData.id,
         nama: initialData.nama ?? '',
+        email: initialData.email ?? '',
+        nomorTelepon: initialData.nomorTelepon ?? '',
         status: initialData.status ?? '',
         mulaiHuni: initialData.mulaiHuni ? new Date(initialData.mulaiHuni) : new Date(),
         selesaiHuni: initialData.selesaiHuni ? new Date(initialData.selesaiHuni) : new Date(),
@@ -176,6 +182,8 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
           method: 'PUT',
           body: JSON.stringify({
             nama: form.nama,
+            email: form.email,
+            nomorTelepon: form.nomorTelepon,
             status: form.status,
             asetId: form.asetId,
             ruanganId: form.ruanganId,
@@ -199,6 +207,8 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
           method: 'POST',
           body: JSON.stringify({
             nama: form.nama,
+            email: form.email,
+            nomorTelepon: form.nomorTelepon,
             status: form.status,
             asetId: form.asetId,
             ruanganId: form.ruanganId,
@@ -315,7 +325,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   }
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Nama'
@@ -324,6 +334,29 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   placeholder='Nama'
                   value={form.nama}
                   onChange={handleChange('nama')}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Email'
+                  name='email'
+                  type='email'
+                  variant='outlined'
+                  placeholder='Email'
+                  value={form.email}
+                  onChange={handleChange('email')}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Nomor Telepon'
+                  name='nomorTelepon'
+                  variant='outlined'
+                  placeholder='Nomor Telepon'
+                  value={form.nomorTelepon}
+                  onChange={handleChange('nomorTelepon')}
                 />
               </Grid>
             </Grid>

@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { sendTagihanNotificationEmail } from '@/src/mails/tagihanNotificationEmail'
 
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
@@ -63,6 +66,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
   } catch (error) {
     console.error('Get tagihan error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
@@ -70,25 +74,29 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { keterangan, mulaiSewa, selesaiSewa, penghuniId } = body
+    const { keterangan, mulaiSewa, selesaiSewa, penghuniId, nominal } = body
 
     if (!keterangan || !mulaiSewa || !selesaiSewa || !penghuniId) {
-      return NextResponse.json({ message: 'keterangn, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
+      return NextResponse.json({ message: 'keterangan, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
     }
 
     let mulaiSewaDate = new Date()
+
     if (mulaiSewa) {
       mulaiSewaDate = new Date(mulaiSewa)
+
       if (isNaN(mulaiSewaDate.getTime())) {
         return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
     let selesaiSewaDate = new Date()
+
     if (selesaiSewa) {
       selesaiSewaDate = new Date(selesaiSewa)
+
       if (isNaN(selesaiSewaDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
+        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
       }
     }
 
@@ -102,12 +110,20 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         keterangan: keterangan,
         mulaiSewa: mulaiSewaDate,
         selesaiSewa: selesaiSewaDate,
+        nominal: nominal || 0,
         penghuniId: penghuniId,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId
       },
       include: {
+        penghuni: {
+          select: {
+            id: true,
+            nama: true,
+            email: true
+          }
+        },
         createdBy: {
           select: {
             id: true,
@@ -132,6 +148,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     )
   } catch (error) {
     console.error('Buat tagihan error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
