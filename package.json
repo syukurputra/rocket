@@ -40,6 +40,7 @@
     "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
     "keen-slider": "6.8.6",
+    "midtrans-client": "^1.4.3",
     "next": "15.1.2",
     "nodemailer": "^7.0.12",
     "pg": "^8.17.1",
