@@ -12,7 +12,7 @@ import classnames from 'classnames'
 
 // Types Imports
 import type { ThemeColor } from '@core/types'
-import type { CardStatsHorizontalWithBorderProps } from '@/types/pages/widgetTypes'
+import type { CardStatsHorizontalWithBorderProps } from '@/src/types/pages/widgetTypes'
 
 //Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
