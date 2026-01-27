@@ -38,14 +38,14 @@ const Card = styled(MuiCard)<Props>(({ color }) => ({
 
 const HorizontalWithBorder = (props: CardStatsHorizontalWithBorderProps) => {
   // Props
-  const { title, stats, trendNumber, avatarIcon, color } = props
+  const { title, stats, trendNumber, icon, color } = props
 
   return (
     <Card color={color || 'primary'}>
       <CardContent className='flex flex-col gap-1'>
         <div className='flex items-center gap-4'>
           <CustomAvatar color={color} skin='light' variant='rounded'>
-            <i className={classnames(avatarIcon, 'text-[28px]')} />
+            <i className={classnames(icon, 'text-[28px]')} />
           </CustomAvatar>
           <Typography variant='h4'>{stats}</Typography>
         </div>
