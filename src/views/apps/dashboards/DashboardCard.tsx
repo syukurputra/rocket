@@ -8,6 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 
 // Types Imports
+import type { CardStatsHorizontalWithBorderProps } from '@/src/types/pages/widgetTypes'
 import HorizontalWithBorder from '@components/card-statistics/HorizontalWithBorder'
 
 // Utils
