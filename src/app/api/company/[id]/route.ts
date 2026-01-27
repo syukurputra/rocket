@@ -49,7 +49,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     }
 
     const body = await request.json()
-    const { nama, alamat, telepon, email, status } = body
+    const { nama, alamat, telepon, email, status, paketStartDate, paketEndDate } = body
 
     const company = await prisma.company.update({
       where: { id: params.id },
@@ -58,7 +58,9 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
         ...(alamat !== undefined && { alamat }),
         ...(telepon !== undefined && { telepon }),
         ...(email !== undefined && { email }),
-        ...(status !== undefined && { status })
+        ...(status !== undefined && { status }),
+        ...(paketStartDate !== undefined && { paketStartDate: paketStartDate ? new Date(paketStartDate) : null }),
+        ...(paketEndDate !== undefined && { paketEndDate: paketEndDate ? new Date(paketEndDate) : null })
       }
     })
 

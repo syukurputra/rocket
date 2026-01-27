@@ -32,7 +32,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, path, icon, urutan = 0, parentId, status = true } = body
+    const { nama, keterangan, path, icon, urutan = 0, parentId, status = true } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Menu name is required' }, { status: 400 })
@@ -41,6 +41,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const menu = await prisma.menu.create({
       data: {
         nama,
+        keterangan: keterangan || null,
         path,
         icon,
         urutan,

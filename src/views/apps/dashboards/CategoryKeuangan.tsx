@@ -43,6 +43,7 @@ const Icon = styled('i')({})
 const CategoryKeuangan = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1)
+  const [selectedJenis, setSelectedJenis] = useState<string>('Pengeluaran')
   const [reportData, setReportData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -72,8 +73,15 @@ const CategoryKeuangan = () => {
       setLoading(true)
 
       try {
+        // Build query string with optional jenis filter
+        let queryString = `year=${selectedYear}&month=${selectedMonth}`
+
+        if (selectedJenis !== 'Semua') {
+          queryString += `&jenis=${selectedJenis}`
+        }
+
         const result = await apiFetchClient<{ data: ReportData; message?: string }>(
-          `/api/keuangan/report/category?year=${selectedYear}&month=${selectedMonth}`
+          `/api/keuangan/report/category?${queryString}`
         )
 
         if (result.data) {
@@ -90,7 +98,7 @@ const CategoryKeuangan = () => {
     }
 
     fetchReportData()
-  }, [selectedYear, selectedMonth])
+  }, [selectedYear, selectedMonth, selectedJenis])
 
   const handleYearChange = (event: any) => {
     setSelectedYear(event.target.value)
@@ -100,6 +108,10 @@ const CategoryKeuangan = () => {
     setSelectedMonth(event.target.value)
   }
 
+  const handleJenisChange = (event: any) => {
+    setSelectedJenis(event.target.value)
+  }
+
   // Get color for progress bar based on jenis
   const getProgressColor = (jenis: string) => {
     return jenis.toLowerCase() === 'pemasukan' ? 'success' : 'error'
@@ -107,53 +119,68 @@ const CategoryKeuangan = () => {
 
   return (
     <Card>
-      <CardHeader
-        title='Kategori Keuangan'
-        action={
-          <Box display='flex' gap={2}>
-            {/* Month Dropdown */}
-            <FormControl size='small' sx={{ minWidth: 120 }}>
-              <Select
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                displayEmpty
-                sx={{
-                  '& .MuiSelect-select': {
-                    py: 1
-                  }
-                }}
-              >
-                {monthOptions.map(month => (
-                  <MenuItem key={month.value} value={month.value}>
-                    {month.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Year Dropdown */}
-            <FormControl size='small' sx={{ minWidth: 100 }}>
-              <Select
-                value={selectedYear}
-                onChange={handleYearChange}
-                displayEmpty
-                sx={{
-                  '& .MuiSelect-select': {
-                    py: 1
-                  }
-                }}
-              >
-                {yearOptions.map(year => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        }
-      />
+      <CardHeader title='Kategori Keuangan' />
       <CardContent className='flex flex-col gap-4'>
+        {/* Filter Dropdowns */}
+        <Box display='flex' gap={2} flexWrap='wrap'>
+          {/* Year Dropdown */}
+          <FormControl size='small' sx={{ minWidth: 100 }}>
+            <Select
+              value={selectedYear}
+              onChange={handleYearChange}
+              displayEmpty
+              sx={{
+                '& .MuiSelect-select': {
+                  py: 1
+                }
+              }}
+            >
+              {yearOptions.map(year => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Month Dropdown */}
+          <FormControl size='small' sx={{ minWidth: 120 }}>
+            <Select
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              displayEmpty
+              sx={{
+                '& .MuiSelect-select': {
+                  py: 1
+                }
+              }}
+            >
+              {monthOptions.map(month => (
+                <MenuItem key={month.value} value={month.value}>
+                  {month.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Jenis Dropdown */}
+          <FormControl size='small' sx={{ minWidth: 140 }}>
+            <Select
+              value={selectedJenis}
+              onChange={handleJenisChange}
+              displayEmpty
+              sx={{
+                '& .MuiSelect-select': {
+                  py: 1
+                }
+              }}
+            >
+              <MenuItem value='Pengeluaran'>Pengeluaran</MenuItem>
+              <MenuItem value='Pemasukan'>Pemasukan</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
         {loading ? (
           <Box display='flex' justifyContent='center' alignItems='center' minHeight={200}>
             <CircularProgress />

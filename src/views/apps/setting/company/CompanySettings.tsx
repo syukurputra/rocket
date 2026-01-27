@@ -1,0 +1,362 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid2'
+import TextField from '@mui/material/TextField'
+import CircularProgress from '@mui/material/CircularProgress'
+import Alert from '@mui/material/Alert'
+import Snackbar from '@mui/material/Snackbar'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
+
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
+
+type Company = {
+  id: string
+  nama: string
+  alamat: string | null
+  telepon: string | null
+  email: string | null
+  status: boolean
+  paketId: string | null
+  paketStartDate: string | null
+  paketEndDate: string | null
+  paket?: {
+    id: string
+    nama: string
+    deskripsi: string | null
+    harga: number
+    durasi: number
+  } | null
+}
+
+const CompanySettings = () => {
+  const [company, setCompany] = useState<Company | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  })
+
+  // Form state
+  const [formData, setFormData] = useState({
+    nama: '',
+    alamat: '',
+    telepon: '',
+    email: ''
+  })
+
+  const fetchCompany = async () => {
+    try {
+      setLoading(true)
+      const response = await apiFetchClient<{ data: Company }>('/api/setting/company')
+
+      setCompany(response.data)
+      setFormData({
+        nama: response.data.nama,
+        alamat: response.data.alamat || '',
+        telepon: response.data.telepon || '',
+        email: response.data.email || ''
+      })
+    } catch (error) {
+      console.error('Failed to fetch company:', error)
+      setSnackbar({ open: true, message: 'Gagal memuat data perusahaan', severity: 'error' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCompany()
+  }, [])
+
+  const handleEditClick = () => {
+    if (company) {
+      setFormData({
+        nama: company.nama,
+        alamat: company.alamat || '',
+        telepon: company.telepon || '',
+        email: company.email || ''
+      })
+      setEditDialogOpen(true)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+
+      const response = await apiFetchClient<{ data: Company }>('/api/setting/company', {
+        method: 'PUT',
+        body: JSON.stringify(formData)
+      })
+
+      setCompany(response.data)
+      setEditDialogOpen(false)
+      setSnackbar({ open: true, message: 'Data perusahaan berhasil diperbarui', severity: 'success' })
+    } catch (error) {
+      console.error('Failed to update company:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Gagal memperbarui data perusahaan'
+
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-'
+
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount)
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent>
+          <div className='flex justify-center items-center p-10'>
+            <CircularProgress />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!company) {
+    return (
+      <Card>
+        <CardContent>
+          <Alert severity='error'>Data perusahaan tidak ditemukan</Alert>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <>
+      <Grid container spacing={6}>
+        {/* Company Information Card */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card>
+            <CardContent>
+              <div className='flex justify-between items-center mb-6'>
+                <Typography variant='h5'>Informasi Perusahaan</Typography>
+                <Button variant='contained' onClick={handleEditClick} startIcon={<i className='tabler-edit' />}>
+                  Edit
+                </Button>
+              </div>
+
+              <Grid container spacing={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Nama Perusahaan
+                  </Typography>
+                  <Typography variant='body1' fontWeight={600} className='mt-1'>
+                    {company.nama}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Email
+                  </Typography>
+                  <Typography variant='body1' className='mt-1'>
+                    {company.email || '-'}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Telepon
+                  </Typography>
+                  <Typography variant='body1' className='mt-1'>
+                    {company.telepon || '-'}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Status
+                  </Typography>
+                  <div className='mt-1'>
+                    {company.status ? (
+                      <Chip label='Aktif' color='success' size='small' variant='tonal' />
+                    ) : (
+                      <Chip label='Nonaktif' color='error' size='small' variant='tonal' />
+                    )}
+                  </div>
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Alamat
+                  </Typography>
+                  <Typography variant='body1' className='mt-1'>
+                    {company.alamat || '-'}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Package Information Card */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card>
+            <CardContent>
+              <Typography variant='h5' className='mb-6'>
+                Informasi Paket
+              </Typography>
+
+              {company.paket ? (
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Paket Aktif
+                    </Typography>
+                    <Typography variant='h6' className='mt-1'>
+                      {company.paket.nama}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Harga
+                    </Typography>
+                    <Typography variant='body1' fontWeight={600} className='mt-1'>
+                      {formatCurrency(Number(company.paket.harga))}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Divider />
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Periode Aktif
+                    </Typography>
+                    <Typography variant='body2' className='mt-1'>
+                      {formatDate(company.paketStartDate)} - {formatDate(company.paketEndDate)}
+                    </Typography>
+                  </Grid>
+
+                  {company.paket.deskripsi && (
+                    <Grid size={{ xs: 12 }}>
+                      <Typography variant='caption' color='text.secondary'>
+                        Deskripsi
+                      </Typography>
+                      <Typography variant='body2' className='mt-1'>
+                        {company.paket.deskripsi}
+                      </Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              ) : (
+                <Alert severity='info'>Tidak ada paket aktif</Alert>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => !saving && setEditDialogOpen(false)} maxWidth='sm' fullWidth>
+        <DialogTitle>Edit Informasi Perusahaan</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={4} className='mt-1'>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Nama Perusahaan'
+                value={formData.nama}
+                onChange={e => setFormData({ ...formData, nama: e.target.value })}
+                required
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Email'
+                type='email'
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Telepon'
+                value={formData.telepon}
+                onChange={e => setFormData({ ...formData, telepon: e.target.value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Alamat'
+                multiline
+                rows={3}
+                value={formData.alamat}
+                onChange={e => setFormData({ ...formData, alamat: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)} disabled={saving}>
+            Batal
+          </Button>
+          <Button onClick={handleSave} variant='contained' disabled={saving || !formData.nama}>
+            {saving ? <CircularProgress size={20} /> : 'Simpan'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant='filled'
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
+  )
+}
+
+export default CompanySettings

@@ -1,6 +1,7 @@
 export type MenuClient = {
   id: string
   nama: string
+  keterangan?: string | null
   path?: string
   icon?: string
   urutan: number
@@ -14,6 +15,7 @@ export type MenuClient = {
 
 export type MenuFormData = {
   nama: string
+  keterangan?: string | null
   path?: string
   icon?: string
   urutan?: number

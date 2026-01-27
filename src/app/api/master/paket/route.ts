@@ -8,6 +8,19 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const pakets = await prisma.masterPaket.findMany({
+      include: {
+        paketMenus: {
+          include: {
+            menu: {
+              select: {
+                id: true,
+                nama: true,
+                keterangan: true
+              }
+            }
+          }
+        }
+      },
       orderBy: [{ nama: 'asc' }]
     })
 
@@ -26,7 +39,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, harga, status = true } = body
+    const { nama, deskripsi, harga, durasi = 1, status = true } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Nama paket harus diisi' }, { status: 400 })
@@ -37,6 +50,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nama,
         deskripsi: deskripsi || null,
         harga,
+        durasi,
         status
       }
     })

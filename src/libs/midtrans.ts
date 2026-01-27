@@ -43,7 +43,9 @@ export async function createMidtransTransaction(params: MidtransTransactionParam
       customer_details: params.customerDetails,
       item_details: params.itemDetails,
       callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/finish`
+        finish: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/finish`,
+        unfinish: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/unfinish`,
+        error: `${process.env.NEXT_PUBLIC_SITE_URL}/payment/error`
       }
     }
 

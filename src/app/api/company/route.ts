@@ -46,7 +46,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     }
 
     const body = await request.json()
-    const { nama, alamat, telepon, email, status = true } = body
+    const { nama, alamat, telepon, email, status = true, paketStartDate, paketEndDate } = body
 
     // Validation
     if (!nama) {
@@ -59,7 +59,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         alamat,
         telepon,
         email,
-        status
+        status,
+        paketStartDate: paketStartDate ? new Date(paketStartDate) : null,
+        paketEndDate: paketEndDate ? new Date(paketEndDate) : null
       }
     })
 

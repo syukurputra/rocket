@@ -7,4 +7,11 @@ export type MasterPaketClient = {
   status: boolean
   createdAt: Date | string
   updatedAt: Date | string
+  paketMenus?: {
+    menu: {
+      id: string
+      nama: string
+      keterangan: string | null
+    }
+  }[]
 }

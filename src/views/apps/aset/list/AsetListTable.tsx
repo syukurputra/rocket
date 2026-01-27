@@ -127,7 +127,7 @@ interface AsetListTableProps {
 }
 
 const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
-  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
+  const [statusFilter, setStatusFilter] = useState<'' | 'aktif' | 'non aktif' | 'publish'>('')
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<AsetClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(initialData)
@@ -263,11 +263,17 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          return row.original.status === true ? (
-            <Chip label='Aktif' color='success' size='small' variant='tonal' />
-          ) : (
-            <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
-          )
+          const status = row.original.status
+
+          if (status === 'aktif') {
+            return <Chip label='Aktif' color='success' size='small' variant='tonal' />
+          } else if (status === 'non aktif') {
+            return <Chip label='Non Aktif' color='error' size='small' variant='tonal' />
+          } else if (status === 'publish') {
+            return <Chip label='Publish' color='info' size='small' variant='tonal' />
+          }
+
+          return <Chip label={status} color='default' size='small' variant='tonal' />
         }
       }),
       columnHelper.accessor('action', {

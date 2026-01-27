@@ -18,6 +18,8 @@ model Company {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   paketId          String?
+  paketStartDate   DateTime?
+  paketEndDate     DateTime?
   aset             Aset[]
   categoryKeuangan CategoryKeuangan[]
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
@@ -62,6 +64,7 @@ model MenuRole {
 model Menu {
   id         String      @id @default(cuid())
   nama       String
+  keterangan String?
   path       String?
   icon       String?
   urutan     Int         @default(0)
@@ -128,28 +131,45 @@ model User {
 }
 
 model Aset {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   jenis       String
   nama        String
   alamat      String
   kota        String
   provinsi    String
-  status      Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  nominal     Decimal    @default(0) @db.Decimal(15, 2)
+  latitude    Float?
+  longitude   Float?
+  status      String       @default("aktif")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  nominal     Decimal      @default(0) @db.Decimal(15, 2)
   createdById String
   updatedById String
   companyId   String
-  company     Company    @relation(fields: [companyId], references: [id])
-  createdBy   User       @relation("CreatedBy", fields: [createdById], references: [id])
-  updatedBy   User       @relation("UpdatedBy", fields: [updatedById], references: [id])
+  company     Company      @relation(fields: [companyId], references: [id])
+  createdBy   User         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy   User         @relation("UpdatedBy", fields: [updatedById], references: [id])
   keuangan    Keuangan[]
   penghuni    Penghuni[]
   ruangan     Ruangan[]
+  images      AsetImage[]
 
   @@index([companyId])
   @@map("aset")
+}
+
+model AsetImage {
+  id        String   @id @default(cuid())
+  filename  String
+  filepath  String
+  filesize  Int?
+  mimetype  String?
+  createdAt DateTime @default(now())
+  asetId    String
+  aset      Aset     @relation(fields: [asetId], references: [id], onDelete: Cascade)
+
+  @@index([asetId])
+  @@map("aset_image")
 }
 
 model Ruangan {
@@ -193,6 +213,7 @@ model MasterPaket {
   nama       String
   deskripsi  String?
   harga      Decimal     @db.Decimal(15, 2)
+  durasi     Int         @default(1)
   status     Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt

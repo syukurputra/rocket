@@ -34,7 +34,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 async function handlePut(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await request.json()
-    const { nama, path, icon, urutan, parentId, status } = body
+    const { nama, keterangan, path, icon, urutan, parentId, status } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Menu name is required' }, { status: 400 })
@@ -44,6 +44,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       where: { id: params.id },
       data: {
         nama,
+        keterangan: keterangan || null,
         path: path || null,
         icon: icon || null,
         urutan: urutan !== undefined ? Number(urutan) : undefined,

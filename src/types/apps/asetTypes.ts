@@ -1,3 +1,15 @@
+export type AsetImage = {
+  id: string
+  filename: string
+  filepath: string
+  filesize?: number
+  mimetype?: string
+  createdAt: string
+  asetId: string
+}
+
+export type AsetStatus = 'aktif' | 'non aktif' | 'publish'
+
 export type AsetClient = {
   id: string
   jenis: string
@@ -5,5 +17,8 @@ export type AsetClient = {
   alamat: string
   kota: string
   provinsi: string
-  status: boolean
+  latitude?: number
+  longitude?: number
+  status: AsetStatus
+  images?: AsetImage[]
 }

@@ -32,6 +32,7 @@ type Props = {
 type FormValues = {
   id?: string
   nama: string
+  keterangan: string
   path: string
   icon: string
   urutan: number
@@ -41,6 +42,7 @@ type FormValues = {
 
 const DEFAULTS: FormValues = {
   nama: '',
+  keterangan: '',
   path: '',
   icon: '',
   urutan: 0,
@@ -83,6 +85,7 @@ export default function AddEditMenu({ open, setOpen, mode = 'create', initialDat
       setForm({
         id: initialData.id,
         nama: initialData.nama ?? '',
+        keterangan: initialData.keterangan ?? '',
         path: initialData.path ?? '',
         icon: initialData.icon ?? '',
         urutan: initialData.urutan ?? 0,
@@ -112,6 +115,7 @@ export default function AddEditMenu({ open, setOpen, mode = 'create', initialDat
           method: 'PUT',
           body: JSON.stringify({
             nama: form.nama,
+            keterangan: form.keterangan || null,
             path: form.path || null,
             icon: form.icon || null,
             urutan: Number(form.urutan),
@@ -128,6 +132,7 @@ export default function AddEditMenu({ open, setOpen, mode = 'create', initialDat
           method: 'POST',
           body: JSON.stringify({
             nama: form.nama,
+            keterangan: form.keterangan || null,
             path: form.path || null,
             icon: form.icon || null,
             urutan: Number(form.urutan),
@@ -176,6 +181,19 @@ export default function AddEditMenu({ open, setOpen, mode = 'create', initialDat
                   value={form.nama}
                   onChange={handleChange('nama')}
                   required
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Keterangan'
+                  name='keterangan'
+                  variant='outlined'
+                  placeholder='Deskripsi fitur untuk tampilan paket'
+                  value={form.keterangan}
+                  onChange={handleChange('keterangan')}
+                  multiline
+                  rows={2}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>

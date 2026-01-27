@@ -200,6 +200,10 @@ const MenuListTable = () => {
         header: 'Nama Menu',
         cell: ({ row }) => <Typography fontWeight={600}>{row.original.nama}</Typography>
       }),
+      columnHelper.accessor('keterangan', {
+        header: 'Keterangan',
+        cell: ({ row }) => <Typography>{row.original.keterangan || '-'}</Typography>
+      }),
       columnHelper.accessor('path', {
         header: 'Path',
         cell: ({ row }) => <Typography className='font-mono text-sm'>{row.original.path || '-'}</Typography>
@@ -413,5 +417,3 @@ const MenuListTable = () => {
 }
 
 export default MenuListTable
-
-

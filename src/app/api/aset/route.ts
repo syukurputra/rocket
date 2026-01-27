@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -24,6 +26,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
     prisma.aset.findMany({
       where,
       include: {
+        images: true,
         createdBy: { select: { id: true, username: true } },
         updatedBy: { select: { id: true, username: true } }
       },
@@ -35,6 +38,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
   ])
 
   const totalPages = Math.ceil(total / limit)
+
   return NextResponse.json({
     data,
     pagination: {
@@ -51,7 +55,8 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
 
 async function handlePost(req: NextRequest, { user }: AuthContext) {
   const body = await req.json()
-  const { jenis, nama, alamat, kota, provinsi, status } = body
+  const { jenis, nama, alamat, kota, provinsi, latitude, longitude, status } = body
+
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
     return NextResponse.json({ message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' }, { status: 400 })
   }
@@ -68,12 +73,15 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
       alamat,
       kota,
       provinsi,
-      status: status !== undefined ? Boolean(status) : true,
+      latitude: latitude !== undefined ? Number(latitude) : null,
+      longitude: longitude !== undefined ? Number(longitude) : null,
+      status: status || 'aktif',
       createdById: user.id,
       updatedById: user.id,
       companyId: user.companyId
     },
     include: {
+      images: true,
       createdBy: { select: { id: true, username: true } },
       updatedBy: { select: { id: true, username: true } }
     }

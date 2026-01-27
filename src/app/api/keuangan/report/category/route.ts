@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -7,6 +9,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const url = new URL(request.url)
     const yearParam = url.searchParams.get('year')
     const monthParam = url.searchParams.get('month')
+    const jenisParam = url.searchParams.get('jenis')
 
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
@@ -21,6 +24,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     if (isNaN(month) || month < 1 || month > 12) {
       return NextResponse.json({ message: 'Invalid month parameter' }, { status: 400 })
+    }
+
+    // Validate jenis parameter if provided
+    if (jenisParam && !['pengeluaran', 'pemasukan'].includes(jenisParam.toLowerCase())) {
+      return NextResponse.json({ message: 'Invalid jenis parameter' }, { status: 400 })
     }
 
     // Validate user has company
@@ -39,7 +47,14 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         tanggal: {
           gte: startOfMonth,
           lte: endOfMonth
-        }
+        },
+
+        // Filter by category jenis if provided
+        ...(jenisParam && {
+          categoryKeuangan: {
+            jenis: jenisParam.toLowerCase()
+          }
+        })
       },
       include: {
         categoryKeuangan: {
@@ -90,6 +105,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         }
 
         const category = categoryMap.get(categoryId)!
+
         category.total += nominal
       }
     })
@@ -99,6 +115,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const categories = Array.from(categoryMap.values()).map(category => ({
       ...category,
+
       // Percentage = (category total / monthly total) * 100
       percentage: grandTotal > 0 ? Math.round((category.total / grandTotal) * 100) : 0
     }))
@@ -119,6 +136,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
   } catch (error) {
     console.error('Get category report error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

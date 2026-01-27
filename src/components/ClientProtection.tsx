@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+
 import { usePathname, useRouter } from 'next/navigation'
 
 interface ClientProtectionProps {
@@ -9,12 +10,14 @@ interface ClientProtectionProps {
 
 const protectedRoutes = [
   /^\/id\/home(\/|$)/,
+  /^\/id\/dashboard(\/|$)/,
   /^\/id\/aset\/list(\/|$)/,
   /^\/id\/aset\/view(\/|$)/,
   /^\/id\/keuangan\/list(\/|$)/,
   /^\/id\/penghuni\/list(\/|$)/,
   /^\/id\/master\/icon\/list(\/|$)/
 ]
+
 const authRoutes = [/^\/id\/login(\/|$)/, /^\/id\/register(\/|$)/, /^\/id\/verifikasi(\/|$)/]
 
 export default function ClientProtection({ children }: ClientProtectionProps) {
@@ -39,13 +42,16 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
             localStorage.removeItem('user')
             localStorage.removeItem('userMenus')
           }
+
           return null
         }
 
         const data = await res.json().catch(() => null)
+
         return data?.user ?? null
       } catch (error) {
         console.error('Auth check failed:', error)
+
         return null
       }
     }
@@ -57,7 +63,9 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
 
       if (isProtected || isRoot) {
         const user = await check()
+
         if (cancelled) return
+
         if (!user) {
           router.replace('/login')
         } else if (isRoot) {
@@ -66,13 +74,16 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
 
         if (isAuth) {
           const user = await check()
+
           if (!cancelled && user) router.replace('/home')
         }
+
         return
       }
     }
 
     run()
+
     return () => {
       cancelled = true
     }

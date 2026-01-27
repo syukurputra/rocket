@@ -8,6 +8,11 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
     icon: 'tabler-smart-home'
   },
   {
+    label: 'Dashboard',
+    href: '/en/dashboard',
+    icon: 'tabler-chart-pie'
+  },
+  {
     label: 'About',
     href: '/en/about',
     icon: 'tabler-info-circle'

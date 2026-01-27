@@ -13,19 +13,19 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       }
     })
 
-    // Get active assets count (status = true)
+    // Get active assets count (status = 'aktif')
     const totalAsetAktif = await prisma.aset.count({
       where: {
         createdById: user.id,
-        status: true
+        status: 'aktif'
       }
     })
 
-    // Get inactive assets count (status = false)
+    // Get inactive assets count (status = 'non aktif')
     const totalAsetNonAktif = await prisma.aset.count({
       where: {
         createdById: user.id,
-        status: false
+        status: 'non aktif'
       }
     })
 
@@ -35,7 +35,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       where: {
         createdById: user.id,
         aset: {
-          status: true
+          status: 'aktif'
         }
       }
     })

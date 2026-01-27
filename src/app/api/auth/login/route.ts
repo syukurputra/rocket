@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
         company: {
           select: {
             id: true,
-            nama: true
+            nama: true,
+            paketId: true
           }
         }
       }

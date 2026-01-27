@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
       data: {
         nama: companyName,
         status: true,
-        paketId: defaultPaketId
+        paketId: defaultPaketId,
+        paketStartDate: new Date(),
+        paketEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // +30 days (1 month)
       }
     })
 

@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
+
 import { verifyRefreshToken, signAccessToken, signRefreshToken } from '@/src/libs/jwt'
 import prisma from '@/src/libs/prisma'
 
@@ -77,8 +79,6 @@ export async function POST(request: NextRequest) {
         parentId: mr.menu.parentId
       })) || []
 
-    console.log('Token refresh successful for user:', user.username)
-
     return NextResponse.json({
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Refresh token error:', error)
-    return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 })
+    
+return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 })
   }
 }

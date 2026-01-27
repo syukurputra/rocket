@@ -48,6 +48,7 @@ INSERT INTO "menu" ("id", "nama", "path", "icon", "urutan", "parentId", "status"
 VALUES
   -- Main Menus (Level 1)
   ('menu-home', 'Home', '/home', 'tabler-smart-home', 1, NULL, true, NOW(), NOW()),
+  ('menu-dashboard', 'Dashboard', '/dashboard', 'tabler-chart-pie', 0, NULL, true, NOW(), NOW()),
   ('menu-aset', 'Aset', '/aset/list', 'tabler-home-dollar', 2, NULL, true, NOW(), NOW()),
   ('menu-keuangan', 'Keuangan', '/keuangan/list', 'tabler-chart-histogram', 3, NULL,true, NOW(), NOW()),
   ('menu-penghuni', 'Penghuni', '/penghuni/list', 'tabler-friends', 4, NULL,true, NOW(), NOW()),

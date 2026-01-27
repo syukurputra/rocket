@@ -8,6 +8,11 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     icon: 'tabler-smart-home'
   },
   {
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: 'tabler-chart-pie'
+  },
+  {
     label: 'About',
     href: '/about',
     icon: 'tabler-info-circle'

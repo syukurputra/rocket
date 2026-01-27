@@ -80,7 +80,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Jenis kategori harus diisi' }, { status: 400 })
     }
 
-    if (!['Pengeluaran', 'Pemasukan'].includes(jenis)) {
+    if (!['Pengeluaran', 'Pemasukan', 'pengeluaran', 'pemasukan'].includes(jenis)) {
       return NextResponse.json({ message: 'Jenis harus "Pengeluaran" atau "Pemasukan"' }, { status: 400 })
     }
 
@@ -91,7 +91,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const category = await prisma.categoryKeuangan.create({
       data: {
         nama,
-        jenis,
+        jenis: jenis.toLowerCase(),
         deskripsi: deskripsi || null,
         iconId: iconId || null,
         color: color || null,

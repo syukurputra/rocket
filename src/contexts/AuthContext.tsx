@@ -9,6 +9,11 @@ interface User {
   id: string
   username: string
   email: string
+  company?: {
+    id: string
+    nama: string
+    paketId: string | null
+  } | null
 }
 
 interface AuthContextType {
@@ -184,6 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/forgot-password',
       '/reset-password'
     ]
+
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth initialization for public routes
@@ -218,6 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/forgot-password',
       '/reset-password'
     ]
+
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth check for public routes

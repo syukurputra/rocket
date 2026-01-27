@@ -258,28 +258,9 @@ const MonthlyFinancialReport = () => {
     <Card>
       <CardHeader
         title='Laporan Keuangan'
-        subheader={`Laporan Bulanan Tahun ${selectedYear}`}
         action={
           <Box display='flex' gap={2}>
-            {/* Category Dropdown - First */}
-            <FormControl size='small' sx={{ minWidth: 140 }}>
-              <Select
-                value={value}
-                onChange={handleCategoryChange}
-                displayEmpty
-                sx={{
-                  '& .MuiSelect-select': {
-                    py: 1
-                  }
-                }}
-              >
-                <MenuItem value='gabungan'>Gabungan</MenuItem>
-                <MenuItem value='pemasukan'>Pemasukan</MenuItem>
-                <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Year Dropdown - Second */}
+            {/* Year Dropdown - First */}
             <FormControl size='small' sx={{ minWidth: 120 }}>
               <Select
                 value={selectedYear}
@@ -296,6 +277,24 @@ const MonthlyFinancialReport = () => {
                     {year}
                   </MenuItem>
                 ))}
+              </Select>
+            </FormControl>
+
+            {/* Category Dropdown - Second */}
+            <FormControl size='small' sx={{ minWidth: 140 }}>
+              <Select
+                value={value}
+                onChange={handleCategoryChange}
+                displayEmpty
+                sx={{
+                  '& .MuiSelect-select': {
+                    py: 1
+                  }
+                }}
+              >
+                <MenuItem value='gabungan'>Gabungan</MenuItem>
+                <MenuItem value='pemasukan'>Pemasukan</MenuItem>
+                <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
               </Select>
             </FormControl>
           </Box>
