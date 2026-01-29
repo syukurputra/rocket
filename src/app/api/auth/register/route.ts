@@ -8,7 +8,22 @@ import { verifyEmailConnection } from '@/src/mails/verifyEmailConnection'
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password } = await request.json()
+    const { username, email, password, nomorTelepon } = await request.json()
+
+    // Validate phone number format (Indonesian)
+    if (!nomorTelepon) {
+      return NextResponse.json({ message: 'Nomor telepon wajib diisi' }, { status: 400 })
+    }
+
+    // Check Indonesian phone format: must start with +62 or 08
+    const phoneRegex = /^(\+62|62|08)[0-9]{8,12}$/
+
+    if (!phoneRegex.test(nomorTelepon)) {
+      return NextResponse.json(
+        { message: 'Format nomor telepon tidak valid. Gunakan format +62 atau 08' },
+        { status: 400 }
+      )
+    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -56,6 +71,7 @@ export async function POST(request: NextRequest) {
       data: {
         username: username,
         email: email,
+        nomorTelepon: nomorTelepon,
         password: passwordEnc,
         companyId: company.id,
         roleId: adminRole.id

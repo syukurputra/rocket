@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
@@ -12,6 +14,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import classnames from 'classnames'
+
 import type { SystemMode } from '@core/types'
 import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
@@ -58,6 +61,7 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
 
   useEffect(() => {
     const tokenParam = searchParams.get('token')
+
     if (tokenParam) {
       setToken(tokenParam)
     } else {
@@ -94,18 +98,21 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
     if (!password.trim()) {
       setError('Password harus diisi')
       setLoading(false)
+
       return
     }
 
     if (password.length < 6) {
       setError('Password minimal 6 karakter')
       setLoading(false)
+
       return
     }
 
     if (password !== confirmPassword) {
       setError('Password tidak cocok')
       setLoading(false)
+
       return
     }
 
@@ -188,7 +195,10 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
           )}
         </div>
         <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-          <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+          <Link
+            href='/landing'
+            className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'
+          >
             <Logo />
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
@@ -279,4 +289,3 @@ const ResetPassword = ({ mode }: { mode: SystemMode }) => {
 }
 
 export default ResetPassword
-

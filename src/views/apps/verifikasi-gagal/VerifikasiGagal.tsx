@@ -87,7 +87,7 @@ const VerifikasiGagal = ({ mode }: { mode: SystemMode }) => {
       </div>
       <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
         <Link
-          href='/id'
+          href='/landing'
           className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'
         >
           <Logo />
@@ -118,13 +118,7 @@ const VerifikasiGagal = ({ mode }: { mode: SystemMode }) => {
             Kirim Ulang Email Verifikasi
           </Button>
 
-          <Button
-            fullWidth
-            variant='outlined'
-            type='button'
-            component={Link}
-            href='/login'
-          >
+          <Button fullWidth variant='outlined' type='button' component={Link} href='/login'>
             Kembali ke Login
           </Button>
 

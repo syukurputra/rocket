@@ -60,26 +60,28 @@ const MaskImg = styled('img')({
 })
 
 const useRegister = () => {
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (username: string, email: string, password: string, nomorTelepon: string) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, email, password, nomorTelepon })
       })
 
       const data = await response.json()
 
       if (response.ok) {
         window.location.href = '/login'
+
         return { success: true }
       } else {
         return { success: false, message: data.message }
       }
     } catch (error) {
       console.error('Login error:', error)
+
       return { success: false, message: 'Network error occurred' }
     }
   }
@@ -93,6 +95,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [nomorTelepon, setNomorTelepon] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -130,23 +133,43 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     if (!username.trim()) {
       setError('Username is required')
       setLoading(false)
+
       return
     }
 
     if (!email.trim()) {
       setError('Email is required')
       setLoading(false)
+
       return
     }
 
     if (!password.trim()) {
       setError('Password is required')
       setLoading(false)
+
+      return
+    }
+
+    if (!nomorTelepon.trim()) {
+      setError('Nomor telepon wajib diisi')
+      setLoading(false)
+
+      return
+    }
+
+    // Validate Indonesian phone format
+    const phoneRegex = /^(\+62|62|08)[0-9]{8,12}$/
+
+    if (!phoneRegex.test(nomorTelepon)) {
+      setError('Format nomor telepon tidak valid. Gunakan format +62 atau 08')
+      setLoading(false)
+
       return
     }
 
     try {
-      const result = await register(username, email, password)
+      const result = await register(username, email, password, nomorTelepon)
 
       if (!result.success) {
         setError(result.message || 'Register gagal')
@@ -214,7 +237,10 @@ const Register = ({ mode }: { mode: SystemMode }) => {
           )}
         </div>
         <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-          <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+          <Link
+            href='/landing'
+            className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'
+          >
             <Logo />
           </Link>
           <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
@@ -240,6 +266,15 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+              />
+              <CustomTextField
+                fullWidth
+                label='Nomor Telepon'
+                placeholder='Contoh: +6281234567890 atau 081234567890'
+                value={nomorTelepon}
+                onChange={e => setNomorTelepon(e.target.value)}
+                required
+                helperText='Format: +62 atau 08 diikuti 8-12 digit'
               />
               <CustomTextField
                 fullWidth

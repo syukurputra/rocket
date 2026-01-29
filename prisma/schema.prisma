@@ -84,6 +84,7 @@ model User {
   id                      String             @id @default(cuid()) @db.VarChar(100)
   username                String             @unique @db.VarChar(50)
   email                   String             @unique @db.VarChar(191)
+  nomorTelepon            String?            @db.VarChar(20)
   password                String?            @db.VarChar(191)
   tokenVersion            Int                @default(0)
   createdAt               DateTime           @default(now())

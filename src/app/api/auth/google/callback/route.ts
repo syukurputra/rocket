@@ -202,12 +202,16 @@ export async function GET(request: NextRequest) {
         parentId: mr.menu.parentId
       })) || []
 
+    // Check if user needs to provide phone number
+    const needsPhone = !user.nomorTelepon
+
     // Create URL with tokens and menus as query params for client-side storage
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const authSuccessUrl = new URL('/auth-success', baseUrl)
     authSuccessUrl.searchParams.set('accessToken', accessToken)
     authSuccessUrl.searchParams.set('refreshToken', refreshToken)
     authSuccessUrl.searchParams.set('menus', JSON.stringify(menus))
+    authSuccessUrl.searchParams.set('needsPhone', needsPhone.toString())
 
     const res = NextResponse.redirect(authSuccessUrl)
 

@@ -38,7 +38,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
 
   return (
     <footer className={frontLayoutClasses.footer}>
-      <div className='relative'>
+      {/* <div className='relative'>
         <img src={dashboardImage} alt='footer bg' className='absolute inset-0 is-full bs-full object-cover -z-[1]' />
         <div className={classnames('plb-12 text-white', frontCommonStyles.layoutSpacing)}>
           <Grid container rowSpacing={10} columnSpacing={12}>
@@ -164,7 +164,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
             </Grid>
           </Grid>
         </div>
-      </div>
+      </div> */}
       <div className='bg-[#211B2C]'>
         <div
           className={classnames(
@@ -173,14 +173,9 @@ const Footer = ({ mode }: { mode: Mode }) => {
           )}
         >
           <Typography className='text-white' variant='body2'>
-            <span>{`© ${new Date().getFullYear()}, Made with `}</span>
-            <span>{`❤️`}</span>
-            <span>{` by `}</span>
-            <Link href='https://pixinvent.com/' target='_blank' className='font-medium text-white'>
-              Pixinvent
-            </Link>
+            <span>© 2025, Bantu Sewa. All Rights Reserved.</span>
           </Typography>
-          <div className='flex gap-1.5 items-center'>
+          {/* <div className='flex gap-1.5 items-center'>
             <IconButton component={Link} size='small' href='https://github.com/pixinvent' target='_blank'>
               <i className='tabler-brand-github-filled text-white text-lg' />
             </IconButton>
@@ -198,7 +193,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
             >
               <i className='tabler-brand-youtube-filled text-white text-lg' />
             </IconButton>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

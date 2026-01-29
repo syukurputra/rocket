@@ -13,7 +13,7 @@ export async function GET() {
     'https://www.googleapis.com/auth/userinfo.profile'
   ].join(' ')
 
-  const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline`
+  const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=select_account consent`
 
   return NextResponse.redirect(googleLoginUrl)
 }
