@@ -79,12 +79,13 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
           <Typography
             className={classnames('font-extrabold sm:text-[42px] text-3xl mbe-4 leading-[48px]', styles.heroText)}
           >
-            All in one sass application for your business
+            Satu platform, kendali penuh
           </Typography>
           <Typography className='font-medium' color='text.primary'>
-            No coding required to make customizations. The live customizer has everything your marketing need.
+            Kelola villa, apartemen, hingga keuangan dalam satu dasbor cerdas. Bangun website sewa Anda sekarang dan
+            automasi bisnis properti Anda!
           </Typography>
-          <div className='flex mbs-6 items-baseline justify-center relative'>
+          {/* <div className='flex mbs-6 items-baseline justify-center relative'>
             <div className='flex gap-2 absolute inline-start-[0%] block-start-[41%] max-md:hidden'>
               <Typography className='font-medium'>Join community</Typography>
               <img src='/images/front-pages/landing-page/join-community-arrow.png' alt='arrow' height='48' width='60' />
@@ -98,7 +99,7 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
             >
               Get Early Access
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
       <div

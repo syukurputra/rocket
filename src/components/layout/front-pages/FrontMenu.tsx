@@ -88,7 +88,7 @@ const FrontMenu = (props: Props) => {
 
   return (
     <Wrapper isBelowLgScreen={isBelowLgScreen} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen}>
-      <Typography
+      {/* <Typography
         color='text.primary'
         component={Link}
         href='/front-pages/landing-page'
@@ -157,7 +157,7 @@ const FrontMenu = (props: Props) => {
         className='font-medium plb-3 pli-1.5 hover:text-primary'
       >
         Admin
-      </Typography>
+      </Typography> */}
     </Wrapper>
   )
 }

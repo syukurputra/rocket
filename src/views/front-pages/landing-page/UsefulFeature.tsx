@@ -27,33 +27,38 @@ import frontCommonStyles from '@views/front-pages/styles.module.css'
 const feature = [
   {
     icon: <LaptopCharging color='var(--mui-palette-primary-main)' />,
-    title: 'Quality Code',
-    description: 'Code structure that all developers will easily understand and fall in love with.'
+    title: 'Fitur Aset',
+    description:
+      'Kelola seluruh properti Anda dalam satu platform. Tambah, edit, dan monitor villa, apartemen, atau kos dengan mudah.'
   },
   {
     icon: <Rocket color='var(--mui-palette-primary-main)' />,
-    title: 'Continuous Updates',
-    description: 'Free updates for the next 12 months, including new demos and features.'
+    title: 'Fitur Ruangan',
+    description:
+      'Atur detail setiap ruangan dengan harga harian, bulanan, dan tahunan. Upload foto dan kelola status ketersediaan.'
   },
   {
     icon: <Paper color='var(--mui-palette-primary-main)' />,
-    title: 'Stater-Kit',
-    description: 'Start your project quickly without having to remove unnecessary features.'
+    title: 'Fitur Penghuni',
+    description: 'Catat data penghuni lengkap dengan periode sewa, kontak, dan riwayat pembayaran dalam satu tempat.'
   },
   {
     icon: <Check color='var(--mui-palette-primary-main)' />,
-    title: 'API Ready',
-    description: 'Just change the endpoint and see your own data loaded within seconds.'
+    title: 'Fitur Keuangan',
+    description:
+      'Pantau pemasukan dan pengeluaran properti Anda. Laporan keuangan otomatis untuk analisis bisnis yang lebih baik.'
   },
   {
     icon: <User color='var(--mui-palette-primary-main)' />,
-    title: 'Excellent Support',
-    description: 'An easy-to-follow doc with lots of references and code examples.'
+    title: 'Fitur Promosi',
+    description:
+      'Buat dan kelola promosi menarik untuk meningkatkan okupansi. Atur diskon dan periode promo dengan fleksibel.'
   },
   {
     icon: <Document color='var(--mui-palette-primary-main)' />,
-    title: 'Well Documented',
-    description: 'An easy-to-follow doc with lots of references and code examples.'
+    title: 'Fitur Tagihan',
+    description:
+      'Generate tagihan otomatis untuk penghuni. Kirim invoice via email dan lacak status pembayaran secara real-time.'
   }
 ]
 
@@ -87,23 +92,24 @@ const UsefulFeature = () => {
     <section id='features' ref={ref} className='bg-backgroundPaper'>
       <div className={classnames('flex flex-col gap-12 pbs-12 pbe-[100px]', frontCommonStyles.layoutSpacing)}>
         <div className='flex flex-col gap-y-4 items-center justify-center'>
-          <Chip size='small' variant='tonal' color='primary' label='Useful Feature' />
+          <Chip size='small' variant='tonal' color='primary' label='Fitur Unggulan' />
           <div className='flex flex-col items-center gap-y-1 justify-center flex-wrap'>
             <div className='flex items-center gap-x-2'>
               <Typography color='text.primary' variant='h4' className='text-center'>
                 <span className='relative z-[1] font-extrabold'>
-                  Everything you need
+                  Semua yang Anda butuhkan
                   <img
                     src='/images/front-pages/landing-page/bg-shape.png'
                     alt='bg-shape'
                     className='absolute block-end-0 z-[1] bs-[40%] is-[125%] sm:is-[132%] -inline-start-[13%] sm:inline-start-[-19%] block-start-[17px]'
                   />
                 </span>{' '}
-                to start your next project
+                untuk kelola properti Anda
               </Typography>
             </div>
             <Typography className='text-center'>
-              Not just a set of tools, the package includes ready-to-deploy conceptual application.
+              Platform lengkap untuk mengelola villa, apartemen, dan kos. Dari pendaftaran penghuni hingga laporan
+              keuangan, semua dalam satu sistem.
             </Typography>
           </div>
         </div>
