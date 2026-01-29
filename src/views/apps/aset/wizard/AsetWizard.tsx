@@ -87,7 +87,7 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
     }
   }
 
-  const handleCreateOrUpdateAset = async (data: AsetData, files: File[]) => {
+  const handleCreateOrUpdateAset = async (data: AsetData, files: File[] = []) => {
     try {
       let targetAsetId = asetId
 
@@ -123,7 +123,7 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
       }
 
       // Handle Image Upload if files exist
-      if (files.length > 0 && targetAsetId) {
+      if (files && files.length > 0 && targetAsetId) {
         console.log('Uploading images for aset:', targetAsetId)
         const formData = new FormData()
 

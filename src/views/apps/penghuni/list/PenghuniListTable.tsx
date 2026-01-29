@@ -54,8 +54,6 @@ import CustomTextField from '@core/components/mui/TextField'
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-// import AddEditPenghuni from '@components/dialogs/penghuni'
-// import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 declare module '@tanstack/table-core' {

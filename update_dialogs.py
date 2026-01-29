@@ -60,8 +60,6 @@ SMOOTH_LOADING_PATTERN = {
 DIALOG_FILES = [
     'd:/Code/Koyeb/rocket/src/components/dialogs/aset/index.tsx',
     'd:/Code/Koyeb/rocket/src/components/dialogs/keuangan/index.tsx',
-    'd:/Code/Koyeb/rocket/src/components/dialogs/ruangan/index.tsx',
-    'd:/Code/Koyeb/rocket/src/components/dialogs/penghuni/index.tsx',
     'd:/Code/Koyeb/rocket/src/components/dialogs/master/paket/index.tsx',
 ]
 
