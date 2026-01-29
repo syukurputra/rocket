@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       const companyName = `Company-${randomSuffix}`
 
       // Create company for new user
-      const defaultPaketId = 'cmkf1ia1e00005kf4wckr0x8x'
+      const defaultPaketId = 'cmkzpagu800015k6czrtvc7f4'
 
       const company = await prisma.company.create({
         data: {
@@ -208,6 +208,7 @@ export async function GET(request: NextRequest) {
     // Create URL with tokens and menus as query params for client-side storage
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const authSuccessUrl = new URL('/auth-success', baseUrl)
+
     authSuccessUrl.searchParams.set('accessToken', accessToken)
     authSuccessUrl.searchParams.set('refreshToken', refreshToken)
     authSuccessUrl.searchParams.set('menus', JSON.stringify(menus))

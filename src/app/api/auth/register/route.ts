@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Create company for new user
     // Create company for new user
     // Fixed paket ID as requested
-    const defaultPaketId = 'cmkf1ia1e00005kf4wckr0x8x'
+    const defaultPaketId = 'cmkzpagu800015k6czrtvc7f4'
 
     const company = await prisma.company.create({
       data: {
