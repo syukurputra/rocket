@@ -35,7 +35,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: roles,
-      message: 'Roles retrieved successfully'
+      message: 'Data role berhasil diambil'
     })
   } catch (error) {
     console.error('Get roles error:', error)
@@ -73,7 +73,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: role,
-        message: 'Role created successfully'
+        message: 'Role berhasil dibuat'
       },
       { status: 201 }
     )

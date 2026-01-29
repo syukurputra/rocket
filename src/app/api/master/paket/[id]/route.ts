@@ -17,7 +17,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: paket,
-      message: 'Paket retrieved successfully'
+      message: 'Data paket berhasil diambil'
     })
   } catch (error) {
     console.error('Get paket error:', error)
@@ -48,7 +48,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: paket,
-      message: 'Paket updated successfully'
+      message: 'Paket berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update paket error:', error)
@@ -65,7 +65,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'Paket deleted successfully'
+      message: 'Paket berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete paket error:', error)

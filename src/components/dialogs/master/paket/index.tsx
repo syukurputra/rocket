@@ -53,7 +53,6 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
-    setOpen(false)
   }
 
   useEffect(() => {
@@ -106,8 +105,8 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Paket berhasil diupdate', severity: 'success' })
+        // Show success message - REMOVED to avoid double toast with parent
+        // setSnack({ open: true, message: json.message ?? 'Paket berhasil diupdate', severity: 'success' })
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -127,8 +126,8 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Paket berhasil ditambahkan', severity: 'success' })
+        // Show success message - REMOVED to avoid double toast with parent
+        // setSnack({ open: true, message: json.message ?? 'Paket berhasil ditambahkan', severity: 'success' })
 
         // Callback and refresh in background
         onSaved?.(json.data)

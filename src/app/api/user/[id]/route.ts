@@ -46,7 +46,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: targetUser,
-      message: 'User retrieved successfully'
+      message: 'Data pengguna berhasil diambil'
     })
   } catch (error) {
     console.error('Get user error:', error)
@@ -123,7 +123,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: updatedUser,
-      message: 'User updated successfully'
+      message: 'Pengguna berhasil diperbarui'
     })
   } catch (error: any) {
     console.error('Update user error:', error)
@@ -165,7 +165,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'User deleted successfully'
+      message: 'Pengguna berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete user error:', error)

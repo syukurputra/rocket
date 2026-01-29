@@ -32,7 +32,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: role,
-      message: 'Role retrieved successfully'
+      message: 'Data role berhasil diambil'
     })
   } catch (error) {
     console.error('Get role error:', error)
@@ -60,7 +60,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: role,
-      message: 'Role updated successfully'
+      message: 'Role berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update role error:', error)
@@ -79,7 +79,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'Role deleted successfully'
+      message: 'Role berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete role error:', error)

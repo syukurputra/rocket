@@ -26,7 +26,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: pakets,
-      message: 'Pakets retrieved successfully'
+      message: 'Data paket berhasil diambil'
     })
   } catch (error) {
     console.error('Get pakets error:', error)
@@ -58,7 +58,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: paket,
-        message: 'Paket created successfully'
+        message: 'Paket berhasil dibuat'
       },
       { status: 201 }
     )

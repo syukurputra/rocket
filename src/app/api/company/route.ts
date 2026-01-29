@@ -9,7 +9,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     // Check if user is super admin
     if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized. Super admin access required.' }, { status: 403 })
+      return NextResponse.json({ message: 'Tidak diizinkan. Akses Super Admin diperlukan.' }, { status: 403 })
     }
 
     const companies = await prisma.company.findMany({
@@ -28,7 +28,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: companies,
-      message: 'Companies retrieved successfully'
+      message: 'Data perusahaan berhasil diambil'
     })
   } catch (error) {
     console.error('Get companies error:', error)
@@ -42,7 +42,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     // Check if user is super admin
     if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized. Super admin access required.' }, { status: 403 })
+      return NextResponse.json({ message: 'Tidak diizinkan. Akses Super Admin diperlukan.' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -50,7 +50,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     // Validation
     if (!nama) {
-      return NextResponse.json({ message: 'Company name is required' }, { status: 400 })
+      return NextResponse.json({ message: 'Nama perusahaan wajib diisi' }, { status: 400 })
     }
 
     const company = await prisma.company.create({
@@ -68,7 +68,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: company,
-        message: 'Company created successfully'
+        message: 'Perusahaan berhasil dibuat'
       },
       { status: 201 }
     )
