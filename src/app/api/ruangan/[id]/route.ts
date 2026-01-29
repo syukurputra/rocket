@@ -4,10 +4,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
-async function handleGet(
-  request: NextRequest,
-  { params }: ParamCtx
-) {
+async function handleGet(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = await params
 
@@ -25,49 +22,37 @@ async function handleGet(
             id: true,
             username: true
           }
-        }
+        },
+        images: true
       }
     })
 
     if (!ruangan) {
-      return NextResponse.json(
-        { message: 'Ruangan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: ruangan,
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
     console.error('Get ruangan by ID error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handlePut(
-  request: NextRequest,
-  { user, params }: ParamCtx
-) {
+async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { nama, status, nominal, asetId } = body
+    const { nama, status, nominal, hargaHarian, hargaBulanan, hargaTahunan, asetId } = body
 
     const existingRuangan = await prisma.ruangan.findUnique({
       where: { id }
     })
 
     if (!existingRuangan) {
-      return NextResponse.json(
-        { message: 'Ruangan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
     }
 
     const updatedRuangan = await prisma.ruangan.update({
@@ -75,7 +60,10 @@ async function handlePut(
       data: {
         ...(nama && { nama }),
         ...(asetId && { asetId }),
-        ...(nominal && { nominal }),
+        ...(nominal !== undefined && { nominal }),
+        ...(hargaHarian !== undefined && { hargaHarian }),
+        ...(hargaBulanan !== undefined && { hargaBulanan }),
+        ...(hargaTahunan !== undefined && { hargaTahunan }),
         ...(status && { status }),
         updatedById: user.id
       },
@@ -91,7 +79,8 @@ async function handlePut(
             id: true,
             username: true
           }
-        }
+        },
+        images: true
       }
     })
 
@@ -99,20 +88,13 @@ async function handlePut(
       data: updatedRuangan,
       message: 'Ruangan berhasil diupdate'
     })
-
   } catch (error) {
     console.error('Update ruangan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handleDelete(
-  request: NextRequest,
-  { params }: ParamCtx
-) {
+async function handleDelete(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = await params
 
@@ -121,10 +103,7 @@ async function handleDelete(
     })
 
     if (!existingRuangan) {
-      return NextResponse.json(
-        { message: 'Ruangan tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
     }
 
     await prisma.ruangan.delete({
@@ -134,16 +113,12 @@ async function handleDelete(
     return NextResponse.json({
       message: 'Ruangan berhasil dihapus'
     })
-
   } catch (error) {
     console.error('Delete ruangan error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-export const GET    = withAuth<{ id: string }>(handleGet)
-export const PUT    = withAuth<{ id: string }>(handlePut)
+export const GET = withAuth<{ id: string }>(handleGet)
+export const PUT = withAuth<{ id: string }>(handlePut)
 export const DELETE = withAuth<{ id: string }>(handleDelete)

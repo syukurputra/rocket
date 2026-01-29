@@ -36,6 +36,10 @@ const PenghuniList = ({ initialData, penghuniData, penghuniId }: PenghuniListPro
         <ViewPenghuniCard penghuniId={penghuniId} initialData={penghuniData} />
       </Grid>
       <Grid size={{ xs: 12 }}>
+        <Typography variant='h3'>Tagihan</Typography>
+        <Divider sx={{ mt: 2 }} />
+      </Grid>
+      <Grid size={{ xs: 12 }}>
         <ViewTagihanListTable asetId={penghuniId} initialData={initialData} />
       </Grid>
     </Grid>

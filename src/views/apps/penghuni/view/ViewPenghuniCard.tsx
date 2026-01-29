@@ -165,6 +165,20 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
           <Grid size={{ xs: 12, sm: 6 }}>
             <CustomTextField
               fullWidth
+              label='Periode Sewa'
+              name='periodeSewa'
+              variant='outlined'
+              disabled
+              value={
+                penghuniData.periodeSewa
+                  ? penghuniData.periodeSewa.charAt(0).toUpperCase() + penghuniData.periodeSewa.slice(1)
+                  : '-'
+              }
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
               label='Mulai Huni'
               name='mulaiHuni'
               variant='outlined'

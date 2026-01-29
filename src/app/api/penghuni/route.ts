@@ -45,7 +45,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           ruangan: {
             select: {
               id: true,
-              nama: true
+              nama: true,
+              hargaHarian: true,
+              hargaBulanan: true,
+              hargaTahunan: true
             }
           }
         },
@@ -80,7 +83,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
 
     if (!nama || !status || !mulaiHuni || !selesaiHuni || !asetId || !ruanganId) {
       return NextResponse.json({ message: 'nama, status, mulai huni, aset dan ruangan harus diisi' }, { status: 400 })
@@ -117,6 +120,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         email: email || null,
         nomorTelepon: nomorTelepon || null,
         status: status,
+        periodeSewa: periodeSewa || null,
         mulaiHuni: mulaiHuniDate,
         selesaiHuni: selesaiHuniDate,
         asetId: asetId,

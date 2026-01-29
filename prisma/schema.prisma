@@ -173,24 +173,42 @@ model AsetImage {
 }
 
 model Ruangan {
-  id          String     @id @default(cuid())
-  nama        String
-  status      String     @default("tidak huni")
-  nominal     Decimal    @default(0) @db.Decimal(15, 2)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  createdById String
-  updatedById String
-  companyId   String
-  asetId      String
-  penghuni    Penghuni[]
-  aset        Aset       @relation(fields: [asetId], references: [id])
-  company     Company    @relation(fields: [companyId], references: [id])
-  createdBy   User       @relation("RuanganCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User       @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+  id           String         @id @default(cuid())
+  nama         String
+  status       String         @default("tidak huni")
+  nominal      Decimal        @default(0) @db.Decimal(15, 2)
+  hargaHarian  Decimal        @default(0) @db.Decimal(15, 2)
+  hargaBulanan Decimal        @default(0) @db.Decimal(15, 2)
+  hargaTahunan Decimal        @default(0) @db.Decimal(15, 2)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  createdById  String
+  updatedById  String
+  companyId    String
+  asetId       String
+  penghuni     Penghuni[]
+  aset         Aset           @relation(fields: [asetId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id])
+  createdBy    User           @relation("RuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User           @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+  images       RuanganImage[]
 
   @@index([companyId])
   @@map("ruangan")
+}
+
+model RuanganImage {
+  id        String   @id @default(cuid())
+  filename  String
+  filepath  String
+  filesize  Int?
+  mimetype  String?
+  createdAt DateTime @default(now())
+  ruanganId String
+  ruangan   Ruangan  @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+
+  @@index([ruanganId])
+  @@map("ruangan_image")
 }
 
 model MasterIcon {
@@ -265,6 +283,7 @@ model Penghuni {
   email       String?   @db.VarChar(191)
   nomorTelepon String?  @db.VarChar(20)
   status      String    @default("KOSONG")
+  periodeSewa String?   @db.VarChar(20)
   mulaiHuni   DateTime  @default(now())
   selesaiHuni DateTime  @default(now())
   createdAt   DateTime  @default(now())

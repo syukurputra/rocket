@@ -5,18 +5,16 @@ import { useState, useEffect, useMemo } from 'react'
 
 // Next Imports
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Checkbox from '@mui/material/Checkbox'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
-import Tooltip from '@mui/material/Tooltip'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
@@ -43,27 +41,17 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Type Imports
-import type { ThemeColor } from '@core/types'
+
 import type { AsetClient } from '@/src/types/apps/asetTypes'
-import type { Locale } from '@configs/i18n'
 
 // Component Imports
-import OptionMenu from '@core/components/option-menu'
-import CustomAvatar from '@core/components/mui/Avatar'
-import TablePaginationComponent from '@components/TablePaginationComponent'
 import CustomTextField from '@core/components/mui/TextField'
 
 // Util Imports
-import { getInitials } from '@/src/utils/getInitials'
-import { getLocalizedUrl } from '@/src/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-import type { ButtonProps } from '@mui/material/Button'
-
-import AddEditAset from '@components/dialogs/aset'
-import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 declare module '@tanstack/table-core' {
@@ -127,18 +115,18 @@ interface AsetListTableProps {
 }
 
 const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
-  const [statusFilter, setStatusFilter] = useState<'' | 'aktif' | 'non aktif' | 'publish'>('')
+  const router = useRouter()
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<AsetClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<AsetClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('') // New state for API search
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -151,7 +139,6 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   const fetchAsetData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
-      setLoading(true)
       setError(null)
 
       const params = new URLSearchParams({
@@ -190,11 +177,10 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
       setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
       console.error('Failed to fetch aset data:', err)
+
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -211,12 +197,14 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     if (initialData.length === 0) {
       fetchAsetData(currentPage, pageSize, searchQuery)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
       fetchAsetData(currentPage, pageSize, searchQuery)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
@@ -229,13 +217,9 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
 
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
+
     setSearchQuery(searchValue)
     setGlobalFilter(searchValue) // Keep local filter in sync for UI
-  }
-
-  const buttonProps: ButtonProps = {
-    variant: 'contained',
-    children: 'Tambah'
   }
 
   const columns = useMemo<ColumnDef<AsetClientWithAction, any>[]>(
@@ -280,29 +264,9 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton>
-              <Link href={`/aset/view/${row.original.id}`} className='flex'>
-                <i className='tabler-dots-vertical text-textSecondary' />
-              </Link>
+            <IconButton aria-label='Edit' onClick={() => router.push(`/aset/edit/${row.original.id}`)} className='flex'>
+              <i className='tabler-eye text-textSecondary' />
             </IconButton>
-            <OpenDialogOnElementClick
-              element={IconButton}
-              elementProps={{
-                className: 'flex',
-                'aria-label': 'Preview / Edit',
-                children: <i className='tabler-eye text-textSecondary' />
-              }}
-              dialog={AddEditAset}
-              // kirim prop ke dialog untuk mode edit + data awal
-              dialogProps={{
-                mode: 'edit',
-                initialData: row.original,
-                onSaved: (updated: AsetClient) => {
-                  fetchAsetData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Aset berhasil diperbarui', 'success')
-                }
-              }}
-            />
             <IconButton
               onClick={async () => {
                 try {
@@ -321,6 +285,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 } catch (err) {
                   console.error('Delete failed:', err)
                   const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+
                   showSnackbar(errorMessage, 'error')
                 }
               }}
@@ -332,7 +297,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         enableSorting: false
       })
     ],
-    [currentPage, pageSize, searchQuery]
+    [currentPage, pageSize, searchQuery, router]
   )
 
   const table = useReactTable({
@@ -358,6 +323,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     onPaginationChange: updater => {
       if (typeof updater === 'function') {
         const newPagination = updater({ pageIndex: currentPage, pageSize: pageSize })
+
         setCurrentPage(newPagination.pageIndex)
         setPageSize(newPagination.pageSize)
       }
@@ -387,60 +353,8 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
     )
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            minHeight='400px'
-            flexDirection='column'
-            gap={2}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data aset...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
-      {loading && data.length > 0 && (
-        <Box
-          position='fixed'
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          bgcolor='rgba(255, 255, 255, 0.8)'
-          zIndex={9999}
-        >
-          <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='center'
-            gap={2}
-            bgcolor='white'
-            padding={4}
-            borderRadius={2}
-            boxShadow={3}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data...
-            </Typography>
-          </Box>
-        </Box>
-      )}
       <Card>
         <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
           <div className='flex flex-col sm:flex-row items-center justify-between gap-4 is-full sm:is-auto'>
@@ -451,6 +365,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 value={pageSize}
                 onChange={e => {
                   const newPageSize = Number(e.target.value)
+
                   setPageSize(newPageSize)
                   setCurrentPage(0)
                 }}
@@ -461,7 +376,9 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 <MenuItem value='50'>50</MenuItem>
               </CustomTextField>
             </div>
-            <OpenDialogOnElementClick element={Button} elementProps={buttonProps} dialog={AddEditAset} />
+            <Button variant='contained' component={Link} href='/aset/add' startIcon={<i className='tabler-plus' />}>
+              Tambah Aset
+            </Button>
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
@@ -505,11 +422,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading
-                      ? 'Memuat data...'
-                      : searchQuery
-                        ? `Tidak ditemukan data untuk pencarian "${searchQuery}"`
-                        : 'No data available'}
+                    {searchQuery ? `Tidak ditemukan data untuk pencarian "${searchQuery}"` : 'No data available'}
                   </td>
                 </tr>
               </tbody>
@@ -541,6 +454,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           }}
           onRowsPerPageChange={e => {
             const newPageSize = Number(e.target.value)
+
             setPageSize(newPageSize)
             setCurrentPage(0)
           }}

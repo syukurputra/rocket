@@ -25,7 +25,10 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
             id: true,
             nama: true,
             status: true,
-            nominal: true
+            nominal: true,
+            hargaHarian: true,
+            hargaBulanan: true,
+            hargaTahunan: true
           }
         },
         createdBy: {
@@ -62,7 +65,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
 
     let mulaiHuniDate = new Date()
 
@@ -99,6 +102,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(email !== undefined && { email: email || null }),
         ...(nomorTelepon !== undefined && { nomorTelepon: nomorTelepon || null }),
         ...(status && { status }),
+        ...(periodeSewa !== undefined && { periodeSewa: periodeSewa || null }),
         ...(mulaiHuni && { mulaiHuni: mulaiHuniDate }),
         ...(selesaiHuni && { selesaiHuni: selesaiHuniDate }),
         ...(asetId && { asetId }),

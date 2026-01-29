@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -8,11 +10,16 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
+    const asetId = searchParams.get('asetId')
 
     const whereClause: any = {}
 
     if (search) {
       whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
+    }
+
+    if (asetId) {
+      whereClause.asetId = asetId
     }
 
     whereClause.createdById = user.id
@@ -32,7 +39,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               id: true,
               username: true
             }
-          }
+          },
+          images: true
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -57,6 +65,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
   } catch (error) {
     console.error('Get ruangan error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
@@ -64,10 +73,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, status, nominal, asetId } = body
+    const { nama, status, nominal, hargaHarian, hargaBulanan, hargaTahunan, asetId } = body
 
-    if (!nama || !status || !nominal || !asetId) {
-      return NextResponse.json({ message: 'Jenis, status, dan nominal harus diisi' }, { status: 400 })
+    if (!nama || !status || !asetId) {
+      return NextResponse.json({ message: 'Nama, status, dan aset harus diisi' }, { status: 400 })
     }
 
     // Validate that user has a companyId
@@ -80,7 +89,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         asetId: asetId,
         nama: nama,
         status: status,
-        nominal: nominal,
+        nominal: nominal || 0,
+        hargaHarian: hargaHarian || 0,
+        hargaBulanan: hargaBulanan || 0,
+        hargaTahunan: hargaTahunan || 0,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId
@@ -97,7 +109,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
             id: true,
             username: true
           }
-        }
+        },
+        images: true
       }
     })
 
@@ -110,6 +123,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     )
   } catch (error) {
     console.error('Buat ruangan error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

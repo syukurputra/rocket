@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 
 // Next Imports
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -43,8 +43,6 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import type { ButtonProps } from '@mui/material/Button'
-
 import dayjs from 'dayjs'
 
 import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
@@ -56,8 +54,8 @@ import CustomTextField from '@core/components/mui/TextField'
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-import AddEditPenghuni from '@components/dialogs/penghuni'
-import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
+// import AddEditPenghuni from '@components/dialogs/penghuni'
+// import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 declare module '@tanstack/table-core' {
@@ -118,6 +116,7 @@ interface PenghuniListTableProps {
 }
 
 const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
+  const router = useRouter()
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<PenghuniClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<PenghuniClientWithAction[]>(initialData)
@@ -142,7 +141,6 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
   const fetchPenghuniData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
-      setLoading(true)
       setError(null)
 
       const params = new URLSearchParams({
@@ -226,11 +224,6 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     setGlobalFilter(searchValue) // Keep local filter in sync for UI
   }
 
-  const buttonProps: ButtonProps = {
-    variant: 'contained',
-    children: 'Tambah'
-  }
-
   const columns = useMemo<ColumnDef<PenghuniClientWithAction, any>[]>(
     () => [
       columnHelper.accessor('asetId', {
@@ -253,19 +246,14 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         header: 'Nama',
         cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
       }),
-      columnHelper.accessor('status', {
-        header: 'Status',
+      columnHelper.accessor('periodeSewa', {
+        header: 'Periode Sewa',
         cell: ({ row }) => {
-          const status = row.original.status
+          const periodeSewa = row.original.periodeSewa
 
-          switch (status) {
-            case 'sudah bayar':
-              return <Chip label='Sudah Bayar' color='success' size='small' variant='tonal' />
-            case 'belum bayar':
-              return <Chip label='Belum Bayar' color='warning' size='small' variant='tonal' />
-            default:
-              return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
-          }
+          if (!periodeSewa) return <Typography>-</Typography>
+
+          return <Typography className='capitalize'>{periodeSewa}</Typography>
         }
       }),
       columnHelper.accessor('mulaiHuni', {
@@ -276,59 +264,63 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         header: 'Tanggal Selesai Huni',
         cell: ({ row }) => <Typography>{dayjs(row.original.selesaiHuni).format('DD-MM-YYYY')}</Typography>
       }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.status
+
+          switch (status) {
+            case 'sudah terbayar':
+              return <Chip label='Sudah Bayar' color='success' size='small' variant='tonal' />
+            case 'belum terbayar':
+              return <Chip label='Belum Bayar' color='warning' size='small' variant='tonal' />
+            default:
+              return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
+          }
+        }
+      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton>
-              <Link href={`/penghuni/view/${row.original.id}`} className='flex'>
-                <i className='tabler-dots-vertical text-textSecondary' />
-              </Link>
-            </IconButton>
-            <OpenDialogOnElementClick
-              element={IconButton}
-              elementProps={{
-                className: 'flex',
-                'aria-label': 'Preview / Edit',
-                children: <i className='tabler-eye text-textSecondary' />
-              }}
-              dialog={AddEditPenghuni}
-              dialogProps={{
-                mode: 'edit',
-                initialData: row.original
-              }}
-            />
-            <IconButton
-              onClick={async () => {
-                try {
-                  await apiFetchClient(
-                    `/api/penghuni/${row.original.id}`,
-                    {
-                      method: 'DELETE'
-                    },
-                    {
-                      redirectOn401: '/login'
-                    }
-                  )
+            <Tooltip title='Ubah'>
+              <IconButton onClick={() => router.push(`/penghuni/edit/${row.original.id}`)}>
+                <i className='tabler-eye text-textSecondary' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Hapus'>
+              <IconButton
+                onClick={async () => {
+                  try {
+                    await apiFetchClient(
+                      `/api/penghuni/${row.original.id}`,
+                      {
+                        method: 'DELETE'
+                      },
+                      {
+                        redirectOn401: '/login'
+                      }
+                    )
 
-                  fetchPenghuniData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Keuangan berhasil dihapus', 'success')
-                } catch (err) {
-                  console.error('Delete failed:', err)
-                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+                    fetchPenghuniData(currentPage, pageSize, searchQuery)
+                    showSnackbar('Keuangan berhasil dihapus', 'success')
+                  } catch (err) {
+                    console.error('Delete failed:', err)
+                    const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
 
-                  showSnackbar(errorMessage, 'error')
-                }
-              }}
-            >
-              <i className='tabler-trash text-textSecondary' />
-            </IconButton>
+                    showSnackbar(errorMessage, 'error')
+                  }
+                }}
+              >
+                <i className='tabler-trash text-textSecondary' />
+              </IconButton>
+            </Tooltip>
           </div>
         ),
         enableSorting: false
       })
     ],
-    [data, filteredData, searchQuery]
+    [data, filteredData, searchQuery, currentPage, pageSize, router]
   )
 
   const table = useReactTable({
@@ -459,17 +451,9 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 <MenuItem value='50'>50</MenuItem>
               </CustomTextField>
             </div>
-            <OpenDialogOnElementClick
-              element={Button}
-              elementProps={buttonProps}
-              dialog={AddEditPenghuni}
-              dialogProps={{
-                onSaved: () => {
-                  fetchPenghuniData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Penghuni berhasil ditambahkan', 'success')
-                }
-              }}
-            />
+            <Button variant='contained' component={Link} href='/penghuni/add' startIcon={<i className='tabler-plus' />}>
+              Tambah Penghuni
+            </Button>
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput

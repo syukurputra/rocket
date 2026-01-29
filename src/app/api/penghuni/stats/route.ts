@@ -5,7 +5,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const whereClause: any = {
-      createdById: user.id
+      companyId: user.companyId
     }
 
     // Get total penghuni count

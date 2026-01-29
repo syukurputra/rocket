@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -8,17 +11,21 @@ import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
+
+import Snackbar from '@mui/material/Snackbar'
+
+import Alert from '@mui/material/Alert'
+
+import Typography from '@mui/material/Typography'
+
+import { styled } from '@mui/material/styles'
+
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-import Typography from '@mui/material/Typography'
-import { styled } from '@mui/material/styles'
-import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 
-import { useRouter } from 'next/navigation'
+import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 
 type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
@@ -36,6 +43,7 @@ type FormValues = {
   email: string
   nomorTelepon: string
   status: string
+  periodeSewa: string
   mulaiHuni: Date | null
   selesaiHuni: Date | null
   asetId: string
@@ -46,6 +54,13 @@ const STATUS_OPTIONS = [
   { label: 'Pilih Status', value: '' },
   { label: 'Huni', value: 'huni' },
   { label: 'Tidak Huni', value: 'tidak dihuni' }
+]
+
+const PERIODE_OPTIONS = [
+  { label: 'Pilih Periode Sewa', value: '' },
+  { label: 'Harian', value: 'harian' },
+  { label: 'Bulanan', value: 'bulanan' },
+  { label: 'Tahunan', value: 'tahunan' }
 ]
 
 type AsetOption = {
@@ -65,6 +80,7 @@ const DEFAULTS: FormValues = {
   email: '',
   nomorTelepon: '',
   status: 'belum bayar', // Auto-set to 'belum bayar'
+  periodeSewa: '',
   asetId: '',
   ruanganId: '',
   mulaiHuni: new Date(),
@@ -90,14 +106,18 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
   // Load dropdown data saat dialog dibuka
   useEffect(() => {
     if (!open) return
+
     const loadDropdownData = async () => {
       setLoading(true)
+
       try {
         const asetResponse = await apiFetchClient<{ data: AsetOption[] }>('/api/aset/dp')
+
         setAsetOptions(asetResponse.data || [])
 
         try {
           const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>('/api/ruangan/dp')
+
           setRuanganOptions(ruanganResponse.data || [])
         } catch (iconError) {
           setRuanganOptions([{ id: 'temp-1', nama: 'Ruangan 1', asetId: '1' }])
@@ -124,9 +144,11 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
           const ruanganResponse = await apiFetchClient<{ data: RuanganOption[] }>(
             `/api/ruangan/dp?asetId=${form.asetId}`
           )
+
           setRuanganOptions(ruanganResponse.data || [])
         } catch (apiError) {
           const filteredRuangans = ruanganOptions.filter(ruangan => !ruangan.asetId || ruangan.asetId === form.asetId)
+
           setRuanganOptions(filteredRuangans)
         }
 
@@ -134,6 +156,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
           const iconExists = ruanganOptions.some(
             ruangan => ruangan.id === form.ruanganId && (!ruangan.asetId || ruangan.asetId === form.asetId)
           )
+
           if (!iconExists) {
             setForm(prev => ({ ...prev, iconId: '' }))
           }
@@ -152,6 +175,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
 
   useEffect(() => {
     if (!open) return
+
     if (mode === 'edit' && initialData) {
       setForm({
         id: initialData.id,
@@ -159,6 +183,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
         email: initialData.email ?? '',
         nomorTelepon: initialData.nomorTelepon ?? '',
         status: initialData.status ?? '',
+        periodeSewa: (initialData as any).periodeSewa ?? '',
         mulaiHuni: initialData.mulaiHuni ? new Date(initialData.mulaiHuni) : new Date(),
         selesaiHuni: initialData.selesaiHuni ? new Date(initialData.selesaiHuni) : new Date(),
         asetId: initialData.asetId ?? '',
@@ -172,10 +197,12 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
   const handleSubmit = async () => {
     if (!form.nama || !form.asetId || !form.ruanganId || !form.mulaiHuni || !form.selesaiHuni) {
       setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+
       return
     }
 
     setSaving(true)
+
     try {
       if (mode === 'edit' && form.id) {
         const json = await apiFetchClient<{ data: PenghuniClient; message?: string }>(`/api/penghuni/${form.id}`, {
@@ -185,6 +212,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
             email: form.email,
             nomorTelepon: form.nomorTelepon,
             status: form.status,
+            periodeSewa: form.periodeSewa,
             asetId: form.asetId,
             ruanganId: form.ruanganId,
             mulaiHuni: form.mulaiHuni.toISOString(),
@@ -210,6 +238,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
             email: form.email,
             nomorTelepon: form.nomorTelepon,
             status: form.status,
+            periodeSewa: form.periodeSewa,
             asetId: form.asetId,
             ruanganId: form.ruanganId,
             mulaiHuni: form.mulaiHuni.toISOString(),
@@ -230,6 +259,7 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
+
       setSnack({ open: true, message: msg, severity: 'error' })
       setSaving(false)
     }
@@ -306,6 +336,37 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Periode Sewa'
+                  name='periodeSewa'
+                  variant='outlined'
+                  value={form.periodeSewa}
+                  onChange={handleChange('periodeSewa')}
+                  disabled={loading}
+                >
+                  {PERIODE_OPTIONS.map(opt => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Nama'
+                  name='nama'
+                  variant='outlined'
+                  placeholder='Nama'
+                  value={form.nama}
+                  onChange={handleChange('nama')}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <AppReactDatepicker
                   selected={form.mulaiHuni}
                   onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiHuni: date }))}
@@ -323,17 +384,6 @@ export default function AddEditPenghuni({ open, setOpen, mode = 'create', initia
                   customInput={
                     <CustomTextField fullWidth label='Tanggal Selesai Huni' placeholder='MM-DD-YYYY' required />
                   }
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 12 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Nama'
-                  name='nama'
-                  variant='outlined'
-                  placeholder='Nama'
-                  value={form.nama}
-                  onChange={handleChange('nama')}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>

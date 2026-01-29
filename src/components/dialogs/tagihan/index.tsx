@@ -9,13 +9,10 @@ import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
-import Typography from '@mui/material/Typography'
 
 import Snackbar from '@mui/material/Snackbar'
 
 import Alert from '@mui/material/Alert'
-
-import { differenceInMonths } from 'date-fns'
 
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
@@ -44,6 +41,8 @@ type FormValues = {
   mulaiSewa: Date | null
   selesaiSewa: Date | null
   nominal: number
+  jumlahBulan?: number
+  jumlahTahun?: number
 }
 
 const DEFAULTS: FormValues = {
@@ -53,7 +52,9 @@ const DEFAULTS: FormValues = {
   buktiPembayaran: '',
   mulaiSewa: new Date(),
   selesaiSewa: new Date(),
-  nominal: 0
+  nominal: 0,
+  jumlahBulan: 1,
+  jumlahTahun: 1
 }
 
 export default function AddEditTagihan({ open, setOpen, mode = 'create', initialData, onSaved, penghuniId }: Props) {
@@ -61,13 +62,21 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-  const [roomPrice, setRoomPrice] = useState<number>(0)
+
+  // New state for periode sewa and pricing
+  const [periodeSewa, setPeriodeSewa] = useState<string>('')
+
+  const [ruanganPricing, setRuanganPricing] = useState({
+    hargaHarian: 0,
+    hargaBulanan: 0,
+    hargaTahunan: 0
+  })
 
   const handleSnackClose = () => {
     setSnack(prev => ({ ...prev, open: false }))
   }
 
-  // Fetch Penghuni Data to get Room Price
+  // Fetch Penghuni Data to get Periode Sewa and Room Pricing
   useEffect(() => {
     if (!open || !penghuniId) return
 
@@ -76,8 +85,18 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
         setLoading(true)
         const response = await apiFetchClient<any>(`/api/penghuni/${penghuniId}`)
 
-        if (response.data && response.data.ruangan) {
-          setRoomPrice(Number(response.data.ruangan.nominal) || 0)
+        if (response.data) {
+          // Set periode sewa
+          setPeriodeSewa(response.data.periodeSewa || '')
+
+          // Set ruangan pricing
+          if (response.data.ruangan) {
+            setRuanganPricing({
+              hargaHarian: Number(response.data.ruangan.hargaHarian) || 0,
+              hargaBulanan: Number(response.data.ruangan.hargaBulanan) || 0,
+              hargaTahunan: Number(response.data.ruangan.hargaTahunan) || 0
+            })
+          }
         }
       } catch (error) {
         console.error('Failed to fetch penghuni details:', error)
@@ -89,30 +108,43 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
     fetchPenghuniData()
   }, [open, penghuniId])
 
-  // Auto-calculate logic
+  // Auto-calculate end date for bulanan and tahunan
   useEffect(() => {
-    if (form.mulaiSewa && form.selesaiSewa && roomPrice > 0) {
-      // Calculate months inclusively
-      // Example: 19 Feb to 18 Jul = 5 months (Feb-Mar, Mar-Apr, Apr-May, May-Jun, Jun-Jul)
-      let months = differenceInMonths(form.selesaiSewa, form.mulaiSewa)
+    if (!form.mulaiSewa) return
 
-      // Add 1 for inclusive counting (start month counts as 1)
-      months = months + 1
+    if (periodeSewa === 'bulanan' && form.jumlahBulan) {
+      const endDate = new Date(form.mulaiSewa)
 
-      // Ensure at least 1 month if dates are valid
-      if (months < 1 && form.selesaiSewa >= form.mulaiSewa) {
-        months = 1
-      } else if (months < 0) {
-        months = 0
-      }
+      endDate.setMonth(endDate.getMonth() + form.jumlahBulan)
+      setForm(prev => ({ ...prev, selesaiSewa: endDate }))
+    } else if (periodeSewa === 'tahunan' && form.jumlahTahun) {
+      const endDate = new Date(form.mulaiSewa)
 
-      const total = months * roomPrice
-
-      setForm(prev => ({ ...prev, nominal: total }))
-
-      // Auto-generate Keterangan if empty? Maybe.
+      endDate.setFullYear(endDate.getFullYear() + form.jumlahTahun)
+      setForm(prev => ({ ...prev, selesaiSewa: endDate }))
     }
-  }, [form.mulaiSewa, form.selesaiSewa, roomPrice])
+  }, [form.mulaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa])
+
+  // Auto-calculate nominal based on periode sewa
+  useEffect(() => {
+    if (!form.mulaiSewa || !form.selesaiSewa) return
+
+    let calculatedNominal = 0
+
+    if (periodeSewa === 'harian') {
+      // Calculate days between dates
+      const diffTime = Math.abs(form.selesaiSewa.getTime() - form.mulaiSewa.getTime())
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 for inclusive
+
+      calculatedNominal = diffDays * ruanganPricing.hargaHarian
+    } else if (periodeSewa === 'bulanan' && form.jumlahBulan) {
+      calculatedNominal = form.jumlahBulan * ruanganPricing.hargaBulanan
+    } else if (periodeSewa === 'tahunan' && form.jumlahTahun) {
+      calculatedNominal = form.jumlahTahun * ruanganPricing.hargaTahunan
+    }
+
+    setForm(prev => ({ ...prev, nominal: calculatedNominal }))
+  }, [form.mulaiSewa, form.selesaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa, ruanganPricing])
 
   const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [key]: e.target.value }))
@@ -218,31 +250,123 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <AppReactDatepicker
-                  selected={form.mulaiSewa}
-                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiSewa: date }))}
-                  placeholderText='MM/DD/YYYY'
-                  customInput={
-                    <CustomTextField fullWidth label='Tanggal Mulai Huni' placeholder='MM-DD-YYYY' required />
-                  }
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <AppReactDatepicker
-                  selected={form.selesaiSewa}
-                  onChange={(date: Date | null) => setForm(prev => ({ ...prev, selesaiSewa: date }))}
-                  placeholderText='MM/DD/YYYY'
-                  customInput={
-                    <CustomTextField fullWidth label='Tanggal Selesai Huni' placeholder='MM-DD-YYYY' required />
-                  }
+              {/* Conditional fields based on periode sewa */}
+              {periodeSewa === 'harian' && (
+                <>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <AppReactDatepicker
+                      selected={form.mulaiSewa}
+                      onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiSewa: date }))}
+                      placeholderText='MM/DD/YYYY'
+                      customInput={
+                        <CustomTextField fullWidth label='Tanggal Mulai' placeholder='MM-DD-YYYY' required />
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <AppReactDatepicker
+                      selected={form.selesaiSewa}
+                      onChange={(date: Date | null) => setForm(prev => ({ ...prev, selesaiSewa: date }))}
+                      placeholderText='MM/DD/YYYY'
+                      customInput={
+                        <CustomTextField fullWidth label='Tanggal Selesai' placeholder='MM-DD-YYYY' required />
+                      }
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {periodeSewa === 'bulanan' && (
+                <>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <AppReactDatepicker
+                      selected={form.mulaiSewa}
+                      onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiSewa: date }))}
+                      placeholderText='MM/DD/YYYY'
+                      customInput={
+                        <CustomTextField fullWidth label='Tanggal Mulai' placeholder='MM-DD-YYYY' required />
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      type='number'
+                      label='Jumlah Bulan'
+                      value={form.jumlahBulan || 1}
+                      onChange={e => setForm(prev => ({ ...prev, jumlahBulan: parseInt(e.target.value) || 1 }))}
+                      inputProps={{ min: 1 }}
+                      required
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Tanggal Selesai (Otomatis)'
+                      value={form.selesaiSewa ? form.selesaiSewa.toLocaleDateString('id-ID') : ''}
+                      disabled
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {periodeSewa === 'tahunan' && (
+                <>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <AppReactDatepicker
+                      selected={form.mulaiSewa}
+                      onChange={(date: Date | null) => setForm(prev => ({ ...prev, mulaiSewa: date }))}
+                      placeholderText='MM/DD/YYYY'
+                      customInput={
+                        <CustomTextField fullWidth label='Tanggal Mulai' placeholder='MM-DD-YYYY' required />
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      type='number'
+                      label='Jumlah Tahun'
+                      value={form.jumlahTahun || 1}
+                      onChange={e => setForm(prev => ({ ...prev, jumlahTahun: parseInt(e.target.value) || 1 }))}
+                      inputProps={{ min: 1 }}
+                      required
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Tanggal Selesai (Otomatis)'
+                      value={form.selesaiSewa ? form.selesaiSewa.toLocaleDateString('id-ID') : ''}
+                      disabled
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {/* Fallback if periode sewa not set */}
+              {!periodeSewa && !loading && (
+                <Grid size={{ xs: 12 }}>
+                  <Alert severity='warning'>
+                    Periode sewa belum diset untuk penghuni ini. Silakan set periode sewa terlebih dahulu di form
+                    penghuni.
+                  </Alert>
+                </Grid>
+              )}
+
+              {/* Show nominal field */}
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Nominal (Otomatis)'
+                  value={`Rp ${form.nominal.toLocaleString('id-ID')}`}
+                  disabled
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <CustomTextField
                   fullWidth
                   label='Keterangan'
-                  name='keterangan'
                   variant='outlined'
                   placeholder='Contoh: Tagihan Januari 2026'
                   value={form.keterangan}

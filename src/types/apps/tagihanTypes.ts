@@ -1,5 +1,6 @@
 export type TagihanClient = {
   id: string
+  judul?: string
   keterangan: string
   status: string
   mulaiSewa: Date | string

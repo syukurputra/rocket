@@ -120,5 +120,3 @@ const PenghuniCard = () => {
 }
 
 export default PenghuniCard
-
-
