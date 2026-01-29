@@ -4,11 +4,10 @@
 import { useEffect } from 'react'
 
 // Next Imports
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+// import { usePathname } from 'next/navigation'
 
 // MUI Imports
-import Typography from '@mui/material/Typography'
+// import Typography from '@mui/material/Typography'
 import Drawer from '@mui/material/Drawer'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { Theme } from '@mui/material/styles'
@@ -21,10 +20,10 @@ import classnames from 'classnames'
 import type { Mode } from '@core/types'
 
 // Hook Imports
-import { useIntersection } from '@/src/hooks/useIntersection'
+// import { useIntersection } from '@/src/hooks/useIntersection'
 
 // Component Imports
-import DropdownMenu from './DropdownMenu'
+// import DropdownMenu from './DropdownMenu'
 
 type Props = {
   mode: Mode
@@ -33,7 +32,7 @@ type Props = {
 }
 
 type WrapperProps = {
-  children: React.ReactNode
+  children?: React.ReactNode
   isBelowLgScreen: boolean
   className?: string
   isDrawerOpen: boolean
@@ -72,12 +71,14 @@ const Wrapper = (props: WrapperProps) => {
 
 const FrontMenu = (props: Props) => {
   // Props
-  const { isDrawerOpen, setIsDrawerOpen, mode } = props
+  // const { isDrawerOpen, setIsDrawerOpen, mode } = props
+  const { isDrawerOpen, setIsDrawerOpen } = props
 
   // Hooks
-  const pathname = usePathname()
+  // const pathname = usePathname()
   const isBelowLgScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('lg'))
-  const { intersections } = useIntersection()
+
+  // const { intersections } = useIntersection()
 
   useEffect(() => {
     if (!isBelowLgScreen && isDrawerOpen) {

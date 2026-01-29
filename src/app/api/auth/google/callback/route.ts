@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
       })) || []
 
     // Check if user needs to provide phone number
-    const needsPhone = !user.nomorTelepon
+    const needsPhone = !(user as any).nomorTelepon
 
     // Create URL with tokens and menus as query params for client-side storage
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
