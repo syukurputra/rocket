@@ -127,19 +127,36 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
   // Check if any child menu is active
   const isChildActive = (menu: UserMenu): boolean => {
+    // IMPORTANT: Check children first (for parent menus without path like "Setting")
+    if (menu.children && menu.children.length > 0) {
+      if (menu.children.some(child => isChildActive(child))) {
+        return true
+      }
+    }
+
+    // If menu has no path, return false (children check above already handled it)
+    if (!menu.path) {
+      return false
+    }
+
     // Direct path match
-    if (menu.path && pathname === menu.path) {
+    if (pathname === menu.path) {
       return true
     }
 
     // Check if pathname starts with menu path (for nested routes)
-    if (menu.path && pathname.startsWith(menu.path)) {
+    // This makes menu active for routes like /penghuni/list, /penghuni/add, /penghuni/edit/[id]
+    if (pathname.startsWith(menu.path)) {
       return true
     }
 
-    // Recursively check children
-    if (menu.children && menu.children.length > 0) {
-      return menu.children.some(child => isChildActive(child))
+    // Also check if pathname starts with the base path (without /list suffix)
+    // For example, if menu.path is '/penghuni/list', also match '/penghuni/*'
+    const basePath = menu.path.replace(/\/(list|add|edit|view).*$/, '')
+
+    // Check if basePath is different from original path and pathname starts with basePath
+    if (basePath !== menu.path && pathname.startsWith(basePath + '/')) {
+      return true
     }
 
     return false
@@ -176,6 +193,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           label={menu.nama}
           icon={menu.icon ? <i className={menu.icon} /> : undefined}
           defaultOpen={shouldBeOpen}
+          disabled={false}
         >
           {menu.children.map(child => renderMenu(child))}
         </SubMenu>
@@ -183,11 +201,16 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     }
 
     // Render as regular MenuItem
+    // Extract base path for activeUrl (e.g., /penghuni/list -> /penghuni)
+    const basePath = menu.path ? menu.path.replace(/\/(list|add|edit|view).*$/, '') : ''
+
     return (
       <MenuItem
         key={menu.id}
         href={menu.path ? menu.path : '#'}
         icon={menu.icon ? <i className={menu.icon} /> : <i className='tabler-circle' />}
+        exactMatch={false}
+        activeUrl={basePath}
       >
         {menu.nama}
       </MenuItem>

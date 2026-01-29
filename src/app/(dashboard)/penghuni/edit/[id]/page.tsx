@@ -58,7 +58,17 @@ const PenghuniEditPage = () => {
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <PenghuniWizard mode='edit' initialData={data} />
+        <PenghuniWizard
+          mode='edit'
+          initialData={{
+            ...data,
+            email: data.email ?? undefined,
+            nomorTelepon: data.nomorTelepon ?? undefined,
+            periodeSewa: data.periodeSewa ?? undefined,
+            mulaiHuni: data.mulaiHuni ? new Date(data.mulaiHuni) : undefined,
+            selesaiHuni: data.selesaiHuni ? new Date(data.selesaiHuni) : undefined
+          }}
+        />
       </Grid>
     </Grid>
   )

@@ -62,6 +62,19 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [existingImages, setExistingImages] = useState<any[]>([])
 
+  // Helper function to format number with thousand separators
+  const formatNumber = (value: string | number): string => {
+    if (!value) return ''
+    const numValue = typeof value === 'string' ? value.replace(/\D/g, '') : String(value)
+
+    return numValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
+
+  // Helper function to parse formatted number back to plain number
+  const parseNumber = (value: string): string => {
+    return value.replace(/\./g, '')
+  }
+
   useEffect(() => {
     if (asetId) {
       fetchRooms()
@@ -94,9 +107,9 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
     setEditingId(room.id!)
     setNama(room.nama)
     setStatus(room.status)
-    setHargaHarian(String(room.hargaHarian))
-    setHargaBulanan(String(room.hargaBulanan))
-    setHargaTahunan(String(room.hargaTahunan))
+    setHargaHarian(formatNumber(room.hargaHarian))
+    setHargaBulanan(formatNumber(room.hargaBulanan))
+    setHargaTahunan(formatNumber(room.hargaTahunan))
     setExistingImages(room.images || [])
     setSelectedFiles([])
     setView('form')
@@ -167,9 +180,9 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
       asetId,
       nama,
       status,
-      hargaHarian: Number(hargaHarian),
-      hargaBulanan: Number(hargaBulanan),
-      hargaTahunan: Number(hargaTahunan)
+      hargaHarian: Number(parseNumber(hargaHarian)),
+      hargaBulanan: Number(parseNumber(hargaBulanan)),
+      hargaTahunan: Number(parseNumber(hargaTahunan))
     }
 
     try {
@@ -368,30 +381,27 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
         <CustomTextField
           fullWidth
           label='Harga Harian'
-          type='number'
           placeholder='0'
           value={hargaHarian}
-          onChange={e => setHargaHarian(e.target.value)}
+          onChange={e => setHargaHarian(formatNumber(e.target.value))}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField
           fullWidth
           label='Harga Bulanan'
-          type='number'
           placeholder='0'
           value={hargaBulanan}
-          onChange={e => setHargaBulanan(e.target.value)}
+          onChange={e => setHargaBulanan(formatNumber(e.target.value))}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField
           fullWidth
           label='Harga Tahunan'
-          type='number'
           placeholder='0'
           value={hargaTahunan}
-          onChange={e => setHargaTahunan(e.target.value)}
+          onChange={e => setHargaTahunan(formatNumber(e.target.value))}
         />
       </Grid>
 

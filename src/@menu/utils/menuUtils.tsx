@@ -45,14 +45,28 @@ export const confirmUrlInChildren = (children: ChildrenType['children'], url: st
   if (isValidElement(children)) {
     const { component, href, exactMatch, activeUrl, children: subChildren } = children.props
 
+    // Helper function to check if URL matches with nested route support
+    const checkUrlMatch = (targetHref: string): boolean => {
+      if (exactMatch === true || exactMatch === undefined) {
+        // Exact match mode
+        return targetHref === url
+      } else if (activeUrl && url.includes(activeUrl)) {
+        // Active URL mode
+        return true
+      } else {
+        // Default: Check if url starts with base path (for nested routes)
+        // Extract base path by removing /list, /add, /edit, /view suffixes
+        const basePath = targetHref.replace(/\/(list|add|edit|view).*$/, '')
+        return url === targetHref || url.startsWith(basePath + '/')
+      }
+    }
+
     if (component && component.props.href) {
-      return exactMatch === true || exactMatch === undefined
-        ? component.props.href === url
-        : activeUrl && url.includes(activeUrl)
+      return checkUrlMatch(component.props.href)
     }
 
     if (href) {
-      return exactMatch === true || exactMatch === undefined ? href === url : activeUrl && url.includes(activeUrl)
+      return checkUrlMatch(href)
     }
 
     if (subChildren) {

@@ -110,10 +110,19 @@ const MenuItem: ForwardRefRenderFunction<HTMLLIElement, MenuItemProps> = (props,
 
     if (href) {
       // Check if the current url matches any of the children urls
-      if (exactMatch ? pathname === href : activeUrl && pathname.includes(activeUrl)) {
+      if (exactMatch) {
+        // Exact match mode
+        setActive(pathname === href)
+      } else if (activeUrl && pathname.includes(activeUrl)) {
+        // Active URL mode
         setActive(true)
       } else {
-        setActive(false)
+        // Default: Check if pathname starts with href (for nested routes)
+        // This handles cases like /penghuni/list matching /penghuni/edit/[id]
+        const basePath = href.replace(/\/(list|add|edit|view).*$/, '')
+        const isActive = pathname === href || pathname.startsWith(basePath + '/')
+
+        setActive(isActive)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
