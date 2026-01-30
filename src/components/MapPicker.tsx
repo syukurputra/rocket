@@ -29,7 +29,7 @@ if (typeof window !== 'undefined') {
 type MapPickerProps = {
   latitude?: number
   longitude?: number
-  onLocationChange: (lat: number, lng: number) => void
+  onLocationChange?: (lat: number, lng: number) => void
 }
 
 type SearchResult = {
@@ -77,12 +77,14 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(newMap)
 
-    // Add click handler
-    newMap.on('click', (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng
+    // Add click handler only if onLocationChange is provided
+    if (onLocationChange) {
+      newMap.on('click', (e: L.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng
 
-      updateMarker(lat, lng, newMap)
-    })
+        updateMarker(lat, lng, newMap)
+      })
+    }
 
     setMap(newMap)
 
@@ -110,7 +112,9 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
   }, [latitude, longitude, map])
 
   const updateMarker = (lat: number, lng: number, mapInstance: LeafletMap) => {
-    onLocationChange(lat, lng)
+    if (onLocationChange) {
+      onLocationChange(lat, lng)
+    }
 
     // Remove existing marker if any
     if (markerRef.current) {
@@ -118,13 +122,16 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
     }
 
     // Create new marker
-    const newMarker = L.marker([lat, lng], { draggable: true }).addTo(mapInstance)
+    // Draggable only if onLocationChange is provided
+    const newMarker = L.marker([lat, lng], { draggable: !!onLocationChange }).addTo(mapInstance)
 
-    newMarker.on('dragend', () => {
-      const pos = newMarker.getLatLng()
+    if (onLocationChange) {
+      newMarker.on('dragend', () => {
+        const pos = newMarker.getLatLng()
 
-      onLocationChange(pos.lat, pos.lng)
-    })
+        onLocationChange(pos.lat, pos.lng)
+      })
+    }
 
     markerRef.current = newMarker
   }
@@ -189,55 +196,57 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
 
   return (
     <Box>
-      {/* Search Box */}
-      <Box sx={{ mb: 2, display: 'flex', gap: 1, position: 'relative' }}>
-        <TextField
-          fullWidth
-          size='small'
-          placeholder='Cari alamat atau lokasi...'
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          onKeyPress={e => {
-            if (e.key === 'Enter') {
-              handleSearch()
-            }
-          }}
-        />
-        <Button variant='contained' onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
-          {searching ? <CircularProgress size={20} /> : <i className='tabler-search' />}
-        </Button>
-
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <Paper
-            sx={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              mt: 0.5,
-              maxHeight: 300,
-              overflow: 'auto',
-              zIndex: 1000
+      {/* Search Box - Only show if interactive */}
+      {onLocationChange && (
+        <Box sx={{ mb: 2, display: 'flex', gap: 1, position: 'relative' }}>
+          <TextField
+            fullWidth
+            size='small'
+            placeholder='Cari alamat atau lokasi...'
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyPress={e => {
+              if (e.key === 'Enter') {
+                handleSearch()
+              }
             }}
-          >
-            <List dense>
-              {searchResults.map(result => (
-                <ListItem key={result.place_id} disablePadding>
-                  <ListItemButton onClick={() => handleSelectResult(result)}>
-                    <ListItemText
-                      primary={result.display_name}
-                      primaryTypographyProps={{
-                        sx: { fontSize: '0.875rem' }
-                      }}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        )}
-      </Box>
+          />
+          <Button variant='contained' onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
+            {searching ? <CircularProgress size={20} /> : <i className='tabler-search' />}
+          </Button>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <Paper
+              sx={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                mt: 0.5,
+                maxHeight: 300,
+                overflow: 'auto',
+                zIndex: 1000
+              }}
+            >
+              <List dense>
+                {searchResults.map(result => (
+                  <ListItem key={result.place_id} disablePadding>
+                    <ListItemButton onClick={() => handleSelectResult(result)}>
+                      <ListItemText
+                        primary={result.display_name}
+                        primaryTypographyProps={{
+                          sx: { fontSize: '0.875rem' }
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          )}
+        </Box>
+      )}
 
       {/* Map Container */}
       <div

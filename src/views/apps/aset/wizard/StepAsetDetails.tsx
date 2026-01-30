@@ -121,6 +121,9 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           onChange={e => setNama(e.target.value)}
         />
       </Grid>
+      <Grid size={{ xs: 12 }}>
+        <CustomTextField multiline id='textarea-outlined' placeholder='Placeholder' label='Multiline Placeholder' />
+      </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField select fullWidth label='Status Aset' value={jenis} onChange={e => setJenis(e.target.value)}>
           <MenuItem value='aktif'>Aktif</MenuItem>

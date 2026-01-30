@@ -1,5 +1,5 @@
 // Component Imports
-import LandingPageWrapper from '@views/front-pages/landing-page'
+import LandingPageWrapper from '@/src/views/front-pages/landing'
 
 // Server Action Imports
 import { getServerMode } from '@core/utils/serverHelpers'

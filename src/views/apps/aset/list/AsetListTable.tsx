@@ -21,6 +21,7 @@ import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -264,34 +265,47 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton aria-label='Edit' onClick={() => router.push(`/aset/edit/${row.original.id}`)} className='flex'>
-              <i className='tabler-eye text-textSecondary' />
-            </IconButton>
-            <IconButton
-              onClick={async () => {
-                try {
-                  await apiFetchClient(
-                    `/api/aset/${row.original.id}`,
-                    {
-                      method: 'DELETE'
-                    },
-                    {
-                      redirectOn401: '/login'
-                    }
-                  )
+            <Tooltip title='Jika Status Publish Bisa Dibuka'>
+              <IconButton aria-label='Edit' onClick={() => router.push(`/publish/${row.original.id}`)} className='flex'>
+                <i className='tabler-world-www text-textSecondary' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Ubah'>
+              <IconButton
+                aria-label='Edit'
+                onClick={() => router.push(`/aset/edit/${row.original.id}`)}
+                className='flex'
+              >
+                <i className='tabler-eye text-textSecondary' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Hapus'>
+              <IconButton
+                onClick={async () => {
+                  try {
+                    await apiFetchClient(
+                      `/api/aset/${row.original.id}`,
+                      {
+                        method: 'DELETE'
+                      },
+                      {
+                        redirectOn401: '/login'
+                      }
+                    )
 
-                  fetchAsetData(currentPage, pageSize, searchQuery)
-                  showSnackbar('Aset berhasil dihapus', 'success')
-                } catch (err) {
-                  console.error('Delete failed:', err)
-                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+                    fetchAsetData(currentPage, pageSize, searchQuery)
+                    showSnackbar('Aset berhasil dihapus', 'success')
+                  } catch (err) {
+                    console.error('Delete failed:', err)
+                    const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
 
-                  showSnackbar(errorMessage, 'error')
-                }
-              }}
-            >
-              <i className='tabler-trash text-textSecondary' />
-            </IconButton>
+                    showSnackbar(errorMessage, 'error')
+                  }
+                }}
+              >
+                <i className='tabler-trash text-textSecondary' />
+              </IconButton>
+            </Tooltip>
           </div>
         ),
         enableSorting: false
