@@ -27,7 +27,7 @@ import Netflix from '@assets/svg/front-pages/landing-page/Netflix'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
-import styles from '@views/front-pages/landing-page/styles.module.css'
+import styles from '@views/front-pages/landing/styles.module.css'
 
 // Data
 const data = [

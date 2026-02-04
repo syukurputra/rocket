@@ -11,6 +11,8 @@ import Stepper from '@mui/material/Stepper'
 import MuiStep from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import Typography from '@mui/material/Typography'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
 import type { StepProps } from '@mui/material/Step'
 
 // Third-party Imports
@@ -19,7 +21,9 @@ import classnames from 'classnames'
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import StepAsetDetails from './StepAsetDetails'
+import StepFasilitasDetails from './StepFasilitasDetails'
 import StepRuanganDetails from './StepRuanganDetails'
+import StepFasilitasRuanganDetails from './StepFasilitasRuanganDetails'
 
 // Styled Component Imports
 import StepperWrapper from '@core/styles/stepper'
@@ -32,9 +36,19 @@ const steps = [
     subtitle: 'Informasi Aset'
   },
   {
+    icon: 'tabler-building-plus',
+    title: 'Fasilitas Aset',
+    subtitle: 'Informasi Fasilitas Aset'
+  },
+  {
     icon: 'tabler-door',
     title: 'Ruangan',
     subtitle: 'Informasi Ruangan'
+  },
+  {
+    icon: 'tabler-prism-plus',
+    title: 'Fasilitas Ruangan',
+    subtitle: 'Informasi Fasilitas Ruangan'
   }
 ]
 
@@ -55,6 +69,7 @@ type AsetData = {
   id?: string
   jenis: string
   nama: string
+  deskripsi?: string
   alamat: string
   kota: string
   provinsi: string
@@ -76,6 +91,20 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
   // States
   const [activeStep, setActiveStep] = useState<number>(0)
   const [asetId, setAsetId] = useState<string | null>(initialData?.id || null)
+  const [currentAsetData, setCurrentAsetData] = useState<any>(initialData || null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const showMessage = (message: string, type: 'success' | 'error') => {
+    if (type === 'success') {
+      setSuccessMessage(message)
+      setErrorMessage(null)
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } else {
+      setErrorMessage(message)
+      setSuccessMessage(null)
+    }
+  }
 
   const handleNext = () => {
     setActiveStep(prev => prev + 1)
@@ -151,6 +180,25 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         }
       }
 
+      // Show success message
+      setSuccessMessage('Data aset berhasil disimpan!')
+      setErrorMessage(null)
+
+      // Fetch latest data if asetId exists
+      if (targetAsetId) {
+        try {
+          const latestData = await apiFetchClient<{ data: any }>(`/api/aset/${targetAsetId}`)
+
+          if (latestData.data) {
+            setCurrentAsetData(latestData.data)
+          }
+        } catch (error) {
+          console.error('Error fetching latest data:', error)
+        }
+      }
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000)
       handleNext()
     } catch (error) {
       console.error('Error saving aset details:', error)
@@ -160,31 +208,33 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         console.error('Error stack:', error.stack)
       }
 
-      alert(`Gagal menyimpan aset: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setErrorMessage(`Gagal menyimpan aset: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setSuccessMessage(null)
     }
   }
 
   const handleCreateRuangan = async (data: RuanganData) => {
     if (!asetId) {
-      alert('Aset belum dibuat!')
+      setErrorMessage('Aset belum dibuat!')
+      setSuccessMessage(null)
 
       return
     }
 
     try {
-      const res = await apiFetchClient('/ruangan', {
+      const res = await apiFetchClient<{ data: any }>('/api/ruangan', {
         method: 'POST',
         body: JSON.stringify({ ...data, asetId })
       })
 
-      if (res) {
-        alert('Ruangan berhasil ditambahkan!')
+      if (res.data) {
+        showMessage('Ruangan berhasil ditambahkan!', 'success')
 
         // Optional: Redirect or reset
       }
     } catch (error) {
       console.error('Error saving ruangan:', error)
-      alert('Gagal menyimpan ruangan.')
+      showMessage('Gagal menyimpan ruangan.', 'error')
     }
   }
 
@@ -198,10 +248,22 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
             handlePrev={handlePrev}
             steps={steps}
             onSave={handleCreateOrUpdateAset}
-            initialData={initialData}
+            initialData={currentAsetData}
+            onShowMessage={showMessage}
           />
         )
       case 1:
+        return (
+          <StepFasilitasDetails
+            activeStep={step}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            steps={steps}
+            asetId={asetId}
+            onShowMessage={showMessage}
+          />
+        )
+      case 2:
         return (
           <StepRuanganDetails
             activeStep={step}
@@ -210,6 +272,18 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
             steps={steps}
             onSave={handleCreateRuangan}
             asetId={asetId}
+            onShowMessage={showMessage}
+          />
+        )
+      case 3:
+        return (
+          <StepFasilitasRuanganDetails
+            activeStep={step}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            steps={steps}
+            asetId={asetId}
+            onShowMessage={showMessage}
           />
         )
       default:
@@ -256,7 +330,26 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         </StepperWrapper>
       </CardContent>
 
-      <CardContent className='flex-1 pbs-6'>{getStepContent(activeStep)}</CardContent>
+      <CardContent className='flex-1 pbs-6'>
+        {/* Success Message */}
+        {successMessage && (
+          <Alert severity='success' sx={{ mb: 4 }} onClose={() => setSuccessMessage(null)}>
+            {successMessage}
+          </Alert>
+        )}
+
+        {/* Error Message */}
+        {errorMessage && (
+          <Alert severity='error' sx={{ mb: 4 }} onClose={() => setErrorMessage(null)}>
+            {errorMessage}
+            <Button onClick={() => setErrorMessage(null)} sx={{ ml: 2 }} size='small' variant='outlined' color='error'>
+              Tutup
+            </Button>
+          </Alert>
+        )}
+
+        {getStepContent(activeStep)}
+      </CardContent>
     </Card>
   )
 }

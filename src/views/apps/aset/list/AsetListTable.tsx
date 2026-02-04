@@ -276,7 +276,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
                 onClick={() => router.push(`/aset/edit/${row.original.id}`)}
                 className='flex'
               >
-                <i className='tabler-eye text-textSecondary' />
+                <i className='tabler-home-edit text-textSecondary' />
               </IconButton>
             </Tooltip>
             <Tooltip title='Hapus'>

@@ -1,5 +1,5 @@
 // React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // MUI Imports
 import dynamic from 'next/dynamic'
@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import MenuItem from '@mui/material/MenuItem'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // Component Imports
 import DirectionalIcon from '@components/DirectionalIcon'
@@ -23,15 +24,17 @@ type Props = {
   handleNext: () => void
   handlePrev: () => void
   steps: { title: string; subtitle: string }[]
-  onSave: (data: any, files?: File[]) => void
+  onSave: (data: any, files?: File[]) => Promise<void>
   initialData?: any
+  onShowMessage?: (message: string, type: 'success' | 'error') => void
 }
 
-const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, initialData }: Props) => {
+const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, initialData, onShowMessage }: Props) => {
   // States
   const [nama, setNama] = useState(initialData?.nama || '')
   const [jenis, setJenis] = useState(initialData?.status || 'aktif')
   const [tipe, setTipe] = useState(initialData?.jenis || '') // Map DB 'jenis' to UI 'tipe'
+  const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi || '')
 
   const [alamat, setAlamat] = useState(initialData?.alamat || '')
   const [kota, setKota] = useState(initialData?.kota || '')
@@ -47,6 +50,23 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   // File Upload State
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [existingImages, setExistingImages] = useState<any[]>(initialData?.images || [])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Update form when initialData changes (after save)
+  useEffect(() => {
+    if (initialData) {
+      setNama(initialData.nama || '')
+      setJenis(initialData.status || 'aktif')
+      setTipe(initialData.jenis || '')
+      setDeskripsi(initialData.deskripsi || '')
+      setAlamat(initialData.alamat || '')
+      setKota(initialData.kota || '')
+      setProvinsi(initialData.provinsi || '')
+      setLat(initialData.latitude || undefined)
+      setLng(initialData.longitude || undefined)
+      setExistingImages(initialData.images || [])
+    }
+  }, [initialData])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -57,13 +77,16 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       // but usually "upload limit" refers to the batch or typical max per field.
       // User said "maksimal upload 3 image". Let's restrict selection to 3 for now.
       if (files.length > 3) {
-        alert('Maksimal upload 3 gambar')
+        onShowMessage?.('Maksimal upload 3 gambar', 'error')
 
         return
       }
 
       if (existingImages.length + files.length > 3) {
-        alert(`Total gambar tidak boleh lebih dari 3. Saat ini sudah ada ${existingImages.length} gambar.`)
+        onShowMessage?.(
+          `Total gambar tidak boleh lebih dari 3. Saat ini sudah ada ${existingImages.length} gambar.`,
+          'error'
+        )
 
         return
       }
@@ -82,7 +105,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       setExistingImages(prev => prev.filter(img => img.id !== imageId))
     } catch (error) {
       console.error('Error deleting image:', error)
-      alert('Gagal menghapus gambar')
+      onShowMessage?.('Gagal menghapus gambar', 'error')
     }
   }
 
@@ -90,20 +113,29 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
     setSelectedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = () => {
-    onSave(
-      {
-        nama,
-        jenis: tipe, // UI Tipe -> DB jenis
-        status: jenis, // UI Jenis -> DB status
-        alamat,
-        kota,
-        provinsi,
-        latitude: lat,
-        longitude: lng
-      },
-      selectedFiles
-    )
+  const handleSubmit = async () => {
+    setIsLoading(true)
+
+    try {
+      await onSave(
+        {
+          nama,
+          jenis: tipe, // UI Tipe -> DB jenis
+          status: jenis, // UI Jenis -> DB status
+          deskripsi,
+          alamat,
+          kota,
+          provinsi,
+          latitude: lat,
+          longitude: lng
+        },
+        selectedFiles
+      )
+    } catch (error) {
+      console.error('Error in handleSubmit:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -121,9 +153,6 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           onChange={e => setNama(e.target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 12 }}>
-        <CustomTextField multiline id='textarea-outlined' placeholder='Placeholder' label='Multiline Placeholder' />
-      </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField select fullWidth label='Status Aset' value={jenis} onChange={e => setJenis(e.target.value)}>
           <MenuItem value='aktif'>Aktif</MenuItem>
@@ -138,6 +167,18 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           placeholder='Contoh: Rumah, Apartemen, Kantor'
           value={tipe}
           onChange={e => setTipe(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, md: 12 }}>
+        <CustomTextField
+          fullWidth
+          rows={4}
+          multiline
+          id='textarea-outlined'
+          placeholder='Deskripsi'
+          label='Deskripsi'
+          value={deskripsi}
+          onChange={e => setDeskripsi(e.target.value)}
         />
       </Grid>
       <Grid size={{ xs: 12 }}>
@@ -270,15 +311,18 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
             variant='contained'
             color={activeStep === steps.length - 1 ? 'success' : 'primary'}
             onClick={handleSubmit}
+            disabled={isLoading}
             endIcon={
-              activeStep === steps.length - 1 ? (
+              isLoading ? (
+                <CircularProgress size={20} color='inherit' />
+              ) : activeStep === steps.length - 1 ? (
                 <i className='tabler-check' />
               ) : (
                 <DirectionalIcon ltrIconClass='tabler-arrow-right' rtlIconClass='tabler-arrow-left' />
               )
             }
           >
-            {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+            {isLoading ? 'Menyimpan...' : activeStep === steps.length - 1 ? 'Submit' : 'Next'}
           </Button>
         </div>
       </Grid>

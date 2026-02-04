@@ -28,10 +28,10 @@ const InformationAset = ({ data }: InformationAsetProps) => {
             <Typography variant='h5' className='mbe-2'>
               {data.nama}
             </Typography>
-            <Typography color='text.secondary'>Deskripsi</Typography>
+            <Typography color='text.secondary'>{data.deskripsi || 'Tidak ada deskripsi'}</Typography>
             <Divider className='mbs-7 mbe-7' />
             <Typography variant='h5' className='mbe-2'>
-              Fasilitas
+              Alamat Lengkap
             </Typography>
             <Typography color='text.secondary'>
               {data.alamat}, {data.kota}, {data.provinsi}
@@ -41,38 +41,22 @@ const InformationAset = ({ data }: InformationAsetProps) => {
               Fasilitas
             </Typography>
             <Grid container spacing={4}>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <div className='flex items-center gap-2.5'>
-                  <div className='flex'>
-                    <i className='tabler-lock-open text-xl text-textSecondary' />
-                  </div>
-                  <Typography color='text.secondary'>Full Access</Typography>
-                </div>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <div className='flex items-center gap-2.5'>
-                  <div className='flex'>
-                    <i className='tabler-user text-xl text-textSecondary' />
-                  </div>
-                  <Typography color='text.secondary'>15 Members</Typography>
-                </div>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <div className='flex items-center gap-2.5'>
-                  <div className='flex'>
-                    <i className='tabler-user text-xl text-textSecondary' />
-                  </div>
-                  <Typography color='text.secondary'>15 Members</Typography>
-                </div>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <div className='flex items-center gap-2.5'>
-                  <div className='flex'>
-                    <i className='tabler-user text-xl text-textSecondary' />
-                  </div>
-                  <Typography color='text.secondary'>15 Members</Typography>
-                </div>
-              </Grid>
+              {data.fasilitasAset && data.fasilitasAset.length > 0 ? (
+                data.fasilitasAset.map((fasilitas: any) => (
+                  <Grid key={fasilitas.id} size={{ xs: 12, sm: 4 }}>
+                    <div className='flex items-center gap-2.5'>
+                      <div className='flex'>
+                        <i className={`${fasilitas.icon?.code || 'tabler-circle'} text-xl text-textSecondary`} />
+                      </div>
+                      <Typography color='text.secondary'>{fasilitas.nama}</Typography>
+                    </div>
+                  </Grid>
+                ))
+              ) : (
+                <Grid size={{ xs: 12 }}>
+                  <Typography color='text.secondary'>Tidak ada fasilitas</Typography>
+                </Grid>
+              )}
             </Grid>
           </CardContent>
         </Grid>

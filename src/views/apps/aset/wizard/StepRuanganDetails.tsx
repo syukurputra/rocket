@@ -29,12 +29,14 @@ type Props = {
   steps: { title: string; subtitle: string }[]
   onSave: (data: any) => void
   asetId: string | null
+  onShowMessage?: (message: string, type: 'success' | 'error') => void
 }
 
 type RuanganData = {
   id?: string
   asetId: string
   nama: string
+  deskripsi?: string
   status: string
 
   // Nominal removed
@@ -44,7 +46,7 @@ type RuanganData = {
   images?: any[]
 }
 
-const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId }: Props) => {
+const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
   const [rooms, setRooms] = useState<RuanganData[]>([])
@@ -53,6 +55,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
 
   // Form State
   const [nama, setNama] = useState('')
+  const [deskripsi, setDeskripsi] = useState('')
   const [status, setStatus] = useState('Tidak Dihuni') // Standardized to Title Case
   const [hargaHarian, setHargaHarian] = useState('')
   const [hargaBulanan, setHargaBulanan] = useState('')
@@ -106,6 +109,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
   const handleEdit = (room: RuanganData & { images?: any[] }) => {
     setEditingId(room.id!)
     setNama(room.nama)
+    setDeskripsi(room.deskripsi || '')
     setStatus(room.status)
     setHargaHarian(formatNumber(room.hargaHarian))
     setHargaBulanan(formatNumber(room.hargaBulanan))
@@ -122,7 +126,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
         fetchRooms()
       } catch (error) {
         console.error('Error deleting room:', error)
-        alert('Gagal menghapus ruangan.')
+        onShowMessage?.('Gagal menghapus ruangan.', 'error')
       }
     }
   }
@@ -132,13 +136,16 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
       const files = Array.from(event.target.files)
 
       if (files.length > 3) {
-        alert('Maksimal upload 3 gambar')
+        onShowMessage?.('Maksimal upload 3 gambar', 'error')
 
         return
       }
 
       if (existingImages.length + files.length > 3) {
-        alert(`Total gambar tidak boleh lebih dari 3. Saat ini sudah ada ${existingImages.length} gambar.`)
+        onShowMessage?.(
+          `Total gambar tidak boleh lebih dari 3. Saat ini sudah ada ${existingImages.length} gambar.`,
+          'error'
+        )
 
         return
       }
@@ -159,12 +166,13 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
       setExistingImages(prev => prev.filter(img => img.id !== imageId))
     } catch (error) {
       console.error('Error deleting image:', error)
-      alert('Gagal menghapus gambar')
+      onShowMessage?.('Gagal menghapus gambar', 'error')
     }
   }
 
   const resetForm = () => {
     setNama('')
+    setDeskripsi('')
     setStatus('tidak dihuni')
     setHargaHarian('')
     setHargaBulanan('')
@@ -179,6 +187,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
     const data = {
       asetId,
       nama,
+      deskripsi,
       status,
       hargaHarian: Number(parseNumber(hargaHarian)),
       hargaBulanan: Number(parseNumber(hargaBulanan)),
@@ -230,7 +239,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
       setView('table')
     } catch (error) {
       console.error('Error saving room:', error)
-      alert('Gagal menyimpan ruangan.')
+      onShowMessage?.('Gagal menyimpan ruangan.', 'error')
     }
   }
 
@@ -337,7 +346,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
               variant='contained'
               color='success'
               onClick={() => {
-                alert('Wizard Completed!')
+                onShowMessage?.('Wizard Completed!', 'success')
                 window.location.href = '/aset'
               }}
             >
@@ -376,6 +385,17 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId 
           <MenuItem value='tidak dihuni'>Tidak Dihuni</MenuItem>
           <MenuItem value='huni'>Huni</MenuItem>
         </CustomTextField>
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <CustomTextField
+          fullWidth
+          label='Deskripsi'
+          placeholder='Deskripsi ruangan'
+          value={deskripsi}
+          onChange={e => setDeskripsi(e.target.value)}
+          multiline
+          rows={3}
+        />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField

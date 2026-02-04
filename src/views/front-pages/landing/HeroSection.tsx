@@ -6,7 +6,6 @@ import Link from 'next/link'
 
 // MUI Imports
 import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
 import { useColorScheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { Theme } from '@mui/material/styles'
@@ -21,7 +20,7 @@ import type { SystemMode } from '@core/types'
 import { useImageVariant } from '@core/hooks/useImageVariant'
 
 // Styles Imports
-import styles from '@views/front-pages/landing-page/styles.module.css'
+import styles from '@views/front-pages/landing/styles.module.css'
 import frontCommonStyles from '@views/front-pages/styles.module.css'
 
 const HeroSection = ({ mode }: { mode: SystemMode }) => {

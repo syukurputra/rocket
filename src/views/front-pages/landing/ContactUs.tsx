@@ -21,7 +21,7 @@ import { useIntersection } from '@/src/hooks/useIntersection'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
-import styles from '@views/front-pages/landing-page/styles.module.css'
+import styles from '@views/front-pages/landing/styles.module.css'
 
 const ContactUs = () => {
   // Refs

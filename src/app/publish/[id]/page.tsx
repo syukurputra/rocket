@@ -17,13 +17,20 @@ import prisma from '@/src/libs/prisma'
 // Style Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
 
-const PublishPage = async ({ params }: { params: { id: string } }) => {
+const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params
+
   const data = await prisma.aset.findUnique({
     where: {
-      id: params.id
+      id
     },
     include: {
       images: true,
+      fasilitasAset: {
+        include: {
+          icon: true
+        }
+      },
       ruangan: {
         include: {
           images: true

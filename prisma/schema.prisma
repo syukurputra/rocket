@@ -135,6 +135,7 @@ model Aset {
   id          String       @id @default(cuid())
   jenis       String
   nama        String
+  deskripsi   String?
   alamat      String
   kota        String
   provinsi    String
@@ -154,6 +155,7 @@ model Aset {
   penghuni    Penghuni[]
   ruangan     Ruangan[]
   images      AsetImage[]
+  fasilitasAset FasilitasAset[]
 
   @@index([companyId])
   @@map("aset")
@@ -173,26 +175,43 @@ model AsetImage {
   @@map("aset_image")
 }
 
+model FasilitasAset {
+  id        String     @id @default(cuid())
+  nama      String
+  iconId    String
+  asetId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  icon      MasterIcon @relation(fields: [iconId], references: [id])
+  aset      Aset       @relation(fields: [asetId], references: [id], onDelete: Cascade)
+
+  @@index([asetId])
+  @@index([iconId])
+  @@map("fasilitas_aset")
+}
+
 model Ruangan {
-  id           String         @id @default(cuid())
-  nama         String
-  status       String         @default("tidak huni")
-  nominal      Decimal        @default(0) @db.Decimal(15, 2)
-  hargaHarian  Decimal        @default(0) @db.Decimal(15, 2)
-  hargaBulanan Decimal        @default(0) @db.Decimal(15, 2)
-  hargaTahunan Decimal        @default(0) @db.Decimal(15, 2)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  createdById  String
-  updatedById  String
-  companyId    String
-  asetId       String
-  penghuni     Penghuni[]
-  aset         Aset           @relation(fields: [asetId], references: [id])
-  company      Company        @relation(fields: [companyId], references: [id])
-  createdBy    User           @relation("RuanganCreatedBy", fields: [createdById], references: [id])
-  updatedBy    User           @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
-  images       RuanganImage[]
+  id               String             @id @default(cuid())
+  nama             String
+  deskripsi        String?            @db.Text
+  status           String             @default("tidak huni")
+  nominal          Decimal            @default(0) @db.Decimal(15, 2)
+  hargaHarian      Decimal            @default(0) @db.Decimal(15, 2)
+  hargaBulanan     Decimal            @default(0) @db.Decimal(15, 2)
+  hargaTahunan     Decimal            @default(0) @db.Decimal(15, 2)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  createdById      String
+  updatedById      String
+  companyId        String
+  asetId           String
+  penghuni         Penghuni[]
+  aset             Aset               @relation(fields: [asetId], references: [id])
+  company          Company            @relation(fields: [companyId], references: [id])
+  createdBy        User               @relation("RuanganCreatedBy", fields: [createdById], references: [id])
+  updatedBy        User               @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
+  images           RuanganImage[]
+  fasilitasRuangan FasilitasRuangan[]
 
   @@index([companyId])
   @@map("ruangan")
@@ -212,6 +231,21 @@ model RuanganImage {
   @@map("ruangan_image")
 }
 
+model FasilitasRuangan {
+  id        String     @id @default(cuid())
+  nama      String
+  iconId    String
+  ruanganId String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  icon      MasterIcon @relation(fields: [iconId], references: [id])
+  ruangan   Ruangan    @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+
+  @@index([ruanganId])
+  @@index([iconId])
+  @@map("fasilitas_ruangan")
+}
+
 model MasterIcon {
   id               String             @id @default(cuid())
   nama             String
@@ -221,6 +255,8 @@ model MasterIcon {
   createdById      String
   updatedById      String
   categoryKeuangan CategoryKeuangan[]
+  fasilitasAset    FasilitasAset[]
+  fasilitasRuangan FasilitasRuangan[]
   createdBy        User               @relation("IconCreatedBy", fields: [createdById], references: [id])
   updatedBy        User               @relation("IconUpdatedBy", fields: [updatedById], references: [id])
 

@@ -55,7 +55,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
 
 async function handlePost(req: NextRequest, { user }: AuthContext) {
   const body = await req.json()
-  const { jenis, nama, alamat, kota, provinsi, latitude, longitude, status } = body
+  const { jenis, nama, deskripsi, alamat, kota, provinsi, latitude, longitude, status } = body
 
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
     return NextResponse.json({ message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' }, { status: 400 })
@@ -70,6 +70,7 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
     data: {
       jenis,
       nama,
+      deskripsi,
       alamat,
       kota,
       provinsi,

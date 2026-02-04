@@ -48,7 +48,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { jenis, nama, alamat, kota, provinsi, latitude, longitude, status } = body
+    const { jenis, nama, deskripsi, alamat, kota, provinsi, latitude, longitude, status } = body
 
     const existingAset = await prisma.aset.findUnique({
       where: { id }
@@ -63,6 +63,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       data: {
         jenis,
         nama,
+        deskripsi,
         alamat,
         kota,
         provinsi,
