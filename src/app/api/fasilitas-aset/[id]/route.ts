@@ -5,7 +5,7 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 // GET: Fetch single fasilitas by ID
-async function handleGet(req: NextRequest, { user }: AuthContext, { params }: { params: { id: string } }) {
+async function handleGet(req: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const fasilitas = await prisma.fasilitasAset.findUnique({
       where: {
@@ -35,7 +35,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext, { params }: { 
 }
 
 // PUT: Update fasilitas
-async function handlePut(req: NextRequest, { user }: AuthContext, { params }: { params: { id: string } }) {
+async function handlePut(req: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await req.json()
     const { nama, iconId } = body
@@ -72,7 +72,7 @@ async function handlePut(req: NextRequest, { user }: AuthContext, { params }: { 
 }
 
 // DELETE: Delete fasilitas
-async function handleDelete(req: NextRequest, { user }: AuthContext, { params }: { params: { id: string } }) {
+async function handleDelete(req: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     await prisma.fasilitasAset.delete({
       where: {
