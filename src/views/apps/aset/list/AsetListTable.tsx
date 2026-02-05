@@ -266,7 +266,11 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
         cell: ({ row }) => (
           <div className='flex items-center'>
             <Tooltip title='Jika Status Publish Bisa Dibuka'>
-              <IconButton aria-label='Edit' onClick={() => router.push(`/publish/${row.original.id}`)} className='flex'>
+              <IconButton
+                aria-label='Edit'
+                onClick={() => window.open(`/publish/${row.original.id}`, '_blank')}
+                className='flex'
+              >
                 <i className='tabler-world-www text-textSecondary' />
               </IconButton>
             </Tooltip>

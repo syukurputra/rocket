@@ -33,7 +33,12 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
       },
       ruangan: {
         include: {
-          images: true
+          images: true,
+          fasilitasRuangan: {
+            include: {
+              icon: true
+            }
+          }
         }
       }
     }
