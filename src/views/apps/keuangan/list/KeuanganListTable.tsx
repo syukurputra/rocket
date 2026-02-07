@@ -12,10 +12,8 @@ import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import TablePagination from '@mui/material/TablePagination'
-import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
-import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 
@@ -121,7 +119,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
   const [filteredData, setFilteredData] = useState<KeuanganClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('') // New state for API search
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0) // Table uses 0-based indexing
   const [pageSize, setPageSize] = useState(10)
@@ -140,7 +137,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
 
   const fetchKeuanganData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
-      setLoading(true)
       setError(null)
 
       const params = new URLSearchParams({
@@ -183,8 +179,6 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -397,60 +391,8 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     )
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            minHeight='400px'
-            flexDirection='column'
-            gap={2}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data keuangan...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
-      {loading && data.length > 0 && (
-        <Box
-          position='fixed'
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          bgcolor='rgba(255, 255, 255, 0.8)'
-          zIndex={9999}
-        >
-          <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='center'
-            gap={2}
-            bgcolor='white'
-            padding={4}
-            borderRadius={2}
-            boxShadow={3}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data...
-            </Typography>
-          </Box>
-        </Box>
-      )}
       <Card>
         <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
           <div className='flex flex-col sm:flex-row items-center justify-between gap-4 is-full sm:is-auto'>
@@ -525,11 +467,9 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading
-                      ? 'Memuat data...'
-                      : searchQuery
-                        ? `Tidak ditemukan data untuk pencarian "${searchQuery}"`
-                        : 'No data available'}
+                    {searchQuery
+                      ? `Tidak ditemukan data untuk pencarian "${searchQuery}"`
+                      : 'No data available'}
                   </td>
                 </tr>
               </tbody>

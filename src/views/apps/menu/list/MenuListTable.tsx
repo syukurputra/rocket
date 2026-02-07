@@ -101,7 +101,6 @@ const MenuListTable = () => {
   const [data, setData] = useState<MenuClientWithAction[]>([])
   const [filteredData, setFilteredData] = useState<MenuClientWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuClient | null>(null)
@@ -118,7 +117,6 @@ const MenuListTable = () => {
 
   const fetchMenuData = async () => {
     try {
-      setLoading(true)
       setError(null)
 
       const result = await apiFetchClient<{
@@ -138,8 +136,6 @@ const MenuListTable = () => {
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -285,28 +281,6 @@ const MenuListTable = () => {
     )
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            minHeight='400px'
-            flexDirection='column'
-            gap={2}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data menu...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
       <Card>
@@ -357,7 +331,7 @@ const MenuListTable = () => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading ? 'Memuat data...' : 'No data available'}
+                    No data available
                   </td>
                 </tr>
               </tbody>

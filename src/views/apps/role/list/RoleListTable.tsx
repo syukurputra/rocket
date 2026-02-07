@@ -102,7 +102,6 @@ const RoleListTable = () => {
   const [data, setData] = useState<RoleClientWithAction[]>([])
   const [filteredData, setFilteredData] = useState<RoleClientWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
@@ -119,7 +118,6 @@ const RoleListTable = () => {
 
   const fetchRoleData = async () => {
     try {
-      setLoading(true)
       setError(null)
 
       const result = await apiFetchClient<{
@@ -139,8 +137,6 @@ const RoleListTable = () => {
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -279,28 +275,6 @@ const RoleListTable = () => {
     )
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            minHeight='400px'
-            flexDirection='column'
-            gap={2}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data role...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
       <Card>
@@ -351,7 +325,7 @@ const RoleListTable = () => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading ? 'Memuat data...' : 'No data available'}
+                    No data available
                   </td>
                 </tr>
               </tbody>

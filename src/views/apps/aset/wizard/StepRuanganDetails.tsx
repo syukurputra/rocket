@@ -159,8 +159,6 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   }
 
   const handleDeleteImage = async (imageId: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus gambar ini?')) return
-
     try {
       await apiFetchClient(`/api/ruangan-image/${imageId}`, { method: 'DELETE' })
       setExistingImages(prev => prev.filter(img => img.id !== imageId))
@@ -344,13 +342,11 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
             </Button>
             <Button
               variant='contained'
-              color='success'
-              onClick={() => {
-                onShowMessage?.('Wizard Completed!', 'success')
-                window.location.href = '/aset'
-              }}
+              color='primary'
+              onClick={handleNext}
+              endIcon={<DirectionalIcon ltrIconClass='tabler-arrow-right' rtlIconClass='tabler-arrow-left' />}
             >
-              Finish
+              Next
             </Button>
           </div>
         </Grid>

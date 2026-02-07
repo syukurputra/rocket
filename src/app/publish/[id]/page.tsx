@@ -44,7 +44,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     }
   })
 
-  if (!data) {
+  if (!data || data.status !== 'publish') {
     notFound()
   }
 
@@ -71,7 +71,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
           <InformationAset data={sanitizedData as any} />
         </Grid>
         {sanitizedData.ruangan.map(ruangan => (
-          <Grid key={ruangan.id} size={{ xs: 12, md: 6 }}>
+          <Grid key={ruangan.id} size={{ xs: 12 }}>
             <InformationRuangan data={ruangan as any} />
           </Grid>
         ))}

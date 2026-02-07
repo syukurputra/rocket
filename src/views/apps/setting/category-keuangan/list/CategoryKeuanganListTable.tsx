@@ -32,7 +32,6 @@ const Icon = styled('i')({})
 
 const CategoryKeuanganListTable = () => {
   const [data, setData] = useState<CategoryKeuanganClient[]>([])
-  const [loading, setLoading] = useState(true)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -41,15 +40,12 @@ const CategoryKeuanganListTable = () => {
 
   const fetchData = async () => {
     try {
-      setLoading(true)
       const response = await apiFetchClient<{ data: CategoryKeuanganClient[] }>('/api/setting/category-keuangan')
 
       setData(response.data || [])
     } catch (error) {
       console.error('Failed to fetch categories:', error)
       setSnackbar({ open: true, message: 'Gagal memuat data', severity: 'error' })
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -201,44 +197,38 @@ const CategoryKeuanganListTable = () => {
         </div>
       </CardContent>
 
-      {loading ? (
-        <div className='flex justify-center items-center p-10'>
-          <CircularProgress />
-        </div>
-      ) : (
-        <div className='overflow-x-auto'>
-          <table className={tableStyles.table}>
-            <thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
+      <div className='overflow-x-auto'>
+        <table className={tableStyles.table}>
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                  Tidak ada data
+                </td>
+              </tr>
+            ) : (
+              table.getRowModel().rows.map(row => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                   ))}
                 </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    Tidak ada data
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map(row => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <Snackbar
         open={snackbar.open}

@@ -103,7 +103,6 @@ const CompanyListTable = () => {
   const [filteredData, setFilteredData] = useState<CompanyClientWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
@@ -123,7 +122,6 @@ const CompanyListTable = () => {
 
   const fetchCompanyData = async () => {
     try {
-      setLoading(true)
       setError(null)
 
       const result = await apiFetchClient<{
@@ -144,8 +142,6 @@ const CompanyListTable = () => {
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -316,28 +312,6 @@ const CompanyListTable = () => {
     )
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            minHeight='400px'
-            flexDirection='column'
-            gap={2}
-          >
-            <CircularProgress size={60} />
-            <Typography variant='body1' color='textSecondary'>
-              Memuat data company...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
       <Card>
@@ -388,7 +362,7 @@ const CompanyListTable = () => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    {loading ? 'Memuat data...' : 'No data available'}
+                    No data available
                   </td>
                 </tr>
               </tbody>
@@ -445,5 +419,3 @@ const CompanyListTable = () => {
 }
 
 export default CompanyListTable
-
-

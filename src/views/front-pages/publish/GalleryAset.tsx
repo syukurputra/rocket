@@ -2,8 +2,6 @@
 
 // MUI Imports
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 
@@ -79,7 +77,7 @@ const GalleryAset = ({ data }: GalleryAsetProps) => {
               <div ref={sliderRef} className='keen-slider'>
                 {data.map((src, idx) => (
                   <div key={idx} className='keen-slider__slide'>
-                    <img src={src} alt={`gallery-${idx}`} className='is-full object-contain bs-[400px] rounded' />
+                    <img src={src} alt={`gallery-${idx}`} className='is-full object-contain rounded' />
                   </div>
                 ))}
               </div>

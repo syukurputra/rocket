@@ -81,26 +81,26 @@ model Menu {
 }
 
 model User {
-  id                      String             @id @default(cuid()) @db.VarChar(100)
-  username                String             @unique @db.VarChar(50)
-  email                   String             @unique @db.VarChar(191)
-  nomorTelepon            String?            @db.VarChar(20)
-  password                String?            @db.VarChar(191)
-  tokenVersion            Int                @default(0)
-  createdAt               DateTime           @default(now())
-  verifikasi              Boolean            @default(false)
-  status                  Boolean            @default(true)
-  updatedAt               DateTime           @updatedAt
-  resetToken              String?            @db.VarChar(255)
-  resetTokenExpiry        DateTime?
-  companyId               String?
-  roleId                  String?
+  id               String    @id @default(cuid()) @db.VarChar(100)
+  username         String    @unique @db.VarChar(50)
+  email            String    @unique @db.VarChar(191)
+  nomorTelepon     String?   @db.VarChar(20)
+  password         String?   @db.VarChar(191)
+  tokenVersion     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  verifikasi       Boolean   @default(false)
+  status           Boolean   @default(true)
+  updatedAt        DateTime  @updatedAt
+  resetToken       String?   @db.VarChar(255)
+  resetTokenExpiry DateTime?
+  companyId        String?
+  roleId           String?
 
   // Invitation fields
-  invitationToken         String?            @unique @db.VarChar(255)
-  invitationExpiry        DateTime?
-  invitedAt               DateTime?
-  invitedById             String?
+  invitationToken  String?   @unique @db.VarChar(255)
+  invitationExpiry DateTime?
+  invitedAt        DateTime?
+  invitedById      String?
 
   asetCreated             Aset[]             @relation("CreatedBy")
   asetUpdated             Aset[]             @relation("UpdatedBy")
@@ -120,8 +120,8 @@ model User {
   role                    Role?              @relation(fields: [roleId], references: [id])
 
   // Self-relation for invitations
-  invitedBy               User?              @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
-  invitedUsers            User[]             @relation("UserInvitations")
+  invitedBy    User?  @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitedUsers User[] @relation("UserInvitations")
 
   @@index([username])
   @@index([email])
@@ -132,29 +132,32 @@ model User {
 }
 
 model Aset {
-  id          String       @id @default(cuid())
-  jenis       String
-  nama        String
-  deskripsi   String?
-  alamat      String
-  kota        String
-  provinsi    String
-  latitude    Float?
-  longitude   Float?
-  status      String       @default("aktif")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  nominal     Decimal      @default(0) @db.Decimal(15, 2)
-  createdById String
-  updatedById String
-  companyId   String
-  company     Company      @relation(fields: [companyId], references: [id])
-  createdBy   User         @relation("CreatedBy", fields: [createdById], references: [id])
-  updatedBy   User         @relation("UpdatedBy", fields: [updatedById], references: [id])
-  keuangan    Keuangan[]
-  penghuni    Penghuni[]
-  ruangan     Ruangan[]
-  images      AsetImage[]
+  id        String  @id @default(cuid())
+  jenis     String
+  nama      String
+  deskripsi String?
+  alamat    String
+  kota      String
+  provinsi  String
+
+  kecamatan     String?
+  kelurahan     String?
+  latitude      Float?
+  longitude     Float?
+  status        String          @default("aktif")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  nominal       Decimal         @default(0) @db.Decimal(15, 2)
+  createdById   String
+  updatedById   String
+  companyId     String
+  company       Company         @relation(fields: [companyId], references: [id])
+  createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy     User            @relation("UpdatedBy", fields: [updatedById], references: [id])
+  keuangan      Keuangan[]
+  penghuni      Penghuni[]
+  ruangan       Ruangan[]
+  images        AsetImage[]
   fasilitasAset FasilitasAset[]
 
   @@index([companyId])
@@ -315,49 +318,49 @@ model Keuangan {
 }
 
 model Penghuni {
-  id          String    @id @default(cuid())
-  nama        String
-  email       String?   @db.VarChar(191)
-  nomorTelepon String?  @db.VarChar(20)
-  status      String    @default("KOSONG")
-  periodeSewa String?   @db.VarChar(20)
-  mulaiHuni   DateTime  @default(now())
-  selesaiHuni DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  createdById String
-  updatedById String
-  companyId   String
-  asetId      String
-  ruanganId   String
-  aset        Aset      @relation(fields: [asetId], references: [id])
-  company     Company   @relation(fields: [companyId], references: [id])
-  createdBy   User      @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
-  ruangan     Ruangan   @relation(fields: [ruanganId], references: [id])
-  updatedBy   User      @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
-  tagihan     Tagihan[]
+  id           String    @id @default(cuid())
+  nama         String
+  email        String?   @db.VarChar(191)
+  nomorTelepon String?   @db.VarChar(20)
+  status       String    @default("KOSONG")
+  periodeSewa  String?   @db.VarChar(20)
+  mulaiHuni    DateTime  @default(now())
+  selesaiHuni  DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  createdById  String
+  updatedById  String
+  companyId    String
+  asetId       String
+  ruanganId    String
+  aset         Aset      @relation(fields: [asetId], references: [id])
+  company      Company   @relation(fields: [companyId], references: [id])
+  createdBy    User      @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
+  ruangan      Ruangan   @relation(fields: [ruanganId], references: [id])
+  updatedBy    User      @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
+  tagihan      Tagihan[]
 
   @@index([companyId])
   @@map("penghuni")
 }
 
 model Tagihan {
-  id          String   @id @default(cuid())
-  keterangan  String
-  status      String   @default("BELUM TERBAYAR")
-  metodeBayar String?
-  mulaiSewa   DateTime @default(now())
-  selesaiSewa DateTime @default(now())
-  nominal          Decimal  @default(0) @db.Decimal(15, 2)
-  buktiPembayaran  String?
+  id              String   @id @default(cuid())
+  keterangan      String
+  status          String   @default("BELUM TERBAYAR")
+  metodeBayar     String?
+  mulaiSewa       DateTime @default(now())
+  selesaiSewa     DateTime @default(now())
+  nominal         Decimal  @default(0) @db.Decimal(15, 2)
+  buktiPembayaran String?
 
   // Midtrans payment fields
-  midtransOrderId          String?   @unique
-  midtransTransactionId    String?
+  midtransOrderId           String?   @unique
+  midtransTransactionId     String?
   midtransTransactionStatus String?
-  midtransPaymentType      String?
-  midtransTransactionTime  DateTime?
-  paymentUrl               String?
+  midtransPaymentType       String?
+  midtransTransactionTime   DateTime?
+  paymentUrl                String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -397,3 +400,71 @@ model CategoryKeuangan {
   @@index([companyId])
   @@map("category_keuangan")
 }
+
+// Master Data Wilayah
+model MasterProvinsi {
+  id        String       @id
+  name      String
+  kota      MasterKota[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("master_provinsi")
+}
+
+model MasterKota {
+  id         String            @id
+  provinceId String
+  name       String
+  provinsi   MasterProvinsi    @relation(fields: [provinceId], references: [id])
+  kecamatan  MasterKecamatan[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([provinceId])
+  @@map("master_kota")
+}
+
+model MasterKecamatan {
+  id        String            @id
+  cityId    String
+  name      String
+  kota      MasterKota        @relation(fields: [cityId], references: [id])
+  kelurahan MasterKelurahan[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([cityId])
+  @@map("master_kecamatan")
+}
+
+model MasterKelurahan {
+  id         String          @id
+  districtId String
+  name       String
+  kecamatan  MasterKecamatan @relation(fields: [districtId], references: [id])
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([districtId])
+  @@map("master_kelurahan")
+}
+
+// Scheduler Logs
+model SchedulerLog {
+  id          String   @id @default(cuid())
+  jobName     String
+  status      String   // 'started', 'success', 'failed'
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  duration    Int?     // Duration in milliseconds
+  errorMessage String?  @db.Text
+  errorStack   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([jobName])
+  @@index([status])
+  @@index([startedAt])
+  @@map("scheduler_log")
+}
+

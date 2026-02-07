@@ -8,6 +8,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 import type { ChildrenType } from '@core/types'
 
 // Component Imports
+import SchedulerInit from '../components/SchedulerInit'
 import Providers from '@components/Providers'
 
 // Util Imports
@@ -32,6 +33,7 @@ const RootLayout = async ({ children }: ChildrenType) => {
     <html id='__next' suppressHydrationWarning>
       <body className='flex is-full min-bs-full flex-auto flex-col'>
         <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
+        <SchedulerInit />
         <Providers direction='ltr'>{children}</Providers>
       </body>
     </html>

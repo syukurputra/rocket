@@ -73,6 +73,8 @@ type AsetData = {
   alamat: string
   kota: string
   provinsi: string
+  kecamatan?: string
+  kelurahan?: string
   latitude?: number
   longitude?: number
   status: string

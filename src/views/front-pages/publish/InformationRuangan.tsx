@@ -102,7 +102,7 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
       <Card>
         <Grid container spacing={0}>
           {/* Left Column: Judul + Deskripsi */}
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 10 }}>
             <CardContent>
               <Typography variant='h5' className='mbe-2'>
                 {data.nama}
@@ -112,7 +112,7 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
           </Grid>
 
           {/* Right Column: Image */}
-          <Grid size={{ xs: 12, md: 6 }} sx={{ order: { xs: -1, md: 0 } }}>
+          <Grid size={{ xs: 12, md: 2 }} sx={{ order: { xs: -1, md: 0 } }}>
             <CardContent className='flex items-center justify-center' sx={{ height: '100%' }}>
               <img
                 src={imageSrc}
@@ -133,23 +133,17 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
               <Grid container spacing={2}>
                 {Number(data.hargaHarian) > 0 && (
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography color='text.secondary'>
-                      Harian: {formatCurrency(data.hargaHarian)}
-                    </Typography>
+                    <Typography color='text.secondary'>Harian: {formatCurrency(data.hargaHarian)}</Typography>
                   </Grid>
                 )}
                 {Number(data.hargaBulanan) > 0 && (
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography color='text.secondary'>
-                      Bulanan: {formatCurrency(data.hargaBulanan)}
-                    </Typography>
+                    <Typography color='text.secondary'>Bulanan: {formatCurrency(data.hargaBulanan)}</Typography>
                   </Grid>
                 )}
                 {Number(data.hargaTahunan) > 0 && (
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography color='text.secondary'>
-                      Tahunan: {formatCurrency(data.hargaTahunan)}
-                    </Typography>
+                    <Typography color='text.secondary'>Tahunan: {formatCurrency(data.hargaTahunan)}</Typography>
                   </Grid>
                 )}
               </Grid>
@@ -168,9 +162,7 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
                     <Grid key={fasilitas.id} size={{ xs: 12, md: 4 }}>
                       <div className='flex items-center gap-2'>
                         <i className={`${fasilitas.icon?.code || 'tabler-circle'} text-lg text-textSecondary`} />
-                        <Typography color='text.secondary'>
-                          {fasilitas.nama}
-                        </Typography>
+                        <Typography color='text.secondary'>{fasilitas.nama}</Typography>
                       </div>
                     </Grid>
                   ))}
@@ -206,7 +198,7 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
                     <img
                       src={image.filepath}
                       alt={`${data.nama} - ${idx + 1}`}
-                      className='is-full object-contain bs-[500px] rounded'
+                      className='is-full object-contain rounded'
                     />
                   </div>
                 ))}
