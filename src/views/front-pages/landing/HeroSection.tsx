@@ -28,8 +28,8 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
   const [transform, setTransform] = useState('')
 
   // Vars
-  const dashboardImageLight = '/images/front-pages/landing-page/hero-dashboard-light.png'
-  const dashboardImageDark = '/images/front-pages/landing-page/hero-dashboard-dark.png'
+  // const dashboardImageLight = '/images/front-pages/landing-page/hero-dashboard-light.jpg'
+  // const dashboardImageDark = '/images/front-pages/landing-page/hero-dashboard-dark.jpg'
   const elementsImageLight = '/images/front-pages/landing-page/hero-elements-light.png'
   const elementsImageDark = '/images/front-pages/landing-page/hero-elements-dark.png'
   const heroSectionBgLight = '/images/front-pages/landing-page/hero-bg-light.png'
@@ -38,7 +38,8 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
   // Hooks
   const { mode: muiMode } = useColorScheme()
   const dashboardImage = useImageVariant(mode, dashboardImageLight, dashboardImageDark)
-  const elementsImage = useImageVariant(mode, elementsImageLight, elementsImageDark)
+
+  // const elementsImage = useImageVariant(mode, elementsImageLight, elementsImageDark)
   const heroSectionBg = useImageVariant(mode, heroSectionBgLight, heroSectionBgDark)
 
   const _mode = (muiMode === 'system' ? mode : muiMode) || mode
@@ -107,9 +108,9 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
       >
         <Link href='/' target='_blank' className='block relative'>
           <img src={dashboardImage} alt='dashboard-image' className={classnames('mli-auto', styles.heroSecDashboard)} />
-          <div className={classnames('absolute', styles.heroSectionElements)}>
+          {/* <div className={classnames('absolute', styles.heroSectionElements)}>
             <img src={elementsImage} alt='dashboard-elements' />
-          </div>
+          </div> */}
         </Link>
       </div>
     </section>
