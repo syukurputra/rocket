@@ -94,7 +94,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   useEffect(() => {
     const fetchProvinsi = async () => {
       try {
-        const res = await apiFetchClient('/api/master/provinsi')
+        const res = (await apiFetchClient('/api/master/provinsi')) as any[]
 
         setListProvinsi(res)
 
@@ -123,7 +123,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
 
     const fetchKota = async () => {
       try {
-        const res = await apiFetchClient(`/api/master/kota/${selectedProvinsiId}`)
+        const res = (await apiFetchClient(`/api/master/kota/${selectedProvinsiId}`)) as any[]
 
         setListKota(res)
 
@@ -151,7 +151,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
 
     const fetchKecamatan = async () => {
       try {
-        const res = await apiFetchClient(`/api/master/kecamatan/${selectedKotaId}`)
+        const res = (await apiFetchClient(`/api/master/kecamatan/${selectedKotaId}`)) as any[]
 
         setListKecamatan(res)
 
@@ -179,7 +179,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
 
     const fetchKelurahan = async () => {
       try {
-        const res = await apiFetchClient(`/api/master/kelurahan/${selectedKecamatanId}`)
+        const res = (await apiFetchClient(`/api/master/kelurahan/${selectedKecamatanId}`)) as any[]
 
         setListKelurahan(res)
       } catch (err) {
@@ -244,7 +244,6 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           status: jenis, // UI Jenis -> DB status
           deskripsi,
           alamat,
-          kota,
           provinsi, // String name
           kota,
           kecamatan,
