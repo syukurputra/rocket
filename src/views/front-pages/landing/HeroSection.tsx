@@ -28,10 +28,11 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
   const [transform, setTransform] = useState('')
 
   // Vars
-  // const dashboardImageLight = '/images/front-pages/landing-page/hero-dashboard-light.jpg'
-  // const dashboardImageDark = '/images/front-pages/landing-page/hero-dashboard-dark.jpg'
-  const elementsImageLight = '/images/front-pages/landing-page/hero-elements-light.png'
-  const elementsImageDark = '/images/front-pages/landing-page/hero-elements-dark.png'
+  const dashboardImageLight = '/images/front-pages/landing-page/hero-dashboard-light.jpg'
+  const dashboardImageDark = '/images/front-pages/landing-page/hero-dashboard-dark.jpg'
+
+  // const elementsImageLight = '/images/front-pages/landing-page/hero-elements-light.png'
+  // const elementsImageDark = '/images/front-pages/landing-page/hero-elements-dark.png'
   const heroSectionBgLight = '/images/front-pages/landing-page/hero-bg-light.png'
   const heroSectionBgDark = '/images/front-pages/landing-page/hero-bg-dark.png'
 
@@ -69,7 +70,7 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
       <img
         src={heroSectionBg}
         alt='hero-bg'
-        className={classnames('bs-[95%] sm:bs-[85%] md:bs-[80%]', styles.heroSectionBg, {
+        className={classnames('bs-[130%] sm:bs-[120%] md:bs-[110%]', styles.heroSectionBg, {
           [styles.bgLight]: _mode === 'light',
           [styles.bgDark]: _mode === 'dark'
         })}
@@ -105,14 +106,7 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
       <div
         className={classnames('relative text-center', frontCommonStyles.layoutSpacing)}
         style={{ transform: isAboveLgScreen ? transform : 'none' }}
-      >
-        <Link href='/' target='_blank' className='block relative'>
-          <img src={dashboardImage} alt='dashboard-image' className={classnames('mli-auto', styles.heroSecDashboard)} />
-          {/* <div className={classnames('absolute', styles.heroSectionElements)}>
-            <img src={elementsImage} alt='dashboard-elements' />
-          </div> */}
-        </Link>
-      </div>
+      ></div>
     </section>
   )
 }

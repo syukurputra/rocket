@@ -10,6 +10,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
     const search = url.searchParams.get('search') || ''
+    const startDate = url.searchParams.get('startDate') || ''
+    const endDate = url.searchParams.get('endDate') || ''
+    const jenis = url.searchParams.get('jenis') || ''
+    const asetId = url.searchParams.get('asetId') || ''
+    const categoryKeuanganId = url.searchParams.get('categoryKeuanganId') || ''
 
     const whereClause: any = {}
 
@@ -27,6 +32,33 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           }
         }
       ]
+    }
+
+    if (startDate || endDate) {
+      whereClause.tanggal = {}
+
+      if (startDate) {
+        whereClause.tanggal.gte = new Date(startDate)
+      }
+
+      if (endDate) {
+        const end = new Date(endDate)
+
+        end.setHours(23, 59, 59, 999)
+        whereClause.tanggal.lte = end
+      }
+    }
+
+    if (jenis) {
+      whereClause.jenis = jenis
+    }
+
+    if (asetId) {
+      whereClause.asetId = asetId
+    }
+
+    if (categoryKeuanganId) {
+      whereClause.categoryKeuanganId = categoryKeuanganId
     }
 
     whereClause.createdById = user.id
