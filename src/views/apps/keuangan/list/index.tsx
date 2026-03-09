@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Grid from '@mui/material/Grid2'
 
 import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
@@ -10,13 +13,15 @@ interface KeuanganListProps {
 }
 
 const AsetList = ({ initialData }: KeuanganListProps) => {
+  const [filters, setFilters] = useState<any>(null)
+
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <AsetCard />
+        <AsetCard filters={filters} />
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <KeuanganListTable initialData={initialData} />
+        <KeuanganListTable initialData={initialData} onFiltersChange={setFilters} />
       </Grid>
     </Grid>
   )

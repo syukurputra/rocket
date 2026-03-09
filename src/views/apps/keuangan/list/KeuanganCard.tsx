@@ -27,7 +27,11 @@ interface SummaryData {
   saldo: number
 }
 
-const KeuanganCard = () => {
+interface KeuanganCardProps {
+  filters?: any
+}
+
+const KeuanganCard = ({ filters }: KeuanganCardProps) => {
   // State
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +45,21 @@ const KeuanganCard = () => {
     const fetchSummary = async () => {
       try {
         setLoading(true)
-        const result = await apiFetchClient<{ data: SummaryData; message?: string }>('/api/keuangan/summary')
+
+        const params = new URLSearchParams()
+        if (filters) {
+          if (filters.searchQuery) params.append('search', filters.searchQuery)
+          if (filters.startDate) params.append('startDate', filters.startDate)
+          if (filters.endDate) params.append('endDate', filters.endDate)
+          if (filters.jenis) params.append('jenis', filters.jenis)
+          if (filters.asetId) params.append('asetId', filters.asetId)
+          if (filters.categoryKeuanganId) params.append('categoryKeuanganId', filters.categoryKeuanganId)
+        }
+
+        const qs = params.toString()
+        const url = qs ? `/api/keuangan/summary?${qs}` : '/api/keuangan/summary'
+
+        const result = await apiFetchClient<{ data: SummaryData; message?: string }>(url)
 
         if (result && result.data) {
           setSummary(result.data)
@@ -54,7 +72,7 @@ const KeuanganCard = () => {
     }
 
     fetchSummary()
-  }, [])
+  }, [JSON.stringify(filters)])
 
   // Format number to Rupiah
   const formatRupiah = (num: number): string => {

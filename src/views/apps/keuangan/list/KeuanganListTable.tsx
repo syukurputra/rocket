@@ -123,9 +123,10 @@ const columnHelper = createColumnHelper<KeuanganClientWithAction>()
 
 interface KeuanganListTableProps {
   initialData?: KeuanganClient[]
+  onFiltersChange?: (filters: any) => void
 }
 
-const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
+const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTableProps) => {
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<KeuanganClientWithAction[]>(initialData)
   const [filteredData, setFilteredData] = useState<KeuanganClientWithAction[]>(initialData)
@@ -234,6 +235,18 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     setAsetId(filters.asetId)
     setCategoryKeuanganId(filters.categoryKeuanganId)
     setCurrentPage(0)
+    
+    if (onFiltersChange) {
+      onFiltersChange({
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        jenis: filters.jenis,
+        asetId: filters.asetId,
+        categoryKeuanganId: filters.categoryKeuanganId,
+        searchQuery
+      })
+    }
+    
     fetchKeuanganData(
       0, pageSize, searchQuery,
       filters.startDate, filters.endDate,
@@ -261,6 +274,20 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       fetchKeuanganData(currentPage, pageSize, searchQuery, startDate, endDate)
     }
   }, [currentPage])
+
+  // Emit initial filters
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        startDate,
+        endDate,
+        jenis,
+        asetId,
+        categoryKeuanganId,
+        searchQuery
+      })
+    }
+  }, [])
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setSnackbar({ open: true, message, severity })
@@ -309,6 +336,14 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       return
     }
 
+    const totalPemasukan = allData
+      .filter(item => item.jenis === 'pemasukan')
+      .reduce((sum, item) => sum + (Number(item.nominal) || 0), 0)
+
+    const totalPengeluaran = allData
+      .filter(item => item.jenis === 'pengeluaran')
+      .reduce((sum, item) => sum + (Number(item.nominal) || 0), 0)
+
     const rows = allData.map(item => ({
       'Jenis': item.jenis === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
       'Aset': (item as any).aset ? `${(item as any).aset.jenis} - ${(item as any).aset.nama}` : '-',
@@ -318,7 +353,14 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       'Nominal': item.nominal
     }))
 
-    const ws = XLSX.utils.json_to_sheet(rows)
+    // Tambah baris kosong dan ringkasan total
+    const summaryRows = [
+      { 'Jenis': '', 'Aset': '', 'Kategori': '', 'Tanggal Transaksi': '', 'Keterangan': 'Total Pemasukan', 'Nominal': totalPemasukan },
+      { 'Jenis': '', 'Aset': '', 'Kategori': '', 'Tanggal Transaksi': '', 'Keterangan': 'Total Pengeluaran', 'Nominal': totalPengeluaran },
+      { 'Jenis': '', 'Aset': '', 'Kategori': '', 'Tanggal Transaksi': '', 'Keterangan': 'Saldo', 'Nominal': totalPemasukan - totalPengeluaran }
+    ]
+
+    const ws = XLSX.utils.json_to_sheet([...rows, {}, ...summaryRows])
     const wb = XLSX.utils.book_new()
 
     XLSX.utils.book_append_sheet(wb, ws, 'Keuangan')
@@ -341,6 +383,19 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
       return
     }
 
+    const formatRp = (num: number) =>
+      `Rp${num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
+
+    const totalPemasukan = allData
+      .filter(item => item.jenis === 'pemasukan')
+      .reduce((sum, item) => sum + (Number(item.nominal) || 0), 0)
+
+    const totalPengeluaran = allData
+      .filter(item => item.jenis === 'pengeluaran')
+      .reduce((sum, item) => sum + (Number(item.nominal) || 0), 0)
+
+    const saldo = totalPemasukan - totalPengeluaran
+
     const doc = new jsPDF({ orientation: 'landscape' })
 
     doc.setFontSize(14)
@@ -358,16 +413,31 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
     autoTable(doc, {
       startY: startDate || endDate ? 28 : 20,
       head: [['Jenis', 'Aset', 'Kategori', 'Tanggal Transaksi', 'Keterangan', 'Nominal']],
-      body: allData.map(item => [
-        item.jenis === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
-        (item as any).aset ? `${(item as any).aset.jenis} - ${(item as any).aset.nama}` : '-',
-        (item as any).categoryKeuangan?.nama || '-',
-        dayjs(item.tanggal).format('DD-MM-YYYY'),
-        item.keterangan || '-',
-        `Rp${item.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
-      ]),
+      body: [
+        ...allData.map(item => [
+          item.jenis === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
+          (item as any).aset ? `${(item as any).aset.jenis} - ${(item as any).aset.nama}` : '-',
+          (item as any).categoryKeuangan?.nama || '-',
+          dayjs(item.tanggal).format('DD-MM-YYYY'),
+          item.keterangan || '-',
+          formatRp(item.nominal)
+        ]),
+        // Baris ringkasan
+        ['', '', '', '', 'Total Pemasukan', formatRp(totalPemasukan)],
+        ['', '', '', '', 'Total Pengeluaran', formatRp(totalPengeluaran)],
+        ['', '', '', '', 'Saldo', formatRp(saldo)]
+      ],
       styles: { fontSize: 9 },
-      headStyles: { fillColor: [99, 91, 255] }
+      headStyles: { fillColor: [99, 91, 255] },
+      didParseCell: (hookData) => {
+        const lastRowIdx = allData.length
+        if (hookData.row.index >= lastRowIdx) {
+          hookData.cell.styles.fontStyle = 'bold'
+          if (hookData.column.index === 4 || hookData.column.index === 5) {
+            hookData.cell.styles.fillColor = [240, 240, 240]
+          }
+        }
+      }
     })
 
     doc.save(`${getExportFilename()}.pdf`)
@@ -379,6 +449,17 @@ const KeuanganListTable = ({ initialData = [] }: KeuanganListTableProps) => {
 
     setSearchQuery(searchValue)
     setGlobalFilter(searchValue)
+    
+    if (onFiltersChange) {
+      onFiltersChange({
+        startDate,
+        endDate,
+        jenis,
+        asetId,
+        categoryKeuanganId,
+        searchQuery: searchValue
+      })
+    }
   }
 
   const buttonProps: ButtonProps = {
