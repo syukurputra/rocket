@@ -20,8 +20,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           select: {
             id: true,
             nama: true,
-            deskripsi: true,
-            durasi: true
+            deskripsi: true
           }
         }
       }
@@ -77,8 +76,7 @@ async function handlePut(request: NextRequest, { user }: AuthContext) {
           select: {
             id: true,
             nama: true,
-            deskripsi: true,
-            durasi: true
+            deskripsi: true
           }
         }
       }
