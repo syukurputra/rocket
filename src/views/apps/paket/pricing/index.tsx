@@ -24,14 +24,7 @@ const PaketPricingPlans = () => {
       const response = await apiFetchClient<{ data: MasterPaketClient[] }>('/api/master/paket')
 
       // Filter only active packages and sort by price
-      const activePackages = (response.data || [])
-        .filter(paket => paket.status)
-        .sort((a, b) => {
-          const priceA = typeof a.harga === 'string' ? parseFloat(a.harga) : a.harga
-          const priceB = typeof b.harga === 'string' ? parseFloat(b.harga) : b.harga
-
-          return priceA - priceB
-        })
+      const activePackages = (response.data || []).filter(paket => paket.status)
 
       setData(activePackages)
     } catch (err) {
