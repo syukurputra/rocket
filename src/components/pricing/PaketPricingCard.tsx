@@ -16,15 +16,11 @@ interface PaketPricingCardProps {
 const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle }: PaketPricingCardProps) => {
   // Calculate price based on billing cycle
   const calculatePrice = () => {
-    const basePrice = typeof paket.harga === 'string' ? parseFloat(paket.harga) : paket.harga
-    const duration = paket.durasi || 1
-
     if (billingCycle === 'annually') {
-      // Annual price with 10% discount
-      return basePrice * duration * 12 * 0.9
+      return typeof paket.hargaTahunan === 'string' ? parseFloat(paket.hargaTahunan) : paket.hargaTahunan
     }
 
-    return basePrice
+    return typeof paket.hargaBulanan === 'string' ? parseFloat(paket.hargaBulanan) : paket.hargaBulanan
   }
 
   const displayPrice = calculatePrice()
@@ -84,13 +80,16 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
         {/* Features List */}
         <div>
           <div className='flex flex-col gap-3 mbs-3'>
-            {paket.paketMenus && paket.paketMenus.length > 0 ? (
-              paket.paketMenus.slice(0, 6).map(pm => (
+            {paket.paketMenus && paket.paketMenus.filter(pm => pm.tampilkan).length > 0 ? (
+              paket.paketMenus
+                .filter(pm => pm.tampilkan)
+                .slice(0, 6)
+                .map(pm => (
                 <div key={pm.menu.id} className='flex items-center gap-[12px]'>
                   <CustomAvatar color='primary' skin={isPopular ? 'filled' : 'light'} size={20}>
                     <i className='tabler-check text-sm' />
                   </CustomAvatar>
-                  <Typography variant='h6'>{pm.menu.keterangan || pm.menu.nama}</Typography>
+                  <Typography variant='h6'>{pm.deskripsi || pm.menu.keterangan || pm.menu.nama}</Typography>
                 </div>
               ))
             ) : (

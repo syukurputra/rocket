@@ -42,10 +42,8 @@ type PricingPlan = {
   id: string
   nama: string
   deskripsi: string | null
-  harga: number
-  hargaBulanan?: number
-  hargaTahunan?: number
-  durasi: number
+  hargaBulanan: number
+  hargaTahunan: number
   status: boolean
   paketMenus: PaketMenu[]
 }
@@ -102,14 +100,14 @@ const PricingPlan = () => {
   const getPrice = (plan: PricingPlan) => {
     if (pricingPlan === 'annually') {
       return {
-        monthly: plan.hargaTahunan ? plan.hargaTahunan / 12 : plan.harga,
-        yearly: plan.hargaTahunan || plan.harga * 12
+        monthly: plan.hargaTahunan ? plan.hargaTahunan / 12 : plan.hargaBulanan,
+        yearly: plan.hargaTahunan || plan.hargaBulanan * 12
       }
     }
 
     return {
-      monthly: plan.hargaBulanan || plan.harga,
-      yearly: (plan.hargaBulanan || plan.harga) * 12
+      monthly: plan.hargaBulanan,
+      yearly: plan.hargaBulanan * 12
     }
   }
 
@@ -188,15 +186,15 @@ const PricingPlan = () => {
                         </Typography>
                         <div className='flex items-baseline gap-x-1'>
                           <Typography variant='h2' color='primary.main' className='font-extrabold'>
-                            ${Math.floor(price.monthly / 1000)}
+                            Rp.{Math.floor(price.monthly / 1000)}
                           </Typography>
                           <Typography color='text.disabled' className='font-medium'>
-                            /mo
+                            /bulan
                           </Typography>
                         </div>
                         {pricingPlan === 'annually' && (
                           <Typography color='text.disabled' className='absolute block-start-[100%]'>
-                            ${Math.floor(price.yearly / 1000)} / year
+                            Rp.{Math.floor(price.yearly / 1000)} / tahun
                           </Typography>
                         )}
                       </div>

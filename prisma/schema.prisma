@@ -267,22 +267,25 @@ model MasterIcon {
 }
 
 model MasterPaket {
-  id         String      @id @default(cuid())
-  nama       String
-  deskripsi  String?
-  harga      Decimal     @db.Decimal(15, 2)
-  durasi     Int         @default(1)
-  status     Boolean     @default(true)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  companies  Company[]   @relation("CompanyActivePaket")
-  paketMenus PaketMenu[]
+  id           String      @id @default(cuid())
+  nama         String
+  deskripsi    String?
+  hargaBulanan Decimal     @db.Decimal(15, 2)
+  hargaTahunan Decimal     @db.Decimal(15, 2)
+  urutan       Int         @default(0)
+  status       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  companies    Company[]   @relation("CompanyActivePaket")
+  paketMenus   PaketMenu[]
 
   @@map("m_paket")
 }
 
 model PaketMenu {
   id        String      @id @default(cuid())
+  deskripsi String?
+  tampilkan Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   paketId   String

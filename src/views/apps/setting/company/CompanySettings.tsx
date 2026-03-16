@@ -34,8 +34,8 @@ type Company = {
     id: string
     nama: string
     deskripsi: string | null
-    harga: number
-    durasi: number
+    hargaBulanan: number
+    hargaTahunan: number
   } | null
 }
 
@@ -245,10 +245,10 @@ const CompanySettings = () => {
 
                   <Grid size={{ xs: 12 }}>
                     <Typography variant='caption' color='text.secondary'>
-                      Harga
+                      Harga Bulanan
                     </Typography>
                     <Typography variant='body1' fontWeight={600} className='mt-1'>
-                      {formatCurrency(Number(company.paket.harga))}
+                      {formatCurrency(Number(company.paket.hargaBulanan))}
                     </Typography>
                   </Grid>
 

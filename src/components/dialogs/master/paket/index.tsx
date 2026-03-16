@@ -34,14 +34,18 @@ type FormValues = {
   id?: string
   nama: string
   deskripsi: string
-  harga: string
+  hargaBulanan: string
+  hargaTahunan: string
+  urutan: string
   status: boolean
 }
 
 const DEFAULTS: FormValues = {
   nama: '',
   deskripsi: '',
-  harga: '',
+  hargaBulanan: '',
+  hargaTahunan: '',
+  urutan: '0',
   status: true
 }
 
@@ -63,7 +67,9 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         id: initialData.id,
         nama: initialData.nama ?? '',
         deskripsi: initialData.deskripsi ?? '',
-        harga: initialData.harga?.toString() ?? '',
+        hargaBulanan: initialData.hargaBulanan?.toString() ?? '',
+        hargaTahunan: initialData.hargaTahunan?.toString() ?? '',
+        urutan: initialData.urutan?.toString() ?? '0',
         status: initialData.status ?? true
       })
     } else {
@@ -95,7 +101,9 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
             body: JSON.stringify({
               nama: form.nama,
               deskripsi: form.deskripsi || null,
-              harga: parseFloat(form.harga),
+              hargaBulanan: parseFloat(form.hargaBulanan),
+              hargaTahunan: parseFloat(form.hargaTahunan),
+              urutan: parseInt(form.urutan, 10),
               status: form.status
             })
           }
@@ -117,7 +125,9 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
           body: JSON.stringify({
             nama: form.nama,
             deskripsi: form.deskripsi || null,
-            harga: parseFloat(form.harga),
+            hargaBulanan: parseFloat(form.hargaBulanan),
+            hargaTahunan: parseFloat(form.hargaTahunan),
+            urutan: parseInt(form.urutan, 10),
             status: form.status
           })
         })
@@ -158,7 +168,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 8 }}>
                 <CustomTextField
                   fullWidth
                   label='Nama Paket'
@@ -168,6 +178,20 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
                   value={form.nama}
                   onChange={handleChange('nama')}
                   required
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Urutan'
+                  name='urutan'
+                  type='number'
+                  variant='outlined'
+                  placeholder='0'
+                  value={form.urutan}
+                  onChange={handleChange('urutan')}
+                  required
+                  inputProps={{ min: 0, step: '1' }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -183,16 +207,30 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
                   rows={3}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label='Harga'
-                  name='harga'
+                  label='Harga Bulanan (Rp)'
+                  name='hargaBulanan'
                   type='number'
                   variant='outlined'
                   placeholder='0'
-                  value={form.harga}
-                  onChange={handleChange('harga')}
+                  value={form.hargaBulanan}
+                  onChange={handleChange('hargaBulanan')}
+                  required
+                  inputProps={{ min: 0, step: '0.01' }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Harga Tahunan (Rp)'
+                  name='hargaTahunan'
+                  type='number'
+                  variant='outlined'
+                  placeholder='0'
+                  value={form.hargaTahunan}
+                  onChange={handleChange('hargaTahunan')}
                   required
                   inputProps={{ min: 0, step: '0.01' }}
                 />
@@ -209,7 +247,11 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
             <Button variant='text' onClick={() => setOpen(false)} disabled={saving}>
               Batal
             </Button>
-            <Button variant='contained' type='submit' disabled={saving || !form.nama || !form.harga}>
+            <Button
+              variant='contained'
+              type='submit'
+              disabled={saving || !form.nama || !form.hargaBulanan || !form.hargaTahunan}
+            >
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>

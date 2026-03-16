@@ -21,6 +21,8 @@ import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
+import CustomTextField from '@core/components/mui/TextField'
+
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
@@ -40,11 +42,15 @@ type MenuWithStatus = {
   path: string | null
   icon: string | null
   isAssigned: boolean
+  deskripsi: string | null
+  tampilkan: boolean
 }
 
 export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: Props) {
   const [menus, setMenus] = useState<MenuWithStatus[]>([])
   const [selectedMenuIds, setSelectedMenuIds] = useState<Set<string>>(new Set())
+  const [menuDescriptions, setMenuDescriptions] = useState<Record<string, string>>({})
+  const [menuTampilkan, setMenuTampilkan] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
@@ -69,10 +75,26 @@ export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: P
 
         setMenus(fetchedMenus)
 
-        // Set initially selected menu IDs
-        const initiallySelected = new Set(fetchedMenus.filter(m => m.isAssigned).map(m => m.id))
+        // Set initially selected menu IDs and descriptions
+        const initiallySelected = new Set<string>()
+        const initialDescriptions: Record<string, string> = {}
+        const initialTampilkan = new Set<string>()
+
+        fetchedMenus.forEach(m => {
+          if (m.isAssigned) {
+            initiallySelected.add(m.id)
+            if (m.deskripsi) {
+              initialDescriptions[m.id] = m.deskripsi
+            }
+            if (m.tampilkan !== false) { // Default true if undefined
+              initialTampilkan.add(m.id)
+            }
+          }
+        })
 
         setSelectedMenuIds(initiallySelected)
+        setMenuDescriptions(initialDescriptions)
+        setMenuTampilkan(initialTampilkan)
       } catch (error) {
         console.error('Failed to fetch data:', error)
         setSnack({ open: true, message: 'Gagal memuat data', severity: 'error' })
@@ -98,6 +120,27 @@ export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: P
     })
   }
 
+  const handleToggleTampilkan = (menuId: string) => {
+    setMenuTampilkan(prev => {
+      const newSet = new Set(prev)
+
+      if (newSet.has(menuId)) {
+        newSet.delete(menuId)
+      } else {
+        newSet.add(menuId)
+      }
+
+      return newSet
+    })
+  }
+
+  const handleDescriptionChange = (menuId: string, value: string) => {
+    setMenuDescriptions(prev => ({
+      ...prev,
+      [menuId]: value
+    }))
+  }
+
   const handleSelectAll = () => {
     if (selectedMenuIds.size === menus.length) {
       // Deselect all
@@ -114,9 +157,15 @@ export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: P
     setSaving(true)
 
     try {
+      const payload = Array.from(selectedMenuIds).map(id => ({
+        id,
+        deskripsi: menuDescriptions[id] || null,
+        tampilkan: menuTampilkan.has(id)
+      }))
+
       await apiFetchClient(`/api/master/paket/${paket.id}/menu`, {
         method: 'PUT',
-        body: JSON.stringify({ menuIds: Array.from(selectedMenuIds) })
+        body: JSON.stringify({ menus: payload })
       })
 
       setSnack({ open: true, message: 'Menu berhasil di-assign ke paket', severity: 'success' })
@@ -167,14 +216,16 @@ export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: P
                   <TableHead>
                     <TableRow>
                       <TableCell width='50px'>Pilih</TableCell>
+                      <TableCell width='50px'>Tampilkan</TableCell>
                       <TableCell>Nama Menu</TableCell>
                       <TableCell>Icon</TableCell>
+                      <TableCell>Deskripsi</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {menus.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} align='center'>
+                        <TableCell colSpan={5} align='center'>
                           Tidak ada menu tersedia
                         </TableCell>
                       </TableRow>
@@ -187,12 +238,29 @@ export default function PaketMenuAssignment({ open, setOpen, paket, onSaved }: P
                               onChange={() => handleToggleMenu(menu.id)}
                             />
                           </TableCell>
+                          <TableCell>
+                            <Checkbox
+                              checked={menuTampilkan.has(menu.id)}
+                              onChange={() => handleToggleTampilkan(menu.id)}
+                              disabled={!selectedMenuIds.has(menu.id)}
+                            />
+                          </TableCell>
                           <TableCell>{menu.nama}</TableCell>
                           <TableCell>
                             <div className='flex items-center gap-2'>
                               {menu.icon && <i className={menu.icon} />}
                               <span className='text-sm'>{menu.icon || '-'}</span>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <CustomTextField
+                              fullWidth
+                              size='small'
+                              placeholder='Deskripsi tambahan'
+                              value={menuDescriptions[menu.id] || ''}
+                              onChange={e => handleDescriptionChange(menu.id, e.target.value)}
+                              disabled={!selectedMenuIds.has(menu.id)}
+                            />
                           </TableCell>
                         </TableRow>
                       ))

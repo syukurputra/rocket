@@ -11,7 +11,9 @@ export async function GET() {
       },
       include: {
         paketMenus: {
-          include: {
+          select: {
+            tampilkan: true,
+            deskripsi: true,
             menu: {
               select: {
                 id: true,
@@ -20,15 +22,10 @@ export async function GET() {
                 icon: true
               }
             }
-          },
-          orderBy: {
-            menu: {
-              urutan: 'asc'
-            }
           }
         }
       },
-      orderBy: [{ harga: 'asc' }] // Order by price ascending
+      orderBy: [{ urutan: 'asc' }]
     })
 
     return NextResponse.json({

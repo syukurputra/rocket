@@ -30,7 +30,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 async function handlePut(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, harga, status } = body
+    const { nama, deskripsi, hargaBulanan, hargaTahunan, urutan, status } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Nama paket harus diisi' }, { status: 400 })
@@ -41,7 +41,9 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       data: {
         nama,
         deskripsi: deskripsi || null,
-        harga,
+        hargaBulanan,
+        hargaTahunan,
+        urutan: urutan !== undefined ? Number(urutan) : undefined,
         status: status !== undefined ? Boolean(status) : undefined
       }
     })

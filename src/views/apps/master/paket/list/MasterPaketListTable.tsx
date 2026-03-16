@@ -78,17 +78,21 @@ const MasterPaketListTable = () => {
         header: 'Nama Paket',
         cell: ({ row }) => <Typography fontWeight={600}>{row.original.nama}</Typography>
       }),
+      columnHelper.accessor('urutan', {
+        header: 'Urutan',
+        cell: ({ row }) => <Typography>{row.original.urutan}</Typography>
+      }),
       columnHelper.accessor('deskripsi', {
         header: 'Deskripsi',
         cell: ({ row }) => <Typography variant='body2'>{row.original.deskripsi || '-'}</Typography>
       }),
-      columnHelper.accessor('harga', {
-        header: 'Harga',
-        cell: ({ row }) => <Typography>{formatCurrency(row.original.harga)}</Typography>
+      columnHelper.accessor('hargaBulanan', {
+        header: 'Harga Bulanan',
+        cell: ({ row }) => <Typography>{formatCurrency(row.original.hargaBulanan)}</Typography>
       }),
-      columnHelper.accessor('durasi', {
-        header: 'Durasi',
-        cell: ({ row }) => <Typography>{row.original.durasi} Bulan</Typography>
+      columnHelper.accessor('hargaTahunan', {
+        header: 'Harga Tahunan',
+        cell: ({ row }) => <Typography>{formatCurrency(row.original.hargaTahunan)}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',

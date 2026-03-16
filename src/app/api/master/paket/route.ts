@@ -10,7 +10,9 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const pakets = await prisma.masterPaket.findMany({
       include: {
         paketMenus: {
-          include: {
+          select: {
+            deskripsi: true,
+            tampilkan: true,
             menu: {
               select: {
                 id: true,
@@ -21,7 +23,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           }
         }
       },
-      orderBy: [{ nama: 'asc' }]
+      orderBy: [{ urutan: 'asc' }]
     })
 
     return NextResponse.json({
@@ -39,7 +41,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, harga, durasi = 1, status = true } = body
+    const { nama, deskripsi, hargaBulanan, hargaTahunan, urutan = 0, status = true } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Nama paket harus diisi' }, { status: 400 })
@@ -49,8 +51,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       data: {
         nama,
         deskripsi: deskripsi || null,
-        harga,
-        durasi,
+        hargaBulanan,
+        hargaTahunan,
+        urutan,
         status
       }
     })

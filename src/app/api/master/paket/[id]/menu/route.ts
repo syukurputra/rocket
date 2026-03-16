@@ -29,8 +29,13 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
       orderBy: [{ urutan: 'asc' }, { nama: 'asc' }]
     })
 
-    // Create a set of assigned menu IDs for quick lookup
-    const assignedMenuIds = new Set(paket.paketMenus.map(pm => pm.menuId))
+    // Create a map of assigned menu IDs to their descriptions for quick lookup
+    const assignedMenuData = new Map(
+      (paket.paketMenus as any[]).map(pm => [
+        pm.menuId, 
+        { deskripsi: pm.deskripsi, tampilkan: pm.tampilkan }
+      ])
+    )
 
     // Map menus with assignment status
     const menusWithStatus = allMenus.map(menu => ({
@@ -38,7 +43,9 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
       nama: menu.nama,
       path: menu.path,
       icon: menu.icon,
-      isAssigned: assignedMenuIds.has(menu.id)
+      isAssigned: assignedMenuData.has(menu.id),
+      deskripsi: assignedMenuData.get(menu.id)?.deskripsi || null,
+      tampilkan: assignedMenuData.has(menu.id) ? assignedMenuData.get(menu.id)?.tampilkan : true
     }))
 
     return NextResponse.json({
@@ -62,10 +69,10 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
 async function handlePut(request: NextRequest, { params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await request.json()
-    const { menuIds } = body
+    const { menus } = body
 
-    if (!Array.isArray(menuIds)) {
-      return NextResponse.json({ message: 'menuIds must be an array' }, { status: 400 })
+    if (!Array.isArray(menus)) {
+      return NextResponse.json({ message: 'menus must be an array' }, { status: 400 })
     }
 
     // Verify paket exists
@@ -85,11 +92,13 @@ async function handlePut(request: NextRequest, { params }: AuthContext & { param
       })
 
       // Create new menu assignments
-      if (menuIds.length > 0) {
+      if (menus.length > 0) {
         await tx.paketMenu.createMany({
-          data: menuIds.map((menuId: string) => ({
+          data: menus.map((menu: { id: string; deskripsi: string | null; tampilkan: boolean }) => ({
             paketId: params.id,
-            menuId
+            menuId: menu.id,
+            deskripsi: menu.deskripsi || null,
+            tampilkan: menu.tampilkan !== undefined ? menu.tampilkan : true
           }))
         })
       }
