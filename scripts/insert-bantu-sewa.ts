@@ -33,7 +33,6 @@ async function main() {
     console.log('ID:', company.id)
     console.log('Nama:', company.nama)
     console.log('Paket:', company.paket?.nama)
-    console.log('Harga Paket:', company.paket?.harga.toString())
     console.log('Status:', company.status ? 'Active' : 'Inactive')
   } catch (error) {
     console.error('❌ Error:', error)
