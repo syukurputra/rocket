@@ -8,7 +8,8 @@ async function main() {
     const paket = await prisma.masterPaket.create({
       data: {
         nama: 'PAKET A',
-        harga: 0,
+        hargaBulanan: 0,
+        hargaTahunan: 0,
         status: true
       }
     })
