@@ -17,7 +17,6 @@ async function main() {
     console.log('✅ Paket berhasil dibuat!')
     console.log('ID:', paket.id)
     console.log('Nama:', paket.nama)
-    console.log('Harga:', paket.harga.toString())
     console.log('Status:', paket.status ? 'Active' : 'Inactive')
     console.log('')
     console.log('Copy ID ini untuk digunakan di company:')
