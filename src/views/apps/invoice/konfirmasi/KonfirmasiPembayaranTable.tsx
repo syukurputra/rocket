@@ -235,6 +235,7 @@ const KonfirmasiPembayaranTable = () => {
   const table = useReactTable({
     data,
     columns,
+    filterFns: { fuzzy: () => true },
     state: { pagination: { pageIndex: currentPage, pageSize } },
     pageCount: pageCountState || Math.ceil(totalCount / pageSize),
     manualPagination: true,
