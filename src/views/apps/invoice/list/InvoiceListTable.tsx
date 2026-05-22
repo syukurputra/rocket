@@ -278,6 +278,7 @@ const InvoiceListTable = () => {
   const table = useReactTable({
     data,
     columns,
+    filterFns: { fuzzy: () => true },
     state: {
       pagination: {
         pageIndex: currentPage,
