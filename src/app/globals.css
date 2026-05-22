@@ -131,3 +131,40 @@ code {
   background-color: rgb(var(--mui-palette-info-mainChannel) / 0.08);
   border: 0;
 }
+
+@media print {
+  /* Hide layout chrome */
+  .ts-vertical-nav-root,
+  .ts-vertical-layout-header,
+  .ts-vertical-layout-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove padding/margin added by the layout for the sidebar */
+  .ts-vertical-layout-content-wrapper,
+  .ts-vertical-layout-content {
+    margin-inline-start: 0 !important;
+    padding-inline-start: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Let the invoice card fill the full page */
+  .invoice-print-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove card shadow/border for clean print */
+  .invoice-print-area .MuiCard-root {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Hide breadcrumbs and page-level chrome */
+  nav[aria-label='breadcrumb'] {
+    display: none !important;
+  }
+}

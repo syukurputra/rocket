@@ -4,9 +4,6 @@
 import { useState, useEffect } from 'react'
 import type { ChangeEvent } from 'react'
 
-// Next Imports
-import Link from 'next/link'
-
 // MUI Imports
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid2'
@@ -14,7 +11,6 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Switch from '@mui/material/Switch'
 import Chip from '@mui/material/Chip'
-import Button from '@mui/material/Button'
 import InputLabel from '@mui/material/InputLabel'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
@@ -23,38 +19,20 @@ import Box from '@mui/material/Box'
 import classnames from 'classnames'
 
 // Components Imports
-import CustomAvatar from '@core/components/mui/Avatar'
+import PaketPricingCard from '@/src/components/pricing/PaketPricingCard'
+
+// Type Imports
+import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
 import styles from './styles.module.css'
 
-type PaketMenu = {
-  menu: {
-    id: string
-    nama: string
-    keterangan: string | null
-    icon: string | null
-  }
-}
-
-type PricingPlan = {
-  id: string
-  nama: string
-  deskripsi: string | null
-  hargaBulanan: number
-  hargaTahunan: number
-  status: boolean
-  paketMenus: PaketMenu[]
-}
-
 const PricingPlan = () => {
-  // States
   const [pricingPlan, setPricingPlan] = useState<'monthly' | 'annually'>('annually')
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([])
+  const [pricingPlans, setPricingPlans] = useState<MasterPaketClient[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch pricing data from API
   useEffect(() => {
     const fetchPricing = async () => {
       try {
@@ -73,42 +51,15 @@ const PricingPlan = () => {
     fetchPricing()
   }, [])
 
-  const handleChange = (e: ChangeEvent<{ checked: boolean }>) => {
-    if (e.target.checked) {
-      setPricingPlan('annually')
-    } else {
-      setPricingPlan('monthly')
-    }
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPricingPlan(e.target.checked ? 'annually' : 'monthly')
   }
 
-  // Get icon based on package name
-  const getPackageIcon = (nama: string) => {
-    const name = nama.toLowerCase()
+  const getPopularIndex = () => {
+    if (pricingPlans.length === 3) return 1
+    if (pricingPlans.length === 2) return 1
 
-    if (name.includes('basic') || name.includes('dasar')) {
-      return '/images/front-pages/landing-page/pricing-basic.png'
-    } else if (name.includes('team') || name.includes('standard') || name.includes('standar')) {
-      return '/images/front-pages/landing-page/pricing-team.png'
-    } else if (name.includes('enterprise') || name.includes('bisnis')) {
-      return '/images/front-pages/landing-page/pricing-enterprise.png'
-    }
-
-    return '/images/front-pages/landing-page/pricing-basic.png'
-  }
-
-  // Calculate price
-  const getPrice = (plan: PricingPlan) => {
-    if (pricingPlan === 'annually') {
-      return {
-        monthly: plan.hargaTahunan ? plan.hargaTahunan / 12 : plan.hargaBulanan,
-        yearly: plan.hargaTahunan || plan.hargaBulanan * 12
-      }
-    }
-
-    return {
-      monthly: plan.hargaBulanan,
-      yearly: plan.hargaBulanan * 12
-    }
+    return -1
   }
 
   return (
@@ -143,6 +94,7 @@ const PricingPlan = () => {
             </Typography>
           </div>
         </div>
+
         <div className='flex justify-center items-center max-sm:mlb-3 mbe-6'>
           <InputLabel htmlFor='pricing-switch' className='cursor-pointer'>
             Bayar Bulanan
@@ -151,10 +103,6 @@ const PricingPlan = () => {
           <InputLabel htmlFor='pricing-switch' className='cursor-pointer'>
             Bayar Tahunan
           </InputLabel>
-          <div className='flex gap-x-1 items-start max-sm:hidden mis-2 mbe-5'>
-            <img src='/images/front-pages/landing-page/pricing-arrow.png' width='50' alt='arrow' />
-            <Typography className='font-medium'>Hemat 25%</Typography>
-          </div>
         </div>
 
         {loading ? (
@@ -162,85 +110,17 @@ const PricingPlan = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={6}>
-            {pricingPlans.map((plan, index) => {
-              const price = getPrice(plan)
-              const isCurrent = index === 1 // Middle card is popular
-
-              return (
-                <Grid key={plan.id} size={{ xs: 12, lg: 4 }}>
-                  <Card className={`${isCurrent && 'border-2 border-[var(--mui-palette-primary-main)] shadow-xl'}`}>
-                    <CardContent className='flex flex-col gap-8 p-8'>
-                      <div className='is-full flex flex-col items-center gap-3'>
-                        <img
-                          src={getPackageIcon(plan.nama)}
-                          alt={plan.nama}
-                          height='88'
-                          width='86'
-                          className='text-center'
-                        />
-                      </div>
-                      <div className='flex flex-col items-center gap-y-[2px] relative'>
-                        <Typography className='text-center' variant='h4'>
-                          {plan.nama}
-                        </Typography>
-                        <div className='flex items-baseline gap-x-1'>
-                          <Typography variant='h2' color='primary.main' className='font-extrabold'>
-                            Rp.{Math.floor(price.monthly / 1000)}
-                          </Typography>
-                          <Typography color='text.disabled' className='font-medium'>
-                            /bulan
-                          </Typography>
-                        </div>
-                        {pricingPlan === 'annually' && (
-                          <Typography color='text.disabled' className='absolute block-start-[100%]'>
-                            Rp.{Math.floor(price.yearly / 1000)} / tahun
-                          </Typography>
-                        )}
-                      </div>
-                      <div>
-                        <div className='flex flex-col gap-3 mbs-3'>
-                          {plan.paketMenus && plan.paketMenus.length > 0 ? (
-                            plan.paketMenus.slice(0, 6).map(pm => (
-                              <div key={pm.menu.id} className='flex items-center gap-[12px]'>
-                                <CustomAvatar color='primary' skin={isCurrent ? 'filled' : 'light'} size={20}>
-                                  <i className='tabler-check text-sm' />
-                                </CustomAvatar>
-                                <Typography variant='h6'>{pm.menu.keterangan || pm.menu.nama}</Typography>
-                              </div>
-                            ))
-                          ) : (
-                            <>
-                              <div className='flex items-center gap-[12px]'>
-                                <CustomAvatar color='primary' skin={isCurrent ? 'filled' : 'light'} size={20}>
-                                  <i className='tabler-check text-sm' />
-                                </CustomAvatar>
-                                <Typography variant='h6'>Timeline</Typography>
-                              </div>
-                              <div className='flex items-center gap-[12px]'>
-                                <CustomAvatar color='primary' skin={isCurrent ? 'filled' : 'light'} size={20}>
-                                  <i className='tabler-check text-sm' />
-                                </CustomAvatar>
-                                <Typography variant='h6'>Basic search</Typography>
-                              </div>
-                              <div className='flex items-center gap-[12px]'>
-                                <CustomAvatar color='primary' skin={isCurrent ? 'filled' : 'light'} size={20}>
-                                  <i className='tabler-check text-sm' />
-                                </CustomAvatar>
-                                <Typography variant='h6'>Live chat widget</Typography>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Button component={Link} href='/front-pages/payment' variant={isCurrent ? 'contained' : 'tonal'}>
-                        Mulai Sekarang
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              )
-            })}
+          <Grid container spacing={6} justifyContent='center'>
+            {pricingPlans.map((plan, index) => (
+              <Grid key={plan.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                <PaketPricingCard
+                  paket={plan}
+                  isPopular={index === getPopularIndex()}
+                  isActive={false}
+                  billingCycle={pricingPlan}
+                />
+              </Grid>
+            ))}
           </Grid>
         )}
       </div>

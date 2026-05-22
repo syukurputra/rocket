@@ -66,20 +66,20 @@ const PaketPricingPlans = () => {
           <Box className='flex items-center gap-x-2'>
             <Typography color='text.primary' variant='h4' className='text-center'>
               <span className='relative z-[1] font-extrabold'>
-                Tailored pricing plans
+                Paket harga terbaik
                 <img
                   src='/images/front-pages/landing-page/bg-shape.png'
                   alt='bg-shape'
                   className='absolute block-end-0 z-[1] bs-[40%] is-[125%] sm:is-[132%] -inline-start-[10%] sm:inline-start-[-19%] block-start-[17px]'
                 />
               </span>{' '}
-              designed for you
+              dirancang untuk Anda
             </Typography>
           </Box>
           <Typography className='text-center' color='text.secondary'>
-            All plans include 40+ advanced tools and features to boost your product.
+            Semua paket mencakup 40+ fitur canggih untuk meningkatkan bisnis properti Anda.
             <br />
-            Choose the best plan to fit your needs.
+            Pilih paket terbaik yang sesuai dengan kebutuhan Anda.
           </Typography>
         </Box>
       </Box>
@@ -87,16 +87,16 @@ const PaketPricingPlans = () => {
       {/* Billing Cycle Toggle */}
       <Box className='flex justify-center items-center max-sm:mlb-3 mbe-6'>
         <InputLabel htmlFor='pricing-switch' className='cursor-pointer'>
-          Pay Monthly
+          Bayar Bulanan
         </InputLabel>
         <Switch id='pricing-switch' onChange={handleChange} checked={billingCycle === 'annually'} />
         <InputLabel htmlFor='pricing-switch' className='cursor-pointer'>
-          Pay Annually
+          Bayar Tahunan
         </InputLabel>
-        <Box className='flex gap-x-1 items-start max-sm:hidden mis-2 mbe-5'>
+        {/* <Box className='flex gap-x-1 items-start max-sm:hidden mis-2 mbe-5'>
           <img src='/images/front-pages/landing-page/pricing-arrow.png' width='50' alt='arrow' />
           <Typography className='font-medium'>Save 25%</Typography>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Loading State */}

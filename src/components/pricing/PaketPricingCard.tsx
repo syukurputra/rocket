@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 import { Card, CardContent, Typography, Button } from '@mui/material'
 
 import CustomAvatar from '@core/components/mui/Avatar'
@@ -14,18 +16,18 @@ interface PaketPricingCardProps {
 }
 
 const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle }: PaketPricingCardProps) => {
-  // Calculate price based on billing cycle
-  const calculatePrice = () => {
-    if (billingCycle === 'annually') {
-      return typeof paket.hargaTahunan === 'string' ? parseFloat(paket.hargaTahunan) : paket.hargaTahunan
-    }
+  const router = useRouter()
 
-    return typeof paket.hargaBulanan === 'string' ? parseFloat(paket.hargaBulanan) : paket.hargaBulanan
+  const handleGetStarted = () => {
+    router.push(`/paket/checkout/${paket.id}?cycle=${billingCycle}`)
   }
+  const formatPrice = (value: number | string): string =>
+    Math.floor(Number(value))
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
-  const displayPrice = calculatePrice()
-  const monthlyPrice = billingCycle === 'annually' ? displayPrice / 12 : displayPrice
-  const yearlyPrice = billingCycle === 'annually' ? displayPrice : displayPrice * 12
+  const monthlyPrice = paket.hargaBulanan
+  const yearlyPrice = paket.hargaTahunan
 
   // Get icon based on package name
   const getPackageIcon = () => {
@@ -64,7 +66,7 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
           </Typography>
           <div className='flex items-baseline gap-x-1'>
             <Typography variant='h2' color='primary.main' className='font-extrabold'>
-              Rp.{Math.floor(monthlyPrice / 1000)}
+              Rp.{formatPrice(monthlyPrice)}
             </Typography>
             <Typography color='text.disabled' className='font-medium'>
               /bulan
@@ -72,7 +74,7 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
           </div>
           {billingCycle === 'annually' && (
             <Typography color='text.disabled' className='absolute block-start-[100%]'>
-              Rp.{Math.floor(yearlyPrice / 1000)} / tahun
+              Rp.{formatPrice(yearlyPrice)} / tahun
             </Typography>
           )}
         </div>
@@ -118,7 +120,12 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
         </div>
 
         {/* Action Button */}
-        <Button variant={isPopular ? 'contained' : 'tonal'} fullWidth disabled={isActive}>
+        <Button
+          variant={isPopular ? 'contained' : 'tonal'}
+          fullWidth
+          disabled={isActive}
+          onClick={!isActive ? handleGetStarted : undefined}
+        >
           {isActive ? 'Aktif' : 'Get Started'}
         </Button>
       </CardContent>

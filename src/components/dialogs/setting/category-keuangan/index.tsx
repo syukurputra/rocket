@@ -13,16 +13,13 @@ import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
 import Autocomplete from '@mui/material/Autocomplete'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { CategoryKeuanganClient } from '@/src/types/apps/categoryKeuanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -55,12 +52,9 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
+  const { snack, showSnack, closeSnack } = useSnackbar()
   const [icons, setIcons] = useState<Array<{ id: string; nama: string; code: string }>>([])
 
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
 
   // Fetch icons for dropdown
   useEffect(() => {
@@ -107,7 +101,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
 
   const handleSubmit = async () => {
     if (!form.nama) {
-      setSnack({ open: true, message: 'Nama kategori harus diisi', severity: 'error' })
+      showSnack('Nama kategori harus diisi', 'error')
 
       return
     }
@@ -135,8 +129,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Category berhasil diupdate', severity: 'success' })
+        showSnack(json.message ?? 'Category berhasil diupdate')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -161,8 +154,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Category berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'Category berhasil ditambahkan')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -171,7 +163,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
       setSaving(false)
     }
   }
@@ -289,17 +281,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

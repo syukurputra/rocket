@@ -9,8 +9,7 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
-import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -34,11 +33,7 @@ const MasterPaketListTable = () => {
   const [loading, setLoading] = useState(true)
   const [menuDialogOpen, setMenuDialogOpen] = useState(false)
   const [selectedPaket, setSelectedPaket] = useState<MasterPaketClient | null>(null)
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const fetchData = async () => {
     try {
@@ -48,7 +43,7 @@ const MasterPaketListTable = () => {
       setData(response.data || [])
     } catch (error) {
       console.error('Failed to fetch pakets:', error)
-      setSnackbar({ open: true, message: 'Gagal memuat data', severity: 'error' })
+      showSnackbar('Gagal memuat data', 'error')
     } finally {
       setLoading(false)
     }
@@ -57,10 +52,6 @@ const MasterPaketListTable = () => {
   useEffect(() => {
     fetchData()
   }, [])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbar({ open: true, message, severity })
-  }
 
   const formatCurrency = (value: number | string) => {
     const num = typeof value === 'string' ? parseFloat(value) : value
@@ -235,20 +226,7 @@ const MasterPaketListTable = () => {
         </div>
       )}
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          variant='filled'
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
       <PaketMenuAssignment
         open={menuDialogOpen}
         setOpen={setMenuDialogOpen}

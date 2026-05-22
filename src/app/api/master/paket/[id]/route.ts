@@ -8,7 +8,22 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
     const paket = await prisma.masterPaket.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: {
+        paketMenus: {
+          select: {
+            deskripsi: true,
+            tampilkan: true,
+            menu: {
+              select: {
+                id: true,
+                nama: true,
+                keterangan: true
+              }
+            }
+          }
+        }
+      }
     })
 
     if (!paket) {

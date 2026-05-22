@@ -12,7 +12,6 @@ import IconButton from '@mui/material/IconButton'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 import Button from '@mui/material/Button'
@@ -44,6 +43,7 @@ import AddEditRole from '@/src/components/dialogs/role'
 import AssignMenuToRole from '@/src/components/dialogs/assign-menu-to-role'
 
 // Util Imports
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 // Style Imports
@@ -106,15 +106,7 @@ const RoleListTable = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<RoleClient | null>(null)
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const fetchRoleData = async () => {
     try {
@@ -143,14 +135,6 @@ const RoleListTable = () => {
   useEffect(() => {
     fetchRoleData()
   }, [])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus role ini?')) return
@@ -359,16 +343,7 @@ const RoleListTable = () => {
             table.setPageSize(Number(e.target.value))
           }}
         />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snackbar} onClose={closeSnack} />
       </Card>
       <AddEditRole
         open={dialogOpen}

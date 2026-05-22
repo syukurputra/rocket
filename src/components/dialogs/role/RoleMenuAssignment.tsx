@@ -11,17 +11,14 @@ import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import type { MenuClient } from '@/src/types/apps/menuTypes'
 import type { RoleClient } from '@/src/types/apps/roleTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -39,11 +36,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
   const [menus, setMenus] = useState<MenuAssignment[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   // Fetch menus and current role-menu assignments
   useEffect(() => {
@@ -67,7 +60,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
         setMenus(menuAssignments)
       } catch (error) {
         console.error('Failed to fetch data:', error)
-        setSnack({ open: true, message: 'Gagal memuat data', severity: 'error' })
+        showSnack('Gagal memuat data', 'error')
       } finally {
         setLoading(false)
       }
@@ -100,7 +93,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
         body: JSON.stringify({ menus: menusToAssign })
       })
 
-      setSnack({ open: true, message: 'Menu berhasil di-assign ke role', severity: 'success' })
+      showSnack('Menu berhasil di-assign ke role')
       setTimeout(() => {
         setOpen(false)
         window.location.reload()
@@ -108,7 +101,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
     } finally {
       setSaving(false)
     }
@@ -163,17 +156,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

@@ -12,15 +12,11 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -40,6 +36,14 @@ type FormValues = {
   status: boolean
 }
 
+const formatRupiah = (value: string): string => {
+  const num = value.replace(/\D/g, '')
+
+  if (!num) return ''
+
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
 const DEFAULTS: FormValues = {
   nama: '',
   deskripsi: '',
@@ -53,11 +57,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   useEffect(() => {
     if (!open) return
@@ -67,8 +67,8 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         id: initialData.id,
         nama: initialData.nama ?? '',
         deskripsi: initialData.deskripsi ?? '',
-        hargaBulanan: initialData.hargaBulanan?.toString() ?? '',
-        hargaTahunan: initialData.hargaTahunan?.toString() ?? '',
+        hargaBulanan: Math.floor(Number(initialData.hargaBulanan ?? 0)).toString(),
+        hargaTahunan: Math.floor(Number(initialData.hargaTahunan ?? 0)).toString(),
         urutan: initialData.urutan?.toString() ?? '0',
         status: initialData.status ?? true
       })
@@ -85,7 +85,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
 
   const handleSubmit = async () => {
     if (!form.nama) {
-      setSnack({ open: true, message: 'Nama paket harus diisi', severity: 'error' })
+      showSnack('Nama paket harus diisi', 'error')
 
       return
     }
@@ -146,7 +146,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
       setSaving(false)
     }
   }
@@ -212,13 +212,18 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
                   fullWidth
                   label='Harga Bulanan (Rp)'
                   name='hargaBulanan'
-                  type='number'
                   variant='outlined'
                   placeholder='0'
-                  value={form.hargaBulanan}
-                  onChange={handleChange('hargaBulanan')}
+                  value={formatRupiah(form.hargaBulanan)}
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\./g, '')
+
+                    if (raw === '' || /^\d+$/.test(raw)) {
+                      setForm(prev => ({ ...prev, hargaBulanan: raw }))
+                    }
+                  }}
                   required
-                  inputProps={{ min: 0, step: '0.01' }}
+                  inputProps={{ inputMode: 'numeric' }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -226,13 +231,18 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
                   fullWidth
                   label='Harga Tahunan (Rp)'
                   name='hargaTahunan'
-                  type='number'
                   variant='outlined'
                   placeholder='0'
-                  value={form.hargaTahunan}
-                  onChange={handleChange('hargaTahunan')}
+                  value={formatRupiah(form.hargaTahunan)}
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\./g, '')
+
+                    if (raw === '' || /^\d+$/.test(raw)) {
+                      setForm(prev => ({ ...prev, hargaTahunan: raw }))
+                    }
+                  }}
                   required
-                  inputProps={{ min: 0, step: '0.01' }}
+                  inputProps={{ inputMode: 'numeric' }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -257,17 +267,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

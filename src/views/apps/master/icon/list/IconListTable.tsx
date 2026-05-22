@@ -20,7 +20,6 @@ import Tooltip from '@mui/material/Tooltip'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 
@@ -60,6 +59,7 @@ import tableStyles from '@core/styles/table.module.css'
 
 import AddEditIcon from '@components/dialogs/master/icon'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 declare module '@tanstack/table-core' {
@@ -133,15 +133,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const fetchIconData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
@@ -213,14 +205,6 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
       fetchIconData(currentPage, pageSize, searchQuery)
     }
   }, [currentPage])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
 
   const handleSearchChange = (value: string | number) => {
     const searchValue = String(value)
@@ -535,16 +519,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
             setCurrentPage(0)
           }}
         />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snackbar} onClose={closeSnack} />
       </Card>
     </>
   )

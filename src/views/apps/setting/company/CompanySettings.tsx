@@ -10,7 +10,6 @@ import Grid from '@mui/material/Grid2'
 import TextField from '@mui/material/TextField'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -18,6 +17,7 @@ import DialogActions from '@mui/material/DialogActions'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type Company = {
@@ -44,11 +44,7 @@ const CompanySettings = () => {
   const [loading, setLoading] = useState(true)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   // Form state
   const [formData, setFormData] = useState({
@@ -72,7 +68,7 @@ const CompanySettings = () => {
       })
     } catch (error) {
       console.error('Failed to fetch company:', error)
-      setSnackbar({ open: true, message: 'Gagal memuat data perusahaan', severity: 'error' })
+      showSnack('Gagal memuat data perusahaan', 'error')
     } finally {
       setLoading(false)
     }
@@ -105,12 +101,12 @@ const CompanySettings = () => {
 
       setCompany(response.data)
       setEditDialogOpen(false)
-      setSnackbar({ open: true, message: 'Data perusahaan berhasil diperbarui', severity: 'success' })
+      showSnack('Data perusahaan berhasil diperbarui')
     } catch (error) {
       console.error('Failed to update company:', error)
       const errorMessage = error instanceof Error ? error.message : 'Gagal memperbarui data perusahaan'
 
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' })
+      showSnack(errorMessage, 'error')
     } finally {
       setSaving(false)
     }
@@ -340,21 +336,7 @@ const CompanySettings = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          variant='filled'
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

@@ -10,18 +10,15 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 
-import Snackbar from '@mui/material/Snackbar'
-
 import Alert from '@mui/material/Alert'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { TagihanClient } from '@/src/types/apps/tagihanTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -61,7 +58,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   // New state for periode sewa and pricing
   const [periodeSewa, setPeriodeSewa] = useState<string>('')
@@ -71,10 +68,6 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
     hargaBulanan: 0,
     hargaTahunan: 0
   })
-
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
 
   // Fetch Penghuni Data to get Periode Sewa and Room Pricing
   useEffect(() => {
@@ -171,7 +164,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
 
   const handleSubmit = async () => {
     if (!form.keterangan || !form.mulaiSewa || !form.selesaiSewa) {
-      setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+      showSnack('Mohon lengkapi semua field yang diperlukan', 'error')
 
       return
     }
@@ -196,7 +189,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
 
         setOpen(false)
         setSaving(false)
-        setSnack({ open: true, message: json.message ?? 'Tagihan berhasil diupdate', severity: 'success' })
+        showSnack(json.message ?? 'Tagihan berhasil diupdate')
         onSaved?.(json.data)
         window.location.reload()
       } else {
@@ -215,14 +208,14 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
 
         setOpen(false)
         setSaving(false)
-        setSnack({ open: true, message: json.message ?? 'Tagihan berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'Tagihan berhasil ditambahkan')
         onSaved?.(json.data)
         window.location.reload() // Or router.refresh()
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
       setSaving(false)
     }
   }
@@ -481,16 +474,12 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
                                     const data = await response.json()
 
                                     setForm(prev => ({ ...prev, buktiPembayaran: data.url }))
-                                    setSnack({
-                                      open: true,
-                                      message: 'File berhasil diupload ulang',
-                                      severity: 'success'
-                                    })
+                                    showSnack('File berhasil diupload ulang')
                                   } catch (error) {
                                     console.error('Upload error:', error)
                                     const errorMsg = error instanceof Error ? error.message : 'Gagal upload file'
 
-                                    setSnack({ open: true, message: errorMsg, severity: 'error' })
+                                    showSnack(errorMsg, 'error')
                                   } finally {
                                     setSaving(false)
                                   }
@@ -553,12 +542,12 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
                                 const data = await response.json()
 
                                 setForm(prev => ({ ...prev, buktiPembayaran: data.url }))
-                                setSnack({ open: true, message: 'File berhasil diupload', severity: 'success' })
+                                showSnack('File berhasil diupload')
                               } catch (error) {
                                 console.error('Upload error:', error)
                                 const errorMsg = error instanceof Error ? error.message : 'Gagal upload file'
 
-                                setSnack({ open: true, message: errorMsg, severity: 'error' })
+                                showSnack(errorMsg, 'error')
                               } finally {
                                 setSaving(false)
                               }
@@ -586,17 +575,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

@@ -10,15 +10,11 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { CompanyClient } from '@/src/types/apps/companyTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -48,10 +44,10 @@ const DEFAULTS: FormValues = {
 export default function AddEditCompany({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
+    closeSnack()
     setOpen(false)
   }
 
@@ -77,7 +73,7 @@ export default function AddEditCompany({ open, setOpen, mode = 'create', initial
 
   const handleSubmit = async () => {
     if (!form.nama) {
-      setSnack({ open: true, message: 'Nama company harus diisi', severity: 'error' })
+      showSnack('Nama company harus diisi', 'error')
 
       return
     }
@@ -97,7 +93,7 @@ export default function AddEditCompany({ open, setOpen, mode = 'create', initial
           })
         })
 
-        setSnack({ open: true, message: json.message ?? 'Company berhasil diupdate', severity: 'success' })
+        showSnack(json.message ?? 'Company berhasil diupdate')
         onSaved?.(json.data)
         setTimeout(() => window.location.reload(), 1500)
       } else {
@@ -112,14 +108,14 @@ export default function AddEditCompany({ open, setOpen, mode = 'create', initial
           })
         })
 
-        setSnack({ open: true, message: json.message ?? 'Company berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'Company berhasil ditambahkan')
         onSaved?.(json.data)
         setTimeout(() => window.location.reload(), 1500)
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
     } finally {
       setSaving(false)
     }
@@ -213,17 +209,7 @@ export default function AddEditCompany({ open, setOpen, mode = 'create', initial
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={handleSnackClose} />
     </>
   )
 }

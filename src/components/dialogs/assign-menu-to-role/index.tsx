@@ -11,11 +11,10 @@ import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import type { MenuClient } from '@/src/types/apps/menuTypes'
@@ -38,22 +37,13 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
   const [assignments, setAssignments] = useState<Map<string, boolean>>(new Map())
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   useEffect(() => {
     if (!open || !roleId) {
       if (open && !roleId) {
         console.error('AssignMenuToRole: roleId is required but was:', roleId)
-        setSnack({
-          open: true,
-          message: 'Role ID tidak valid. Silakan tutup dialog dan coba lagi.',
-          severity: 'error'
-        })
+        showSnack('Role ID tidak valid. Silakan tutup dialog dan coba lagi.', 'error')
       }
 
       return
@@ -89,7 +79,7 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
         console.error('Failed to fetch data:', error)
         const errorMessage = error instanceof Error ? error.message : 'Failed to load data'
 
-        setSnack({ open: true, message: errorMessage, severity: 'error' })
+        showSnack(errorMessage, 'error')
       } finally {
         setLoading(false)
       }
@@ -136,12 +126,12 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
         })
       })
 
-      setSnack({ open: true, message: 'Menus assigned successfully', severity: 'success' })
+      showSnack('Menus assigned successfully')
       onSaved?.()
       setTimeout(() => setOpen(false), 1500)
     } catch (error) {
       console.error('Failed to assign menus:', error)
-      setSnack({ open: true, message: 'Failed to assign menus', severity: 'error' })
+      showSnack('Failed to assign menus', 'error')
     } finally {
       setSaving(false)
     }
@@ -208,21 +198,7 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={3000}
-        onClose={() => setSnack(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnack(prev => ({ ...prev, open: false }))}
-          severity={snack.severity}
-          variant='filled'
-          sx={{ width: '100%' }}
-        >
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

@@ -17,8 +17,6 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import MenuItem from '@mui/material/MenuItem'
 import TablePagination from '@mui/material/TablePagination'
-import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import type { TextFieldProps } from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 
@@ -60,6 +58,7 @@ import tableStyles from '@core/styles/table.module.css'
 
 import AddEditKeuangan from '@components/dialogs/keuangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import type { FilterValues } from '../TableFilters'
 
@@ -156,15 +155,7 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null)
   const exportMenuOpen = Boolean(exportAnchorEl)
@@ -288,14 +279,6 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
       })
     }
   }, [])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
 
   const getExportFilename = () => {
     const start = startDate ? dayjs(startDate).format('DDMMYYYY') : 'all'
@@ -782,16 +765,7 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
             setCurrentPage(0)
           }}
         />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snack} onClose={closeSnack} />
       </Card>
     </>
   )

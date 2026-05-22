@@ -14,7 +14,6 @@ import MenuItem from '@mui/material/MenuItem'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 
@@ -44,6 +43,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import AddEditCompanyDialog from './AddEditCompanyDialog'
 
 // Util Imports
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 // Style Imports
@@ -110,15 +110,7 @@ const CompanyListTable = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
   const [selectedCompany, setSelectedCompany] = useState<CompanyClient | null>(null)
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const fetchCompanyData = async () => {
     try {
@@ -148,14 +140,6 @@ const CompanyListTable = () => {
   useEffect(() => {
     fetchCompanyData()
   }, [])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
 
   const handleAdd = () => {
     setDialogMode('add')
@@ -396,16 +380,7 @@ const CompanyListTable = () => {
             table.setPageSize(Number(e.target.value))
           }}
         />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snack} onClose={closeSnack} />
       </Card>
       <AddEditCompanyDialog
         open={dialogOpen}

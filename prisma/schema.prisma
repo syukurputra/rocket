@@ -23,6 +23,7 @@ model Company {
   aset             Aset[]
   categoryKeuangan CategoryKeuangan[]
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
+  invoices         Invoice[]          @relation("CompanyInvoices")
   keuangan         Keuangan[]
   penghuni         Penghuni[]
   roles            Role[]
@@ -118,6 +119,7 @@ model User {
   tagihanUpdated          Tagihan[]          @relation("TagihanUpdatedBy")
   company                 Company?           @relation(fields: [companyId], references: [id])
   role                    Role?              @relation(fields: [roleId], references: [id])
+  invoicesCreated         Invoice[]          @relation("InvoiceCreatedBy")
 
   // Self-relation for invitations
   invitedBy    User?  @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
@@ -278,8 +280,37 @@ model MasterPaket {
   updatedAt    DateTime    @updatedAt
   companies    Company[]   @relation("CompanyActivePaket")
   paketMenus   PaketMenu[]
+  invoices     Invoice[]   @relation("PaketInvoices")
 
   @@map("m_paket")
+}
+
+model Invoice {
+  id              String      @id @default(cuid())
+  nomorInvoice    String      @unique
+  status          String      @default("PENDING") // PENDING | PAID | CANCELLED | EXPIRED
+  billingCycle    String      @default("annually") // monthly | annually
+  subtotal        Decimal     @db.Decimal(15, 2)
+  pajak           Decimal     @default(0) @db.Decimal(15, 2)
+  total           Decimal     @db.Decimal(15, 2)
+  catatan         String?     @db.Text
+  tanggalInvoice  DateTime    @default(now())
+  tanggalJatuhTempo DateTime
+  tanggalBayar    DateTime?
+  buktiPembayaran String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  paketId         String
+  createdById     String
+  company         Company     @relation("CompanyInvoices", fields: [companyId], references: [id])
+  paket           MasterPaket @relation("PaketInvoices", fields: [paketId], references: [id])
+  createdBy       User        @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+
+  @@index([companyId])
+  @@index([paketId])
+  @@index([nomorInvoice])
+  @@map("invoice")
 }
 
 model PaketMenu {

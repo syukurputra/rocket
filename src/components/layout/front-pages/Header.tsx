@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Next Imports
 import Link from 'next/link'
@@ -34,9 +34,17 @@ import styles from './styles.module.css'
 const Header = ({ mode }: { mode: Mode }) => {
   // States
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Hooks
   const isBelowLgScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('lg'))
+
+  useEffect(() => {
+    fetch('/api/auth/check', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setIsAuthenticated(data.authenticated === true))
+      .catch(() => setIsAuthenticated(false))
+  }, [])
 
   // Detect window scroll
   const trigger = useScrollTrigger({
@@ -69,18 +77,23 @@ const Header = ({ mode }: { mode: Mode }) => {
           <div className='flex items-center gap-2 sm:gap-4'>
             {/*<ModeDropdown />*/}
             {isBelowLgScreen ? (
-              <CustomIconButton component={Link} variant='contained' href='/login' color='primary'>
-                <i className='tabler-login-2 text-xl' />
+              <CustomIconButton
+                component={Link}
+                variant='contained'
+                href={isAuthenticated ? '/home' : '/login'}
+                color='primary'
+              >
+                <i className={isAuthenticated ? 'tabler-home text-xl' : 'tabler-login-2 text-xl'} />
               </CustomIconButton>
             ) : (
               <Button
                 component={Link}
                 variant='contained'
-                href='/login'
-                startIcon={<i className='tabler-login-2 text-xl' />}
+                href={isAuthenticated ? '/home' : '/login'}
+                startIcon={<i className={isAuthenticated ? 'tabler-home text-xl' : 'tabler-login-2 text-xl'} />}
                 className='whitespace-nowrap'
               >
-                Login
+                {isAuthenticated ? 'Home' : 'Login'}
               </Button>
             )}
           </div>

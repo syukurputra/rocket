@@ -14,18 +14,13 @@ import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
-import Snackbar from '@mui/material/Snackbar'
-
-import Alert from '@mui/material/Alert'
-
 import { styled } from '@mui/material/styles'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { IconClient } from '@/src/types/apps/iconTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -52,11 +47,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
-
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   useEffect(() => {
     if (!open) return
@@ -77,7 +68,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
 
   const handleSubmit = async () => {
     if (!form.nama || !form.code) {
-      setSnack({ open: true, message: 'Nama dan Code Icon harus diisi', severity: 'error' })
+      showSnack('Nama dan Code Icon harus diisi', 'error')
 
       return
     }
@@ -98,8 +89,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Icon berhasil diupdate', severity: 'success' })
+        showSnack(json.message ?? 'Icon berhasil diupdate')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -117,8 +107,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Icon berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'Icon berhasil ditambahkan')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -127,7 +116,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
       setSaving(false)
     }
   }
@@ -192,17 +181,7 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

@@ -15,11 +15,11 @@ import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
-import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import MenuItem from '@mui/material/MenuItem'
 
 // Component Imports
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DirectionalIcon from '@components/DirectionalIcon'
 import CustomTextField from '@core/components/mui/TextField'
 import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
@@ -77,15 +77,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
     hargaTahunan: 0
   })
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   useEffect(() => {
     if (penghuniId) {
@@ -165,14 +157,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
     } finally {
       setLoading(false)
     }
-  }
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
   }
 
   const handleAdd = () => {
@@ -455,16 +439,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
           </Grid>
         </Grid>
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snackbar} onClose={closeSnack} />
       </>
     )
   }
@@ -631,16 +606,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
         </Grid>
       </Grid>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snackbar} onClose={closeSnack} />
     </>
   )
 }

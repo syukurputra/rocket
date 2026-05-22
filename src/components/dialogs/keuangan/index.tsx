@@ -14,22 +14,17 @@ import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
-import Snackbar from '@mui/material/Snackbar'
-
-import Alert from '@mui/material/Alert'
-
 import Typography from '@mui/material/Typography'
 
 import { styled } from '@mui/material/styles'
 
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -90,15 +85,11 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   const [asetOptions, setAsetOptions] = useState<AsetOption[]>([])
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
-  const [allCategories, setAllCategories] = useState<CategoryOption[]>([]) // Menyimpan semua kategori untuk referensi
-
-  const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
-  }
+  const [allCategories, setAllCategories] = useState<CategoryOption[]>([])
 
   // Load initial data saat dialog dibuka
   useEffect(() => {
@@ -159,7 +150,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         }
       } catch (error) {
         console.error('Error loading initial data:', error)
-        setSnack({ open: true, message: 'Gagal memuat data dropdown', severity: 'error' })
+        showSnack('Gagal memuat data dropdown', 'error')
       } finally {
         setLoading(false)
       }
@@ -226,7 +217,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
 
   const handleSubmit = async () => {
     if (!form.jenis || !form.asetId || !form.categoryKeuanganId || form.nominal <= 0 || !form.tanggal) {
-      setSnack({ open: true, message: 'Mohon lengkapi semua field yang diperlukan', severity: 'error' })
+      showSnack('Mohon lengkapi semua field yang diperlukan', 'error')
 
       return
     }
@@ -251,8 +242,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil diupdate', severity: 'success' })
+        showSnack(json.message ?? 'Keuangan berhasil diupdate')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -274,8 +264,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
         setOpen(false)
         setSaving(false)
 
-        // Show success message
-        setSnack({ open: true, message: json.message ?? 'Keuangan berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'Keuangan berhasil ditambahkan')
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -284,7 +273,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
       setSaving(false)
     }
   }
@@ -429,17 +418,7 @@ export default function AddEditKeuangan({ open, setOpen, mode = 'create', initia
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </>
   )
 }

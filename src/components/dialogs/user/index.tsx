@@ -11,16 +11,12 @@ import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
-
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
 import type { UserClient } from '@/src/types/apps/userTypes'
 import type { RoleClient } from '@/src/types/apps/roleTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-
-type SnackState = { open: boolean; message: string; severity: 'success' | 'error' }
 
 type Props = {
   open: boolean
@@ -50,11 +46,11 @@ const DEFAULTS: FormValues = {
 export default function AddEditUser({ open, setOpen, mode = 'create', initialData, onSaved }: Props) {
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' })
+  const { snack, showSnack, closeSnack } = useSnackbar()
   const [roles, setRoles] = useState<RoleClient[]>([])
 
   const handleSnackClose = () => {
-    setSnack(prev => ({ ...prev, open: false }))
+    closeSnack()
     setOpen(false)
   }
 
@@ -97,13 +93,13 @@ export default function AddEditUser({ open, setOpen, mode = 'create', initialDat
 
   const handleSubmit = async () => {
     if (!form.username || !form.email) {
-      setSnack({ open: true, message: 'Username dan email harus diisi', severity: 'error' })
+      showSnack('Username dan email harus diisi', 'error')
 
       return
     }
 
     if (mode === 'create' && !form.password) {
-      setSnack({ open: true, message: 'Password harus diisi', severity: 'error' })
+      showSnack('Password harus diisi', 'error')
 
       return
     }
@@ -113,7 +109,7 @@ export default function AddEditUser({ open, setOpen, mode = 'create', initialDat
     try {
       if (mode === 'edit' && form.id) {
         // For edit, we need a separate endpoint (to be created)
-        setSnack({ open: true, message: 'Edit user belum diimplementasikan', severity: 'error' })
+        showSnack('Edit user belum diimplementasikan', 'error')
       } else {
         const json = await apiFetchClient<{ data: UserClient; message?: string }>(`/api/user`, {
           method: 'POST',
@@ -126,14 +122,14 @@ export default function AddEditUser({ open, setOpen, mode = 'create', initialDat
           })
         })
 
-        setSnack({ open: true, message: json.message ?? 'User berhasil ditambahkan', severity: 'success' })
+        showSnack(json.message ?? 'User berhasil ditambahkan')
         onSaved?.(json.data)
         setTimeout(() => window.location.reload(), 1500)
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Terjadi kesalahan'
 
-      setSnack({ open: true, message: msg, severity: 'error' })
+      showSnack(msg, 'error')
     } finally {
       setSaving(false)
     }
@@ -235,17 +231,7 @@ export default function AddEditUser({ open, setOpen, mode = 'create', initialDat
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={2500}
-        onClose={handleSnackClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: theme => theme.zIndex.snackbar + 1 }}
-      >
-        <Alert onClose={handleSnackClose} severity={snack.severity} variant='filled' sx={{ width: '100%' }}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snack={snack} onClose={handleSnackClose} />
     </>
   )
 }

@@ -12,7 +12,6 @@ import IconButton from '@mui/material/IconButton'
 import TablePagination from '@mui/material/TablePagination'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 import Button from '@mui/material/Button'
@@ -43,6 +42,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import AddEditMenu from '@/src/components/dialogs/menu'
 
 // Util Imports
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 // Style Imports
@@ -105,15 +105,7 @@ const MenuListTable = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuClient | null>(null)
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error' | 'warning' | 'info'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   const fetchMenuData = async () => {
     try {
@@ -142,14 +134,6 @@ const MenuListTable = () => {
   useEffect(() => {
     fetchMenuData()
   }, [])
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
 
   const handleEdit = (menu: MenuClient) => {
     setSelectedMenu(menu)
@@ -365,16 +349,7 @@ const MenuListTable = () => {
             table.setPageSize(Number(e.target.value))
           }}
         />
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant='filled' sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <AppSnackbar snack={snack} onClose={closeSnack} />
       </Card>
       <AddEditMenu
         open={dialogOpen}
