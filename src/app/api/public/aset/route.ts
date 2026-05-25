@@ -32,9 +32,7 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               nama: true,
-              status: true,
-              nominal: true,
-              hargaBulanan: true
+              status: true
             }
           },
           fasilitasAset: {
