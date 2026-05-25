@@ -11,27 +11,40 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak terkait dengan perusahaan' }, { status: 400 })
     }
 
-    const company = await prisma.company.findUnique({
-      where: {
-        id: user.companyId
-      },
-      include: {
-        paket: {
-          select: {
-            id: true,
-            nama: true,
-            deskripsi: true
+    const [company, lastInvoice] = await Promise.all([
+      prisma.company.findUnique({
+        where: { id: user.companyId },
+        include: {
+          paket: {
+            select: { id: true, nama: true, deskripsi: true }
           }
         }
-      }
-    })
+      }),
+      prisma.invoice.findFirst({
+        where: { companyId: user.companyId, status: 'PAID' },
+        orderBy: { tanggalBayar: 'desc' },
+        select: {
+          id: true,
+          nomorInvoice: true,
+          billingCycle: true,
+          subtotal: true,
+          pajak: true,
+          total: true,
+          tanggalBayar: true,
+          tanggalInvoice: true,
+          paket: {
+            select: { id: true, nama: true, deskripsi: true, hargaBulanan: true, hargaTahunan: true }
+          }
+        }
+      })
+    ])
 
     if (!company) {
       return NextResponse.json({ message: 'Company tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
-      data: company,
+      data: { ...company, lastInvoice: lastInvoice ?? null },
       message: 'Company retrieved successfully'
     })
   } catch (error) {

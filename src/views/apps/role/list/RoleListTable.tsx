@@ -98,7 +98,11 @@ type RoleClientWithAction = RoleClient & { action?: string }
 
 const columnHelper = createColumnHelper<RoleClientWithAction>()
 
-const RoleListTable = () => {
+interface RoleListTableProps {
+  apiEndpoint?: string
+}
+
+const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
   const [data, setData] = useState<RoleClientWithAction[]>([])
   const [filteredData, setFilteredData] = useState<RoleClientWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
@@ -115,7 +119,7 @@ const RoleListTable = () => {
       const result = await apiFetchClient<{
         data: RoleClient[]
         message?: string
-      }>('/api/role', undefined, {
+      }>(apiEndpoint, undefined, {
         redirectOn401: '/login'
       })
 
@@ -191,6 +195,10 @@ const RoleListTable = () => {
       columnHelper.accessor('deskripsi', {
         header: 'Deskripsi',
         cell: ({ row }) => <Typography>{row.original.deskripsi || '-'}</Typography>
+      }),
+      columnHelper.accessor('companyId', {
+        header: 'Company',
+        cell: ({ row }) => <Typography>{row.original.company?.nama || '-'}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',

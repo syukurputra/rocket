@@ -14,7 +14,7 @@ const protectedRoutes = [
   /^\/id\/aset\/list(\/|$)/,
   /^\/id\/aset\/view(\/|$)/,
   /^\/id\/keuangan\/list(\/|$)/,
-  /^\/id\/penghuni\/list(\/|$)/,
+  /^\/id\/pelanggan\/list(\/|$)/,
   /^\/id\/master\/icon\/list(\/|$)/
 ]
 

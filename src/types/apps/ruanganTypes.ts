@@ -11,10 +11,6 @@ export type RuanganImage = {
 export type RuanganClient = {
   id: string
   nama: string
-  nominal?: number
-  hargaHarian: number
-  hargaBulanan: number
-  hargaTahunan: number
   status: string
   images?: RuanganImage[]
 }

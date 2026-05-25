@@ -38,6 +38,9 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
             include: {
               icon: true
             }
+          },
+          hargaItemAset: {
+            orderBy: { harga: 'asc' }
           }
         }
       }
@@ -54,10 +57,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     nominal: Number(data.nominal),
     ruangan: data.ruangan.map(r => ({
       ...r,
-      nominal: Number(r.nominal),
-      hargaHarian: Number(r.hargaHarian),
-      hargaBulanan: Number(r.hargaBulanan),
-      hargaTahunan: Number(r.hargaTahunan)
+      hargaItemAset: r.hargaItemAset.map(h => ({ ...h, harga: Number(h.harga) }))
     }))
   }
 

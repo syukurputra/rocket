@@ -73,7 +73,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, status, nominal, hargaHarian, hargaBulanan, hargaTahunan, asetId } = body
+    const { nama, deskripsi, status, asetId } = body
 
     if (!nama || !status || !asetId) {
       return NextResponse.json({ message: 'Nama, status, dan aset harus diisi' }, { status: 400 })
@@ -90,10 +90,6 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nama: nama,
         deskripsi: deskripsi || '',
         status: status,
-        nominal: nominal || 0,
-        hargaHarian: hargaHarian || 0,
-        hargaBulanan: hargaBulanan || 0,
-        hargaTahunan: hargaTahunan || 0,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId

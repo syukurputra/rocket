@@ -187,18 +187,18 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
       <Grid container spacing={6}>
         <Grid size={{ xs: 12 }}>
           <div className='flex items-center justify-between'>
-            <Typography variant='h5'>Daftar Fasilitas Ruangan</Typography>
+            <Typography variant='h5'>Daftar Fasilitas Item Aset</Typography>
             <Button variant='contained' onClick={handleAdd} startIcon={<i className='tabler-plus' />}>
               Tambah
             </Button>
           </div>
-          <Typography className='mb-4'>Kelola daftar fasilitas ruangan</Typography>
+          <Typography className='mb-4'>Kelola daftar fasilitas item aset</Typography>
 
           <TableContainer component={Paper} sx={{ mt: 4 }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Ruangan</TableCell>
+                  <TableCell>Item Aset</TableCell>
                   <TableCell>Icon</TableCell>
                   <TableCell>Nama Fasilitas</TableCell>
                   <TableCell>Aksi</TableCell>
@@ -208,7 +208,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
                 {fasilitas.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} align='center'>
-                      Belum ada data fasilitas ruangan
+                      Belum ada data fasilitas item aset
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -264,13 +264,10 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
             </Button>
             <Button
               variant='contained'
-              color='success'
-              onClick={() => {
-                onShowMessage?.('Wizard Completed!', 'success')
-                window.location.href = '/aset'
-              }}
+              onClick={handleNext}
+              endIcon={<DirectionalIcon ltrIconClass='tabler-arrow-right' rtlIconClass='tabler-arrow-left' />}
             >
-              Finish
+              Next
             </Button>
           </div>
         </Grid>
@@ -282,8 +279,8 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Fasilitas Ruangan' : 'Tambah Fasilitas Ruangan'}</Typography>
-        <Typography>Silakan lengkapi detail fasilitas ruangan.</Typography>
+        <Typography variant='h5'>{editingId ? 'Edit Fasilitas Item Aset' : 'Tambah Fasilitas Item Aset'}</Typography>
+        <Typography>Silakan lengkapi detail fasilitas item aset.</Typography>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Autocomplete
@@ -291,7 +288,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
           getOptionLabel={option => option.nama}
           value={selectedRuangan}
           onChange={(_, newValue) => setSelectedRuangan(newValue)}
-          renderInput={params => <CustomTextField {...params} label='Ruangan' placeholder='Pilih Ruangan' />}
+          renderInput={params => <CustomTextField {...params} label='Item Aset' placeholder='Pilih Item Aset' />}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>

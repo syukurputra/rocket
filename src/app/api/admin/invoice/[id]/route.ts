@@ -62,6 +62,40 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
           paketEndDate: endDate
         }
       })
+
+      // Tambahkan menu_role untuk Super Admin sesuai paket baru
+      const paketMenus = await prisma.paketMenu.findMany({
+        where: { paketId: invoice.paketId },
+        select: { menuId: true }
+      })
+
+      const superAdminRole = await prisma.role.findFirst({
+        where: {
+          companyId: invoice.companyId,
+          nama: { equals: 'Super Admin', mode: 'insensitive' }
+        },
+        select: {
+          id: true,
+          menuRoles: { select: { menuId: true } }
+        }
+      })
+
+      if (superAdminRole && paketMenus.length > 0) {
+        const existingMenuIds = new Set(superAdminRole.menuRoles.map(mr => mr.menuId))
+        const toInsert = paketMenus
+          .map(pm => pm.menuId)
+          .filter(menuId => !existingMenuIds.has(menuId))
+
+        if (toInsert.length > 0) {
+          await prisma.menuRole.createMany({
+            data: toInsert.map(menuId => ({
+              roleId: superAdminRole.id,
+              menuId
+            })),
+            skipDuplicates: true
+          })
+        }
+      }
     }
 
     // Send email notification for PAID or CANCELLED (non-blocking)

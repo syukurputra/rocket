@@ -24,6 +24,9 @@ import PaketPricingCard from '@/src/components/pricing/PaketPricingCard'
 // Type Imports
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 
+// Hook Imports
+import { useAuth } from '@/src/hooks/useAuth'
+
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
 import styles from './styles.module.css'
@@ -32,6 +35,15 @@ const PricingPlan = () => {
   const [pricingPlan, setPricingPlan] = useState<'monthly' | 'annually'>('annually')
   const [pricingPlans, setPricingPlans] = useState<MasterPaketClient[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+
+  const activePaketId = user?.company?.paketId ?? null
+
+  const getButtonLabel = (paketId: string): string => {
+    if (!user) return 'Mulai Sekarang'
+
+    return paketId === activePaketId ? 'Perpanjang Paket' : 'Ubah Paket'
+  }
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -116,8 +128,9 @@ const PricingPlan = () => {
                 <PaketPricingCard
                   paket={plan}
                   isPopular={index === getPopularIndex()}
-                  isActive={false}
+                  isActive={plan.id === activePaketId}
                   billingCycle={pricingPlan}
+                  buttonLabel={getButtonLabel(plan.id)}
                 />
               </Grid>
             ))}

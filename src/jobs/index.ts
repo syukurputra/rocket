@@ -10,13 +10,14 @@
 
 import type { ScheduledJob } from '../types/scheduler'
 import { wilayahSyncJob } from './wilayahSyncJob'
+import { menuRoleValidationJob } from './menuRoleValidationJob'
 import {
   cleanupTempFilesJob,
   databaseBackupJob,
   dailyReportJob,
   checkPaymentStatusJob,
   reminderNotificationJob
-} from './exampleJobs'
+} from './scheduleJobs'
 
 /**
  * Daftar semua jobs yang tersedia
@@ -25,6 +26,7 @@ import {
 export const allJobs: ScheduledJob[] = [
   // Active jobs
   wilayahSyncJob,
+  menuRoleValidationJob,
 
   // Example jobs (disabled by default)
   cleanupTempFilesJob,

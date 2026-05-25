@@ -2,8 +2,8 @@
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid2'
 import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
+import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 
@@ -43,13 +43,14 @@ const InformationAset = ({ data }: InformationAsetProps) => {
             <Grid container spacing={4}>
               {data.fasilitasAset && data.fasilitasAset.length > 0 ? (
                 data.fasilitasAset.map((fasilitas: any) => (
-                  <Grid key={fasilitas.id} size={{ xs: 12, sm: 4 }}>
-                    <div className='flex items-center gap-2.5'>
-                      <div className='flex'>
-                        <i className={`${fasilitas.icon?.code || 'tabler-circle'} text-xl text-textSecondary`} />
-                      </div>
-                      <Typography color='text.secondary'>{fasilitas.nama}</Typography>
-                    </div>
+                  <Grid key={fasilitas.id}>
+                    <Chip
+                      color='success'
+                      size='small'
+                      variant='tonal'
+                      icon={<i className={fasilitas.icon?.code || 'tabler-circle'} />}
+                      label={fasilitas.nama}
+                    />
                   </Grid>
                 ))
               ) : (
@@ -67,7 +68,7 @@ const InformationAset = ({ data }: InformationAsetProps) => {
                 <MapPicker latitude={data.latitude ?? -6.2088} longitude={data.longitude ?? 106.8456} />
               </div>
               <Button variant='contained' className='mbs-5'>
-                Contact Now
+                Hubungi Sekarang
               </Button>
             </div>
           </CardContent>

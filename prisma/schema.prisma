@@ -200,10 +200,6 @@ model Ruangan {
   nama             String
   deskripsi        String?            @db.Text
   status           String             @default("tidak huni")
-  nominal          Decimal            @default(0) @db.Decimal(15, 2)
-  hargaHarian      Decimal            @default(0) @db.Decimal(15, 2)
-  hargaBulanan     Decimal            @default(0) @db.Decimal(15, 2)
-  hargaTahunan     Decimal            @default(0) @db.Decimal(15, 2)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   createdById      String
@@ -217,9 +213,23 @@ model Ruangan {
   updatedBy        User               @relation("RuanganUpdatedBy", fields: [updatedById], references: [id])
   images           RuanganImage[]
   fasilitasRuangan FasilitasRuangan[]
+  hargaItemAset    HargaItemAset[]
 
   @@index([companyId])
-  @@map("ruangan")
+  @@map("item_aset")
+}
+
+model HargaItemAset {
+  id         String   @id @default(cuid())
+  jenisHarga String   // JAM | HARIAN | BULANAN | TAHUNAN
+  harga      Decimal  @db.Decimal(15, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ruanganId  String
+  ruangan    Ruangan  @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+
+  @@index([ruanganId])
+  @@map("harga_item_aset")
 }
 
 model RuanganImage {
@@ -233,7 +243,7 @@ model RuanganImage {
   ruangan   Ruangan  @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
 
   @@index([ruanganId])
-  @@map("ruangan_image")
+  @@map("item_aset_image")
 }
 
 model FasilitasRuangan {
@@ -248,7 +258,7 @@ model FasilitasRuangan {
 
   @@index([ruanganId])
   @@index([iconId])
-  @@map("fasilitas_ruangan")
+  @@map("fasilitas_item_aset")
 }
 
 model MasterIcon {
@@ -266,6 +276,16 @@ model MasterIcon {
   updatedBy        User               @relation("IconUpdatedBy", fields: [updatedById], references: [id])
 
   @@map("m_icon")
+}
+
+model MasterJenisAset {
+  id        String   @id @default(cuid())
+  nama      String
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("m_jenis_aset")
 }
 
 model MasterPaket {
@@ -375,7 +395,7 @@ model Penghuni {
   tagihan      Tagihan[]
 
   @@index([companyId])
-  @@map("penghuni")
+  @@map("pelanggan")
 }
 
 model Tagihan {

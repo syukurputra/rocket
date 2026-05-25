@@ -4,6 +4,7 @@ export type RoleClient = {
   deskripsi: string | null
   status: boolean
   companyId: string | null
+  company?: { id: string; nama: string } | null
   createdAt: Date
   updatedAt: Date
 }

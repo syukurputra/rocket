@@ -24,11 +24,7 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
           select: {
             id: true,
             nama: true,
-            status: true,
-            nominal: true,
-            hargaHarian: true,
-            hargaBulanan: true,
-            hargaTahunan: true
+            status: true
           }
         },
         createdBy: {

@@ -20,6 +20,24 @@ import Divider from '@mui/material/Divider'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
+type LastInvoice = {
+  id: string
+  nomorInvoice: string
+  billingCycle: string
+  subtotal: number
+  pajak: number
+  total: number
+  tanggalBayar: string | null
+  tanggalInvoice: string
+  paket: {
+    id: string
+    nama: string
+    deskripsi: string | null
+    hargaBulanan: number
+    hargaTahunan: number
+  } | null
+}
+
 type Company = {
   id: string
   nama: string
@@ -30,13 +48,8 @@ type Company = {
   paketId: string | null
   paketStartDate: string | null
   paketEndDate: string | null
-  paket?: {
-    id: string
-    nama: string
-    deskripsi: string | null
-    hargaBulanan: number
-    hargaTahunan: number
-  } | null
+  paket?: { id: string; nama: string; deskripsi: string | null } | null
+  lastInvoice?: LastInvoice | null
 }
 
 const CompanySettings = () => {
@@ -228,23 +241,41 @@ const CompanySettings = () => {
                 Informasi Paket
               </Typography>
 
-              {company.paket ? (
+              {company.lastInvoice ? (
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
                     <Typography variant='caption' color='text.secondary'>
                       Paket Aktif
                     </Typography>
                     <Typography variant='h6' className='mt-1'>
-                      {company.paket.nama}
+                      {company.lastInvoice.paket?.nama || company.paket?.nama || '-'}
                     </Typography>
                   </Grid>
 
                   <Grid size={{ xs: 12 }}>
                     <Typography variant='caption' color='text.secondary'>
-                      Harga Bulanan
+                      Siklus Pembayaran
                     </Typography>
                     <Typography variant='body1' fontWeight={600} className='mt-1'>
-                      {formatCurrency(Number(company.paket.hargaBulanan))}
+                      {company.lastInvoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Total Pembayaran Terakhir
+                    </Typography>
+                    <Typography variant='body1' fontWeight={600} color='primary.main' className='mt-1'>
+                      {formatCurrency(Number(company.lastInvoice.total))}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      No. Invoice
+                    </Typography>
+                    <Typography variant='body2' className='mt-1'>
+                      {company.lastInvoice.nomorInvoice}
                     </Typography>
                   </Grid>
 
@@ -260,17 +291,25 @@ const CompanySettings = () => {
                       {formatDate(company.paketStartDate)} - {formatDate(company.paketEndDate)}
                     </Typography>
                   </Grid>
-
-                  {company.paket.deskripsi && (
-                    <Grid size={{ xs: 12 }}>
-                      <Typography variant='caption' color='text.secondary'>
-                        Deskripsi
-                      </Typography>
-                      <Typography variant='body2' className='mt-1'>
-                        {company.paket.deskripsi}
-                      </Typography>
-                    </Grid>
-                  )}
+                </Grid>
+              ) : company.paket ? (
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Paket Aktif
+                    </Typography>
+                    <Typography variant='h6' className='mt-1'>
+                      {company.paket.nama}
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Periode Aktif
+                    </Typography>
+                    <Typography variant='body2' className='mt-1'>
+                      {formatDate(company.paketStartDate)} - {formatDate(company.paketEndDate)}
+                    </Typography>
+                  </Grid>
                 </Grid>
               ) : (
                 <Alert severity='info'>Tidak ada paket aktif</Alert>

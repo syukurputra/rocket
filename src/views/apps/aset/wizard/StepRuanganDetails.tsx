@@ -6,6 +6,8 @@ import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -38,11 +40,6 @@ type RuanganData = {
   nama: string
   deskripsi?: string
   status: string
-
-  // Nominal removed
-  hargaHarian: number
-  hargaBulanan: number
-  hargaTahunan: number
   images?: any[]
 }
 
@@ -56,27 +53,12 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   // Form State
   const [nama, setNama] = useState('')
   const [deskripsi, setDeskripsi] = useState('')
-  const [status, setStatus] = useState('Tidak Dihuni') // Standardized to Title Case
-  const [hargaHarian, setHargaHarian] = useState('')
-  const [hargaBulanan, setHargaBulanan] = useState('')
-  const [hargaTahunan, setHargaTahunan] = useState('')
+  const [status, setStatus] = useState('Tidak Dihuni')
 
   // File Upload State
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [existingImages, setExistingImages] = useState<any[]>([])
-
-  // Helper function to format number with thousand separators
-  const formatNumber = (value: string | number): string => {
-    if (!value) return ''
-    const numValue = typeof value === 'string' ? value.replace(/\D/g, '') : String(value)
-
-    return numValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  }
-
-  // Helper function to parse formatted number back to plain number
-  const parseNumber = (value: string): string => {
-    return value.replace(/\./g, '')
-  }
+  const [previewImg, setPreviewImg] = useState<string | null>(null)
 
   useEffect(() => {
     if (asetId) {
@@ -111,22 +93,19 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
     setNama(room.nama)
     setDeskripsi(room.deskripsi || '')
     setStatus(room.status)
-    setHargaHarian(formatNumber(room.hargaHarian))
-    setHargaBulanan(formatNumber(room.hargaBulanan))
-    setHargaTahunan(formatNumber(room.hargaTahunan))
     setExistingImages(room.images || [])
     setSelectedFiles([])
     setView('form')
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus ruangan ini?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus item aset ini?')) {
       try {
         await apiFetchClient(`/api/ruangan/${id}`, { method: 'DELETE' })
         fetchRooms()
       } catch (error) {
         console.error('Error deleting room:', error)
-        onShowMessage?.('Gagal menghapus ruangan.', 'error')
+        onShowMessage?.('Gagal menghapus item aset.', 'error')
       }
     }
   }
@@ -172,9 +151,6 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
     setNama('')
     setDeskripsi('')
     setStatus('tidak dihuni')
-    setHargaHarian('')
-    setHargaBulanan('')
-    setHargaTahunan('')
     setSelectedFiles([])
     setExistingImages([])
   }
@@ -186,10 +162,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
       asetId,
       nama,
       deskripsi,
-      status,
-      hargaHarian: Number(parseNumber(hargaHarian)),
-      hargaBulanan: Number(parseNumber(hargaBulanan)),
-      hargaTahunan: Number(parseNumber(hargaTahunan))
+      status
     }
 
     try {
@@ -237,7 +210,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
       setView('table')
     } catch (error) {
       console.error('Error saving room:', error)
-      onShowMessage?.('Gagal menyimpan ruangan.', 'error')
+      onShowMessage?.('Gagal menyimpan item aset.', 'error')
     }
   }
 
@@ -255,45 +228,33 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
       <Grid container spacing={6}>
         <Grid size={{ xs: 12 }}>
           <div className='flex items-center justify-between'>
-            <Typography variant='h5'>Daftar Ruangan</Typography>
+            <Typography variant='h5'>Daftar Item Aset</Typography>
             <Button variant='contained' onClick={handleAdd} startIcon={<i className='tabler-plus' />}>
               Tambah
             </Button>
           </div>
-          <Typography className='mb-4'>Kelola daftar ruangan untuk aset ini.</Typography>
+          <Typography className='mb-4'>Kelola daftar item aset.</Typography>
 
           <TableContainer component={Paper} sx={{ mt: 4 }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Nama Ruangan</TableCell>
+                  <TableCell>Nama Item Aset</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Harga Harian</TableCell>
-                  <TableCell>Harga Bulanan</TableCell>
-                  <TableCell>Harga Tahunan</TableCell>
                   <TableCell>Aksi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rooms.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} align='center'>
-                      Belum ada data ruangan
+                    <TableCell colSpan={3} align='center'>
+                      Belum ada data item aset
                     </TableCell>
                   </TableRow>
                 ) : (
                   rooms.map((room, index) => (
                     <TableRow key={index}>
                       <TableCell>{room.nama}</TableCell>
-                      <TableCell>
-                        {Number(room.hargaHarian).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
-                      </TableCell>
-                      <TableCell>
-                        {Number(room.hargaBulanan).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
-                      </TableCell>
-                      <TableCell>
-                        {Number(room.hargaTahunan).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
-                      </TableCell>
                       <TableCell>
                         <Chip label={room.status} color={getStatusColor(room.status)} size='small' variant='tonal' />
                       </TableCell>
@@ -356,16 +317,17 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
 
   // Form View
   return (
+    <>
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Ruangan' : 'Tambah Ruangan'}</Typography>
-        <Typography>Silakan lengkapi detail ruangan.</Typography>
+        <Typography variant='h5'>{editingId ? 'Edit Item Aset' : 'Tambah Item Aset'}</Typography>
+        <Typography>Silakan lengkapi detail item aset.</Typography>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <CustomTextField
           fullWidth
-          label='Nama Ruangan'
-          placeholder='Contoh: Kamar 101'
+          label='Nama Item Aset'
+          placeholder='Contoh: Kamar/Ruangan/Jenis Motor/Jenis Mobil'
           value={nama}
           onChange={e => setNama(e.target.value)}
         />
@@ -374,56 +336,28 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
         <CustomTextField
           select
           fullWidth
-          label='Status Ruangan'
+          label='Status Item Aset'
           value={status}
           onChange={e => setStatus(e.target.value)}
         >
-          <MenuItem value='tidak dihuni'>Tidak Dihuni</MenuItem>
-          <MenuItem value='huni'>Huni</MenuItem>
+          <MenuItem value='tersedia'>Tersedia</MenuItem>
+          <MenuItem value='tidak tersedia'>Tidak Tersedia</MenuItem>
         </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12 }}>
         <CustomTextField
           fullWidth
           label='Deskripsi'
-          placeholder='Deskripsi ruangan'
+          placeholder='Deskripsi item aset'
           value={deskripsi}
           onChange={e => setDeskripsi(e.target.value)}
           multiline
           rows={3}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
-        <CustomTextField
-          fullWidth
-          label='Harga Harian'
-          placeholder='0'
-          value={hargaHarian}
-          onChange={e => setHargaHarian(formatNumber(e.target.value))}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
-        <CustomTextField
-          fullWidth
-          label='Harga Bulanan'
-          placeholder='0'
-          value={hargaBulanan}
-          onChange={e => setHargaBulanan(formatNumber(e.target.value))}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
-        <CustomTextField
-          fullWidth
-          label='Harga Tahunan'
-          placeholder='0'
-          value={hargaTahunan}
-          onChange={e => setHargaTahunan(formatNumber(e.target.value))}
-        />
-      </Grid>
-
       <Grid size={{ xs: 12 }}>
         <Typography variant='h6' sx={{ mb: 2 }}>
-          Upload Gambar Ruangan
+          Upload Gambar Item Aset
         </Typography>
         <div className='flex flex-col gap-4'>
           <Button
@@ -471,7 +405,12 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
               <div className='flex flex-wrap gap-4'>
                 {existingImages.map((img: any) => (
                   <div key={img.id} className='flex flex-col items-center gap-1 border p-2 rounded relative group'>
-                    <img src={img.filepath} alt={img.filename} className='w-[100px] h-[100px] object-cover rounded' />
+                    <img
+                      src={img.filepath}
+                      alt={img.filename}
+                      className='w-[100px] h-[100px] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                      onClick={() => setPreviewImg(img.filepath)}
+                    />
                     <div className='absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                       <Button
                         variant='contained'
@@ -509,6 +448,22 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
         </div>
       </Grid>
     </Grid>
+
+      <Dialog open={!!previewImg} onClose={() => setPreviewImg(null)} maxWidth='md' fullWidth>
+        <DialogContent sx={{ p: 2, position: 'relative', bgcolor: 'background.paper' }}>
+          <IconButton onClick={() => setPreviewImg(null)} sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+            <i className='tabler-x' />
+          </IconButton>
+          {previewImg && (
+            <img
+              src={previewImg}
+              alt='preview'
+              style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

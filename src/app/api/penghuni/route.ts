@@ -45,10 +45,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           ruangan: {
             select: {
               id: true,
-              nama: true,
-              hargaHarian: true,
-              hargaBulanan: true,
-              hargaTahunan: true
+              nama: true
             }
           }
         },

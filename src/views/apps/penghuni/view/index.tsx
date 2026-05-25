@@ -22,9 +22,9 @@ const PenghuniList = ({ initialData, penghuniData, penghuniId }: PenghuniListPro
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 2 }}>
-          <Link href='/penghuni' style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link href='/pelanggan' style={{ textDecoration: 'none', color: 'inherit' }}>
             <Typography color='text.primary' sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
-              Penghuni
+              Pelanggan
             </Typography>
           </Link>
           <Typography color='text.primary'>Detail Penghuni</Typography>

@@ -13,9 +13,10 @@ interface PaketPricingCardProps {
   isPopular?: boolean
   isActive?: boolean
   billingCycle: 'monthly' | 'annually'
+  buttonLabel?: string
 }
 
-const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle }: PaketPricingCardProps) => {
+const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle, buttonLabel }: PaketPricingCardProps) => {
   const router = useRouter()
 
   const handleGetStarted = () => {
@@ -121,12 +122,11 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
 
         {/* Action Button */}
         <Button
-          variant={isPopular ? 'contained' : 'tonal'}
+          variant={isActive ? 'contained' : 'tonal'}
           fullWidth
-          disabled={isActive}
-          onClick={!isActive ? handleGetStarted : undefined}
+          onClick={handleGetStarted}
         >
-          {isActive ? 'Aktif' : 'Get Started'}
+          {buttonLabel ?? (isActive ? 'Perpanjang Paket' : 'Ubah Paket')}
         </Button>
       </CardContent>
     </Card>

@@ -9,6 +9,9 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import MenuItem from '@mui/material/MenuItem'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import IconButton from '@mui/material/IconButton'
 
 // Component Imports
 import Autocomplete from '@mui/material/Autocomplete'
@@ -36,6 +39,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [nama, setNama] = useState(initialData?.nama || '')
   const [jenis, setJenis] = useState(initialData?.status || 'aktif')
   const [tipe, setTipe] = useState(initialData?.jenis || '') // Map DB 'jenis' to UI 'tipe'
+  const [jenisAsetOptions, setJenisAsetOptions] = useState<{ id: string; nama: string }[]>([])
   const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi || '')
 
   const [alamat, setAlamat] = useState(initialData?.alamat || '')
@@ -69,6 +73,14 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [existingImages, setExistingImages] = useState<any[]>(initialData?.images || [])
   const [isLoading, setIsLoading] = useState(false)
+  const [previewImg, setPreviewImg] = useState<string | null>(null)
+
+  // Fetch jenis aset options
+  useEffect(() => {
+    apiFetchClient<{ data: { id: string; nama: string; status: boolean }[] }>('/api/master/jenis-aset')
+      .then(res => setJenisAsetOptions((res.data || []).filter(j => j.status)))
+      .catch(() => {})
+  }, [])
 
   // Update form when initialData changes (after save)
   useEffect(() => {
@@ -261,6 +273,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   }
 
   return (
+    <>
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
         <Typography variant='h5'>Informasi Aset</Typography>
@@ -284,12 +297,17 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField
+          select
           fullWidth
           label='Jenis Aset (Tipe)'
-          placeholder='Contoh: Rumah, Apartemen, Kantor'
           value={tipe}
           onChange={e => setTipe(e.target.value)}
-        />
+        >
+          <MenuItem value=''>-- Pilih Jenis Aset --</MenuItem>
+          {jenisAsetOptions.map(opt => (
+            <MenuItem key={opt.id} value={opt.nama}>{opt.nama}</MenuItem>
+          ))}
+        </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12, md: 12 }}>
         <CustomTextField
@@ -437,7 +455,12 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
               <div className='flex flex-wrap gap-4'>
                 {existingImages.map((img: any) => (
                   <div key={img.id} className='flex flex-col items-center gap-1 border p-2 rounded relative group'>
-                    <img src={img.filepath} alt={img.filename} className='w-[100px] h-[100px] object-cover rounded' />
+                    <img
+                      src={img.filepath}
+                      alt={img.filename}
+                      className='w-[100px] h-[100px] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                      onClick={() => setPreviewImg(img.filepath)}
+                    />
                     <div className='absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                       <Button
                         variant='contained'
@@ -502,6 +525,22 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
         </div>
       </Grid>
     </Grid>
+
+      <Dialog open={!!previewImg} onClose={() => setPreviewImg(null)} maxWidth='md' fullWidth>
+        <DialogContent sx={{ p: 2, position: 'relative', bgcolor: 'background.paper' }}>
+          <IconButton onClick={() => setPreviewImg(null)} sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+            <i className='tabler-x' />
+          </IconButton>
+          {previewImg && (
+            <img
+              src={previewImg}
+              alt='preview'
+              style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

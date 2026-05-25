@@ -7,28 +7,19 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 // GET /api/role - List roles for user's company
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
-    // Super admin can access all roles
-    const isSuperAdmin = user.roleId === 'superadmin' || user.role?.nama?.toLowerCase() === 'superadmin'
-
-    // Validate non-superadmin users have a company
-    if (!isSuperAdmin && !user.companyId) {
+    if (!user.companyId) {
       return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
     }
 
     const roles = await prisma.role.findMany({
-      where: isSuperAdmin
-        ? {}
-        : {
-            companyId: user.companyId!
-          },
-      orderBy: {
-        createdAt: 'desc'
-      },
+      where: { companyId: user.companyId },
+      orderBy: { createdAt: 'desc' },
       include: {
+        company: {
+          select: { id: true, nama: true }
+        },
         _count: {
-          select: {
-            users: true
-          }
+          select: { users: true }
         }
       }
     })

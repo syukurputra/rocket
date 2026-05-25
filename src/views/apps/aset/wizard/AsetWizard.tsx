@@ -24,6 +24,7 @@ import StepAsetDetails from './StepAsetDetails'
 import StepFasilitasDetails from './StepFasilitasDetails'
 import StepRuanganDetails from './StepRuanganDetails'
 import StepFasilitasRuanganDetails from './StepFasilitasRuanganDetails'
+import StepHargaItemAset from './StepHargaItemAset'
 
 // Styled Component Imports
 import StepperWrapper from '@core/styles/stepper'
@@ -42,13 +43,18 @@ const steps = [
   },
   {
     icon: 'tabler-door',
-    title: 'Ruangan',
-    subtitle: 'Informasi Ruangan'
+    title: 'Item Aset',
+    subtitle: 'Informasi Item Aset'
   },
   {
     icon: 'tabler-prism-plus',
-    title: 'Fasilitas Ruangan',
-    subtitle: 'Informasi Fasilitas Ruangan'
+    title: 'Fasilitas Item Aset',
+    subtitle: 'Informasi Fasilitas Item Aset'
+  },
+  {
+    icon: 'tabler-currency-dollar',
+    title: 'Harga Item Aset',
+    subtitle: 'Informasi Harga Item Aset'
   }
 ]
 
@@ -83,10 +89,6 @@ type AsetData = {
 type RuanganData = {
   nama: string
   status: string
-  nominal: number
-  hargaHarian: number
-  hargaBulanan: number
-  hargaTahunan: number
 }
 
 const AsetWizard = ({ mode = 'create', initialData }: Props) => {
@@ -230,13 +232,13 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
       })
 
       if (res.data) {
-        showMessage('Ruangan berhasil ditambahkan!', 'success')
+        showMessage('Item aset berhasil ditambahkan!', 'success')
 
         // Optional: Redirect or reset
       }
     } catch (error) {
       console.error('Error saving ruangan:', error)
-      showMessage('Gagal menyimpan ruangan.', 'error')
+      showMessage('Gagal menyimpan item aset.', 'error')
     }
   }
 
@@ -280,6 +282,17 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
       case 3:
         return (
           <StepFasilitasRuanganDetails
+            activeStep={step}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            steps={steps}
+            asetId={asetId}
+            onShowMessage={showMessage}
+          />
+        )
+      case 4:
+        return (
+          <StepHargaItemAset
             activeStep={step}
             handleNext={handleNext}
             handlePrev={handlePrev}

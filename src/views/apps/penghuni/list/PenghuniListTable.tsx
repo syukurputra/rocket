@@ -266,7 +266,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         cell: ({ row }) => (
           <div className='flex items-center'>
             <Tooltip title='Ubah'>
-              <IconButton onClick={() => router.push(`/penghuni/edit/${row.original.id}`)}>
+              <IconButton onClick={() => router.push(`/pelanggan/edit/${row.original.id}`)}>
                 <i className='tabler-eye text-textSecondary' />
               </IconButton>
             </Tooltip>
@@ -433,8 +433,8 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 <MenuItem value='50'>50</MenuItem>
               </CustomTextField>
             </div>
-            <Button variant='contained' component={Link} href='/penghuni/add' startIcon={<i className='tabler-plus' />}>
-              Tambah Penghuni
+            <Button variant='contained' component={Link} href='/pelanggan/add' startIcon={<i className='tabler-plus' />}>
+              Tambah Pelanggan
             </Button>
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>

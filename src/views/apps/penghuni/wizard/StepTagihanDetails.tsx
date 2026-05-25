@@ -430,7 +430,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
                 color='success'
                 onClick={() => {
                   alert('Wizard Completed!')
-                  window.location.href = '/penghuni'
+                  window.location.href = '/pelanggan'
                 }}
               >
                 Finish
