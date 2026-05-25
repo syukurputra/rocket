@@ -59,11 +59,7 @@ export async function GET(req: NextRequest) {
     const sanitizedData = data.map(item => ({
       ...item,
       nominal: Number(item.nominal),
-      ruangan: item.ruangan.map(r => ({
-        ...r,
-        nominal: Number(r.nominal),
-        hargaBulanan: Number(r.hargaBulanan)
-      }))
+      ruangan: item.ruangan.map(r => ({ ...r }))
     }))
 
     return NextResponse.json({
