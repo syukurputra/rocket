@@ -127,8 +127,8 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
     setAsetId('')
     setRuanganId('')
     setPeriodeSewa('bulanan')
-    setMulaiHuni(new Date())
-    setSelesaiHuni(null)
+    setMulaiSewa(new Date())
+    setSelesaiSewa(null)
     setEmail('')
     setNomorTelepon('')
   }
