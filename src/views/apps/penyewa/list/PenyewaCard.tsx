@@ -21,7 +21,7 @@ import classnames from 'classnames'
 // Utils
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
-interface Penyewatats {
+interface PenyewaStats {
   totalPenyewa: number
   totalNonAktif: number
 }
