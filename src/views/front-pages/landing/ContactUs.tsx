@@ -14,14 +14,12 @@ import classnames from 'classnames'
 
 // Components Imports
 import CustomAvatar from '@core/components/mui/Avatar'
-import CustomTextField from '@core/components/mui/TextField'
 
 // Hook Imports
 import { useIntersection } from '@/src/hooks/useIntersection'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
-import styles from '@views/front-pages/landing/styles.module.css'
 
 const ContactUs = () => {
   // Refs
@@ -52,89 +50,74 @@ const ContactUs = () => {
   return (
     <section id='contact-us' className='plb-[100px] bg-backgroundDefault' ref={ref}>
       <div className={classnames('flex flex-col gap-14', frontCommonStyles.layoutSpacing)}>
-        <div className='flex flex-col gap-y-4 items-center justify-center'>
-          <Chip size='small' variant='tonal' color='primary' label='Contact Us' />
-          <div className='flex flex-col items-center gap-y-1 justify-center flex-wrap'>
-            <div className='flex items-center gap-x-2'>
-              <Typography color='text.primary' variant='h4'>
-                <span className='relative z-[1] font-extrabold'>
-                  Let&#39;s work
-                  <img
-                    src='/images/front-pages/landing-page/bg-shape.png'
-                    alt='bg-shape'
-                    className='absolute block-end-0 z-[1] bs-[40%] is-[132%] -inline-start-[19%] block-start-[17px]'
-                  />
-                </span>{' '}
-                together
-              </Typography>
-            </div>
-            <Typography className='text-center'>Any question or remark? just write us a message</Typography>
-          </div>
+        <div className='flex flex-col gap-y-4 items-center justify-center text-center'>
+          <Chip size='small' variant='tonal' color='primary' label='Hubungi Kami' />
+          <Typography color='text.primary' variant='h4' className='font-extrabold'>
+            Hubungi Tim Bantu Sewa
+          </Typography>
+          <Typography className='max-is-[520px]'>
+            Kami berkomitmen untuk memberikan pelayanan terbaik. Jangan ragu untuk menghubungi kami kapan saja.
+          </Typography>
+          <Button
+            variant='contained'
+            color='primary'
+            size='large'
+            startIcon={<i className='tabler-brand-whatsapp' />}
+            href='https://wa.me/6285643344041'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='mbs-2'
+          >
+            Chat dengan Tim Kami
+          </Button>
         </div>
-        <div className='lg:pis-[38px]'>
-          <Grid container spacing={6}>
-            <Grid size={{ xs: 12, md: 6, lg: 5 }}>
-              <div className={classnames('border p-[10px] relative', styles.contactRadius)}>
-                <img
-                  src='/images/front-pages/landing-page/contact-border.png'
-                  className='absolute -block-start-[7%] -inline-start-[8%] max-is-full max-lg:hidden '
-                  alt='contact-border'
-                  width='180'
-                />
-                <img
-                  src='/images/front-pages/landing-page/customer-service.png'
-                  alt='customer-service'
-                  className={classnames('is-full', styles.contactRadius)}
-                />
-                <div className='flex justify-between flex-wrap gap-4 pli-6 pbs-4 pbe-[10px]'>
-                  <div className='flex gap-3'>
-                    <CustomAvatar variant='rounded' size={36} skin='light' color='primary'>
-                      <i className='tabler-mail' />
-                    </CustomAvatar>
-                    <div>
-                      <Typography>Email</Typography>
-                      <Typography color='text.primary' className='font-medium'>
-                        example@gamil.com
-                      </Typography>
-                    </div>
-                  </div>
-                  <div className='flex gap-3'>
-                    <CustomAvatar variant='rounded' size={36} skin='light' color='success'>
-                      <i className='tabler-phone' />
-                    </CustomAvatar>
-                    <div>
-                      <Typography>Phone</Typography>
-                      <Typography color='text.primary' className='font-medium'>
-                        +123 568 963
-                      </Typography>
-                    </div>
-                  </div>
+        <Grid container spacing={6} justifyContent='center'>
+          {/* <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Card className='text-center h-full'>
+              <CardContent className='flex flex-col items-center gap-4 pbs-8 pbe-8'>
+                <CustomAvatar variant='rounded' size={56} skin='light' color='primary'>
+                  <i className='tabler-building text-2xl' />
+                </CustomAvatar>
+                <div className='flex flex-col gap-1'>
+                  <Typography variant='h6' color='text.primary' className='font-semibold'>
+                    Perusahaan
+                  </Typography>
+                  <Typography color='text.secondary'>PT Syukur</Typography>
                 </div>
-              </div>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-              <Card>
-                <CardContent>
-                  <div className='flex flex-col gap-y-[6px] mbe-6'>
-                    <Typography variant='h4'>Send a message</Typography>
-                    <Typography>
-                      If you would like to discuss anything related to payment, account, licensing, partnerships, or
-                      have pre-sales questions, you&#39;re at the right place.
-                    </Typography>
-                  </div>
-                  <form className='flex flex-col items-start gap-6'>
-                    <div className='flex gap-5 is-full'>
-                      <CustomTextField fullWidth label='Full name' id='name-input' />
-                      <CustomTextField fullWidth label='Email address' id='email-input' type='email' />
-                    </div>
-                    <CustomTextField fullWidth multiline rows={7} label='Message' id='message-input' />
-                    <Button variant='contained'>Send Inquiry</Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </Grid>
+              </CardContent>
+            </Card>
+          </Grid> */}
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Card className='text-center h-full'>
+              <CardContent className='flex flex-col items-center gap-4 pbs-8 pbe-8'>
+                <CustomAvatar variant='rounded' size={56} skin='light' color='success'>
+                  <i className='tabler-brand-whatsapp text-2xl' />
+                </CustomAvatar>
+                <div className='flex flex-col gap-1'>
+                  <Typography variant='h6' color='text.primary' className='font-semibold'>
+                    WhatsApp
+                  </Typography>
+                  <Typography color='text.secondary'>+62 856-4334-4041</Typography>
+                </div>
+              </CardContent>
+            </Card>
           </Grid>
-        </div>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Card className='text-center h-full'>
+              <CardContent className='flex flex-col items-center gap-4 pbs-8 pbe-8'>
+                <CustomAvatar variant='rounded' size={56} skin='light' color='info'>
+                  <i className='tabler-mail text-2xl' />
+                </CustomAvatar>
+                <div className='flex flex-col gap-1'>
+                  <Typography variant='h6' color='text.primary' className='font-semibold'>
+                    Email
+                  </Typography>
+                  <Typography color='text.secondary'>notif@bantusewa.com</Typography>
+                </div>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </div>
     </section>
   )

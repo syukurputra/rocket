@@ -1,14 +1,11 @@
-// React Imports
-import { useState, useEffect } from 'react'
-
 // Next Imports
 import Link from 'next/link'
 
 // MUI Imports
 import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid2'
 import { useColorScheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import type { Theme } from '@mui/material/styles'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -24,46 +21,18 @@ import styles from '@views/front-pages/landing/styles.module.css'
 import frontCommonStyles from '@views/front-pages/styles.module.css'
 
 const HeroSection = ({ mode }: { mode: SystemMode }) => {
-  // States
-  const [transform, setTransform] = useState('')
-
   // Vars
-  const dashboardImageLight = '/images/front-pages/landing-page/hero-dashboard-light.jpg'
-  const dashboardImageDark = '/images/front-pages/landing-page/hero-dashboard-dark.jpg'
-
-  // const elementsImageLight = '/images/front-pages/landing-page/hero-elements-light.png'
-  // const elementsImageDark = '/images/front-pages/landing-page/hero-elements-dark.png'
+  const dashboardImageLight = '/images/front-pages/landing-page/landing-header.png'
+  const dashboardImageDark = '/images/front-pages/landing-page/landing-header.png'
   const heroSectionBgLight = '/images/front-pages/landing-page/hero-bg-light.png'
   const heroSectionBgDark = '/images/front-pages/landing-page/hero-bg-dark.png'
 
   // Hooks
   const { mode: muiMode } = useColorScheme()
   const dashboardImage = useImageVariant(mode, dashboardImageLight, dashboardImageDark)
-
-  // const elementsImage = useImageVariant(mode, elementsImageLight, elementsImageDark)
   const heroSectionBg = useImageVariant(mode, heroSectionBgLight, heroSectionBgDark)
 
   const _mode = (muiMode === 'system' ? mode : muiMode) || mode
-  const isAboveLgScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'))
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const handleMouseMove = (event: MouseEvent) => {
-        const rotateX = (window.innerHeight - 2 * event.clientY) / 100
-        const rotateY = (window.innerWidth - 2 * event.clientX) / 100
-
-        setTransform(
-          `perspective(1200px) rotateX(${rotateX < -40 ? -20 : rotateX}deg) rotateY(${rotateY}deg) scale3d(1,1,1)`
-        )
-      }
-
-      window.addEventListener('mousemove', handleMouseMove)
-
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-      }
-    }
-  }, [])
 
   return (
     <section id='home' className='overflow-hidden pbs-[75px] -mbs-[75px] relative'>
@@ -75,38 +44,44 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
           [styles.bgDark]: _mode === 'dark'
         })}
       />
-      <div className={classnames('pbs-[88px] overflow-hidden', frontCommonStyles.layoutSpacing)}>
-        <div className='md:max-is-[550px] mbs-0 mbe-7 mli-auto text-center relative'>
-          <Typography
-            className={classnames('font-extrabold sm:text-[42px] text-3xl mbe-4 leading-[48px]', styles.heroText)}
-          >
-            Satu platform, kendali penuh
-          </Typography>
-          <Typography className='font-medium' color='text.primary'>
-            Kelola villa, apartemen, hingga keuangan dalam satu dasbor cerdas. Bangun website sewa Anda sekarang dan
-            automasi bisnis properti Anda!
-          </Typography>
-          {/* <div className='flex mbs-6 items-baseline justify-center relative'>
-            <div className='flex gap-2 absolute inline-start-[0%] block-start-[41%] max-md:hidden'>
-              <Typography className='font-medium'>Join community</Typography>
-              <img src='/images/front-pages/landing-page/join-community-arrow.png' alt='arrow' height='48' width='60' />
+      <div className={classnames('pbs-[88px] pbe-12 relative z-[1]', frontCommonStyles.layoutSpacing)}>
+        <Grid container spacing={6} alignItems='center'>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <div className='flex flex-col gap-6 max-lg:text-center'>
+              <Typography
+                variant='h2'
+                className={classnames('font-extrabold leading-tight', styles.heroText)}
+              >
+                Kelola bisnis sewa<br />
+                tanpa ribet &<br />
+                tanpa salah tagih
+              </Typography>
+              <Typography variant='h6' color='text.secondary' className='font-normal max-is-[520px] max-lg:mli-auto'>
+                Dari properti, kendaraan, perlengkapan bayi, hingga perlengkapan acara — semua transaksi, pelanggan,
+                dan aset sewa Anda dalam satu dasbor cerdas.
+              </Typography>
+              <div className='flex gap-4 flex-wrap max-lg:justify-center'>
+                <Button
+                  component={Link}
+                  href='/register'
+                  variant='contained'
+                  color='primary'
+                  size='large'
+                >
+                  Coba Gratis
+                </Button>
+              </div>
             </div>
-            <Button
-              component={Link}
-              size='large'
-              href='/front-pages/landing-page#pricing-plans'
-              variant='contained'
-              color='primary'
-            >
-              Get Early Access
-            </Button>
-          </div> */}
-        </div>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <img
+              src={dashboardImage}
+              alt='dashboard preview'
+              className='is-full'
+            />
+          </Grid>
+        </Grid>
       </div>
-      <div
-        className={classnames('relative text-center', frontCommonStyles.layoutSpacing)}
-        style={{ transform: isAboveLgScreen ? transform : 'none' }}
-      ></div>
     </section>
   )
 }

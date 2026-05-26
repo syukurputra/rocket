@@ -4,10 +4,10 @@
 import { useEffect } from 'react'
 
 // Next Imports
-// import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 // MUI Imports
-// import Typography from '@mui/material/Typography'
+import Typography from '@mui/material/Typography'
 import Drawer from '@mui/material/Drawer'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { Theme } from '@mui/material/styles'
@@ -19,11 +19,6 @@ import classnames from 'classnames'
 // Type Imports
 import type { Mode } from '@core/types'
 
-// Hook Imports
-// import { useIntersection } from '@/src/hooks/useIntersection'
-
-// Component Imports
-// import DropdownMenu from './DropdownMenu'
 
 type Props = {
   mode: Mode
@@ -89,76 +84,22 @@ const FrontMenu = (props: Props) => {
 
   return (
     <Wrapper isBelowLgScreen={isBelowLgScreen} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen}>
-      {/* <Typography
-        color='text.primary'
-        component={Link}
-        href='/front-pages/landing-page'
-        className={classnames('font-medium plb-3 pli-1.5 hover:text-primary', {
-          'text-primary':
-            !intersections.features &&
-            !intersections.team &&
-            !intersections.faq &&
-            !intersections['contact-us'] &&
-            pathname === '/front-pages/landing-page'
-        })}
-      >
-        Home
+      <Typography color='text.primary' component={Link} href='/landing#features'
+        className='font-medium plb-3 pli-1.5 hover:text-primary'>
+        Fitur Unggulan
       </Typography>
-      <Typography
-        color='text.primary'
-        component={Link}
-        href='/front-pages/landing-page#features'
-        className={classnames('font-medium plb-3 pli-1.5 hover:text-primary', {
-          'text-primary': intersections.features
-        })}
-      >
-        Features
+      <Typography color='text.primary' component={Link} href='/landing#pricing-plans'
+        className='font-medium plb-3 pli-1.5 hover:text-primary'>
+        Paket Harga
       </Typography>
-      <Typography
-        color='text.primary'
-        component={Link}
-        href='/front-pages/landing-page#team'
-        className={classnames('font-medium plb-3 pli-1.5 hover:text-primary', {
-          'text-primary': intersections.team
-        })}
-      >
-        Team
-      </Typography>
-      <Typography
-        color='text.primary'
-        component={Link}
-        href='/front-pages/landing-page#faq'
-        className={classnames('font-medium plb-3 pli-1.5 hover:text-primary', {
-          'text-primary': intersections.faq
-        })}
-      >
+      <Typography color='text.primary' component={Link} href='/landing#faq'
+        className='font-medium plb-3 pli-1.5 hover:text-primary'>
         FAQ
       </Typography>
-      <Typography
-        color='text.primary'
-        component={Link}
-        href='/front-pages/landing-page#contact-us'
-        className={classnames('font-medium plb-3 pli-1.5 hover:text-primary', {
-          'text-primary': intersections['contact-us']
-        })}
-      >
-        Contact us
+      <Typography color='text.primary' component={Link} href='/landing#contact-us'
+        className='font-medium plb-3 pli-1.5 hover:text-primary'>
+        Hubungi Kami
       </Typography>
-      <DropdownMenu
-        mode={mode}
-        isBelowLgScreen={isBelowLgScreen}
-        isDrawerOpen={isDrawerOpen}
-        setIsDrawerOpen={setIsDrawerOpen}
-      />
-      <Typography
-        component={Link}
-        color='text.primary'
-        href='/'
-        target='_blank'
-        className='font-medium plb-3 pli-1.5 hover:text-primary'
-      >
-        Admin
-      </Typography> */}
     </Wrapper>
   )
 }

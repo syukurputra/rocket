@@ -29,28 +29,34 @@ type FaqsDataTypes = {
 const FaqsData: FaqsDataTypes[] = [
   {
     id: 'panel1',
-    question: 'Do you charge for each upgrade?',
+    question: 'Apa itu Bantu Sewa?',
+    active: true,
     answer:
-      'Lemon drops chocolate cake gummies carrot cake chupa chups muffin topping. Sesame snaps icing marzipan gummi bears macaroon dragée danish caramels powder. Bear claw dragée pastry topping soufflé. Wafer gummi bears marshmallow pastry pie.'
+      'Bantu Sewa adalah platform manajemen properti sewa yang membantu pemilik properti mengelola aset, kamar/unit, penghuni, pembayaran, dan laporan secara digital. Dengan Bantu Sewa, proses pengelolaan kos atau properti sewa menjadi lebih mudah, terorganisir, dan efisien.'
   },
   {
     id: 'panel2',
-    question: 'What is regular license?',
-    active: true,
+    question: 'Bagaimana cara mendaftarkan properti saya di Bantu Sewa?',
     answer:
-      'Regular license can be used for end products that do not charge users for access or service(access is free and there will be no monthly subscription fee). Single regular license can be used for single end product and end product can be used by you or your client. If you want to sell end product to multiple clients then you will need to purchase separate license for each client. The same rule applies if you want to use the same end product on multiple domains(unique setup). For more info on regular license you can check official description.'
+      'Setelah mendaftar akun, Anda dapat langsung menambahkan properti (aset) melalui menu Aset. Isi informasi aset seperti nama, alamat, fasilitas, dan unggah foto. Selanjutnya tambahkan unit atau kamar beserta harga sewanya. Properti Anda akan segera bisa dikelola melalui dashboard.'
   },
   {
     id: 'panel3',
-    question: 'What is extended license?',
+    question: 'Apakah data penghuni dan pembayaran aman?',
     answer:
-      'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis et aliquid quaerat possimus maxime! Mollitia reprehenderit neque repellat deleniti delectus architecto dolorum maxime, blanditiis earum ea, incidunt quam possimus cumque.'
+      'Ya, keamanan data adalah prioritas kami. Semua data disimpan dengan enkripsi dan hanya dapat diakses oleh akun yang berwenang. Kami menggunakan infrastruktur cloud yang andal untuk memastikan ketersediaan dan keamanan data Anda setiap saat.'
   },
   {
     id: 'panel4',
-    question: 'Which license is applicable for SASS application?',
+    question: 'Apakah Bantu Sewa bisa digunakan untuk berbagai jenis properti?',
     answer:
-      'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis et aliquid quaerat possimus maxime! Mollitia reprehenderit neque repellat deleniti delectus architecto dolorum maxime, blanditiis earum ea, incidunt quam possimus cumque.'
+      'Ya, Bantu Sewa dirancang fleksibel untuk berbagai jenis properti sewa seperti kos, kontrakan, apartemen, ruko, dan properti komersial lainnya. Anda dapat mengatur struktur aset sesuai kebutuhan spesifik properti Anda.'
+  },
+  {
+    id: 'panel5',
+    question: 'Bagaimana cara menghubungi tim support Bantu Sewa?',
+    answer:
+      'Anda dapat menghubungi tim kami melalui WhatsApp di +62 856-4334-4041 atau email ke notif@bantusewa.com. Tim kami siap membantu Anda pada hari kerja pukul 08.00–17.00 WIB.'
   }
 ]
 
@@ -88,19 +94,19 @@ const Faqs = () => {
           <div className='flex flex-col items-center gap-y-1 justify-center flex-wrap'>
             <div className='flex items-center gap-x-2'>
               <Typography color='text.primary' variant='h4'>
-                Frequently asked
+                Pertanyaan yang Sering
                 <span className='relative z-[1] font-extrabold'>
                   <img
                     src='/images/front-pages/landing-page/bg-shape.png'
                     alt='bg-shape'
                     className='absolute block-end-0 z-[1] bs-[40%] is-[132%] -inline-start-[8%] block-start-[17px]'
                   />{' '}
-                  questions
+                  Diajukan
                 </span>
               </Typography>
             </div>
             <Typography className='text-center'>
-              Browse through these FAQs to find answers to commonly asked questions.
+              Semua hal yang perlu Anda ketahui tentang Bantu Sewa dan bagaimana cara menggunakannya
             </Typography>
           </div>
         </div>
@@ -108,7 +114,7 @@ const Faqs = () => {
           <Grid container spacing={6}>
             <Grid size={{ xs: 12, lg: 5 }} className='text-center'>
               <img
-                src='/images/front-pages/landing-page/boy-sitting-with-laptop.png'
+                src='/images/front-pages/landing-page/image-faq.png'
                 alt='boy with laptop'
                 className='is-[80%] max-is-[320px]'
               />
