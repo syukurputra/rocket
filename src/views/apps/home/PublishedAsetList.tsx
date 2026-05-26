@@ -206,7 +206,7 @@ const PublishedAsetList = (props: Props) => {
                 <MenuItem value='All'>Semua Jenis</MenuItem>
                 {jenisOptions.map(jenis => (
                   <MenuItem key={jenis} value={jenis}>
-                    {jenis.charAt(0).toUpperCase() + jenis.slice(1)}
+                    {jenis}
                   </MenuItem>
                 ))}
               </Select>

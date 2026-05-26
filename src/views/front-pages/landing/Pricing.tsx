@@ -78,7 +78,7 @@ const PricingPlan = () => {
     <section
       id='pricing-plans'
       className={classnames(
-        'flex flex-col gap-8 lg:gap-12 plb-[100px] bg-backgroundDefault rounded-[60px]',
+        'flex flex-col gap-8 lg:gap-12 plb-[100px] bg-backgroundDefault',
         styles.sectionStartRadius
       )}
     >

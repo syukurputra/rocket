@@ -242,7 +242,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                 disabled={loading}
                 startIcon={loading ? <CircularProgress size={20} color='inherit' /> : null}
               >
-                {loading ? 'Memproses...' : 'Login'}
+                {loading ? 'Memproses...' : 'Masuk'}
               </Button>
               <div className='flex items-center gap-2'>
                 <Divider className='flex-grow' />
@@ -259,7 +259,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                 onClick={() => (window.location.href = '/api/auth/google')}
                 type='button'
               >
-                Login dengan Google
+                Masuk dengan Google
               </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Belum Punya Akun? </Typography>

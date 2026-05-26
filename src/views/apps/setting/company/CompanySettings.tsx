@@ -175,7 +175,7 @@ const CompanySettings = () => {
               <div className='flex justify-between items-center mb-6'>
                 <Typography variant='h5'>Informasi Perusahaan</Typography>
                 <Button variant='contained' onClick={handleEditClick} startIcon={<i className='tabler-edit' />}>
-                  Edit
+                  Ubah
                 </Button>
               </div>
 
@@ -321,7 +321,7 @@ const CompanySettings = () => {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={() => !saving && setEditDialogOpen(false)} maxWidth='sm' fullWidth>
-        <DialogTitle>Edit Informasi Perusahaan</DialogTitle>
+        <DialogTitle>Ubah Informasi Perusahaan</DialogTitle>
         <DialogContent>
           <Grid container spacing={4} className='mt-1'>
             <Grid size={{ xs: 12 }}>

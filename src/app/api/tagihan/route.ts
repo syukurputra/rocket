@@ -24,7 +24,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       prisma.tagihan.findMany({
         where: whereClause,
         include: {
-          penghuni: {
+          penyewa: {
             select: {
               id: true,
               nama: true
@@ -74,9 +74,9 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { keterangan, mulaiSewa, selesaiSewa, penghuniId, nominal } = body
+    const { keterangan, mulaiSewa, selesaiSewa, penyewaId, nominal } = body
 
-    if (!keterangan || !mulaiSewa || !selesaiSewa || !penghuniId) {
+    if (!keterangan || !mulaiSewa || !selesaiSewa || !penyewaId) {
       return NextResponse.json({ message: 'keterangan, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
     }
 
@@ -111,13 +111,13 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         mulaiSewa: mulaiSewaDate,
         selesaiSewa: selesaiSewaDate,
         nominal: nominal || 0,
-        penghuniId: penghuniId,
+        penyewaId: penyewaId,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId
       },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,

@@ -46,10 +46,10 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: 'desc' }
       }),
       prisma.aset.count({ where }),
-      prisma.aset.findMany({
-        where: { status: 'publish' },
-        select: { jenis: true },
-        distinct: ['jenis']
+      prisma.masterJenisAset.findMany({
+        where: { status: true },
+        select: { nama: true },
+        orderBy: { nama: 'asc' }
       })
     ])
 
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       data: sanitizedData,
-      jenisOptions: jenisOptions.map(j => j.jenis),
+      jenisOptions: jenisOptions.map(j => j.nama),
       pagination: {
         page,
         limit,

@@ -114,7 +114,7 @@ const AddEditCompanyDialog = ({ open, onClose, onSuccess, companyData, mode }: A
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>{mode === 'add' ? 'Tambah Company' : 'Edit Company'}</DialogTitle>
+      <DialogTitle>{mode === 'add' ? 'Tambah Company' : 'Ubah Company'}</DialogTitle>
       <DialogContent>
         <Grid container spacing={4} sx={{ mt: 0.5 }}>
           <Grid size={{ xs: 12 }}>

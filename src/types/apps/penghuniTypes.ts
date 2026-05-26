@@ -1,12 +1,12 @@
-export type PenghuniClient = {
+export type Penyewaient = {
   id: string
   nama: string
   email?: string | null
   nomorTelepon?: string | null
   status: string
   periodeSewa?: string
-  mulaiHuni: string | Date
-  selesaiHuni: string | Date
+  mulaiSewa: string | Date
+  selesaiSewa: string | Date
   asetId: string
   ruanganId: string
   aset?: {

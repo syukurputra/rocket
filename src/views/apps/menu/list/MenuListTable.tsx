@@ -215,7 +215,7 @@ const MenuListTable = () => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center gap-2'>
-            <IconButton onClick={() => handleEdit(row.original)} title='Edit'>
+            <IconButton onClick={() => handleEdit(row.original)} title='Ubah'>
               <i className='tabler-edit text-textSecondary' />
             </IconButton>
             <IconButton onClick={() => handleDelete(row.original)} title='Delete' color='error'>

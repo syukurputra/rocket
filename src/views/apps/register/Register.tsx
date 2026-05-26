@@ -326,7 +326,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>Sudah Punya Akun? </Typography>
                 <Typography component={Link} href='/login' color='primary.main'>
-                  Login
+                  Masuk
                 </Typography>
               </div>
             </form>

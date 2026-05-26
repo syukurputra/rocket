@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export async function sendPaymentInstructionEmail(
   to: string,
-  penghuniName: string,
+  penyewaName: string,
   tagihanKeterangan: string,
   periodeMulai: string,
   periodeSelesai: string,
@@ -178,7 +178,7 @@ export async function sendPaymentInstructionEmail(
         </div>
 
         <div class="greeting">
-          Halo <strong>${penghuniName}</strong>,
+          Halo <strong>${penyewaName}</strong>,
         </div>
 
         <p>Anda memiliki tagihan yang perlu dibayarkan. Berikut adalah detail tagihan Anda:</p>

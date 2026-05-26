@@ -118,7 +118,7 @@ const MenuItem: ForwardRefRenderFunction<HTMLLIElement, MenuItemProps> = (props,
         setActive(true)
       } else {
         // Default: Check if pathname starts with href (for nested routes)
-        // This handles cases like /penghuni/list matching /penghuni/edit/[id]
+        // This handles cases like /penyewa/list matching /penyewa/edit/[id]
         const basePath = href.replace(/\/(list|add|edit|view).*$/, '')
         const isActive = pathname === href || pathname.startsWith(basePath + '/')
 

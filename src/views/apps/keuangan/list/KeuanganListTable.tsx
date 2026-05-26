@@ -521,7 +521,7 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
               element={IconButton}
               elementProps={{
                 className: 'flex',
-                'aria-label': 'Preview / Edit',
+                'aria-label': 'Preview / Ubah',
                 children: <i className='tabler-eye text-textSecondary' />
               }}
               dialog={AddEditKeuangan}

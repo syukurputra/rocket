@@ -17,7 +17,6 @@ import { useIntersection } from '@/src/hooks/useIntersection'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
-import styles from '@views/front-pages/landing/styles.module.css'
 
 type FaqsDataTypes = {
   id: string
@@ -32,7 +31,7 @@ const FaqsData: FaqsDataTypes[] = [
     question: 'Apa itu Bantu Sewa?',
     active: true,
     answer:
-      'Bantu Sewa adalah platform manajemen properti sewa yang membantu pemilik properti mengelola aset, kamar/unit, penghuni, pembayaran, dan laporan secara digital. Dengan Bantu Sewa, proses pengelolaan kos atau properti sewa menjadi lebih mudah, terorganisir, dan efisien.'
+      'Bantu Sewa adalah platform manajemen properti sewa yang membantu pemilik properti mengelola aset, kamar/unit, penyewa, pembayaran, dan laporan secara digital. Dengan Bantu Sewa, proses pengelolaan kos atau properti sewa menjadi lebih mudah, terorganisir, dan efisien.'
   },
   {
     id: 'panel2',
@@ -42,7 +41,7 @@ const FaqsData: FaqsDataTypes[] = [
   },
   {
     id: 'panel3',
-    question: 'Apakah data penghuni dan pembayaran aman?',
+    question: 'Apakah data penyewa dan pembayaran aman?',
     answer:
       'Ya, keamanan data adalah prioritas kami. Semua data disimpan dengan enkripsi dan hanya dapat diakses oleh akun yang berwenang. Kami menggunakan infrastruktur cloud yang andal untuk memastikan ketersediaan dan keamanan data Anda setiap saat.'
   },
@@ -87,7 +86,7 @@ const Faqs = () => {
   }, [])
 
   return (
-    <section id='faq' ref={ref} className={classnames('plb-[100px] bg-backgroundDefault', styles.sectionStartRadius)}>
+    <section id='faq' ref={ref} className='plb-[100px] bg-backgroundDefault'>
       <div className={classnames('flex flex-col gap-16', frontCommonStyles.layoutSpacing)}>
         <div className='flex flex-col gap-y-4 items-center justify-center'>
           <Chip size='small' variant='tonal' color='primary' label='FAQ' />

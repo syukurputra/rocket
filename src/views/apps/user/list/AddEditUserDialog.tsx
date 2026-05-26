@@ -226,7 +226,7 @@ const AddEditUserDialog = ({ open, onClose, onSuccess, userData, mode }: AddEdit
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>{mode === 'add' ? 'Tambah User' : mode === 'invite' ? 'Undang User' : 'Edit User'}</DialogTitle>
+      <DialogTitle>{mode === 'add' ? 'Tambah User' : mode === 'invite' ? 'Undang User' : 'Ubah User'}</DialogTitle>
       <DialogContent>
         <Grid container spacing={4} sx={{ mt: 0.5 }}>
           {mode !== 'invite' && (

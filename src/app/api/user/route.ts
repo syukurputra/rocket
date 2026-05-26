@@ -43,7 +43,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: users,
-      message: 'Data pengguna berhasil diambil'
+      message: 'Data Penyewa berhasil diambil'
     })
   } catch (error) {
     console.error('Get users error:', error)
@@ -91,7 +91,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: newUser,
-        message: 'Pengguna berhasil dibuat'
+        message: 'Penyewa berhasil dibuat'
       },
       { status: 201 }
     )

@@ -12,7 +12,7 @@ async function handlePost(request: NextRequest, { params }: ParamCtx) {
     const tagihan = await prisma.tagihan.findUnique({
       where: { id },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -26,15 +26,15 @@ async function handlePost(request: NextRequest, { params }: ParamCtx) {
       return NextResponse.json({ message: 'Tagihan tidak ditemukan' }, { status: 404 })
     }
 
-    if (!tagihan.penghuni?.email) {
-      return NextResponse.json({ message: 'Penghuni tidak memiliki email' }, { status: 400 })
+    if (!tagihan.penyewa?.email) {
+      return NextResponse.json({ message: 'Penyewa tidak memiliki email' }, { status: 400 })
     }
 
     // Send email notification
     try {
       await sendTagihanNotificationEmail(
-        tagihan.penghuni.email,
-        tagihan.penghuni.nama,
+        tagihan.penyewa.email,
+        tagihan.penyewa.nama,
         tagihan.keterangan,
         tagihan.mulaiSewa.toISOString(),
         tagihan.selesaiSewa.toISOString(),

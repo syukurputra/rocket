@@ -24,16 +24,16 @@ const HomeHeader = (props: Props) => {
       />
       <div className='flex flex-col items-center gap-4 max-md:pli-5 plb-12 md:is-1/2'>
         <Typography variant='h4' className='text-center md:is-3/4'>
-          Temukan Properti Impian Anda.{' '}
+          Temukan Aset Sewa Terbaik.{' '}
           <span className='text-primary'>Semua dalam satu tempat.</span>
         </Typography>
         <Typography className='text-center'>
-          Jelajahi berbagai pilihan aset properti yang tersedia. Temukan kos, kontrakan, atau apartemen yang sesuai
-          dengan kebutuhan Anda.
+          Jelajahi berbagai pilihan aset sewa yang tersedia. Temukan properti, kendaraan, peralatan, atau barang
+          sewaan lainnya yang sesuai dengan kebutuhan Anda.
         </Typography>
         <div className='flex items-center gap-4 max-sm:is-full'>
           <CustomTextField
-            placeholder='Cari aset properti...'
+            placeholder='Cari aset sewa...'
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             className='sm:is-[350px] max-sm:flex-1'

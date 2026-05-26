@@ -25,7 +25,7 @@ model Company {
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
   invoices         Invoice[]          @relation("CompanyInvoices")
   keuangan         Keuangan[]
-  penghuni         Penghuni[]
+  penyewa          Penyewa[]
   roles            Role[]
   ruangan          Ruangan[]
   tagihan          Tagihan[]
@@ -111,8 +111,8 @@ model User {
   keuanganUpdated         Keuangan[]         @relation("KeuanganUpdatedBy")
   iconCreated             MasterIcon[]       @relation("IconCreatedBy")
   iconUpdated             MasterIcon[]       @relation("IconUpdatedBy")
-  penghuniCreated         Penghuni[]         @relation("PenghuniCreatedBy")
-  penghuniUpdated         Penghuni[]         @relation("PenghuniUpdatedBy")
+  penyewaCreated          Penyewa[]         @relation("PenyewaCreatedBy")
+  penyewaUpdated          Penyewa[]         @relation("PenyewaUpdatedBy")
   ruanganCreated          Ruangan[]          @relation("RuanganCreatedBy")
   ruanganUpdated          Ruangan[]          @relation("RuanganUpdatedBy")
   tagihanCreated          Tagihan[]          @relation("TagihanCreatedBy")
@@ -157,7 +157,7 @@ model Aset {
   createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
   updatedBy     User            @relation("UpdatedBy", fields: [updatedById], references: [id])
   keuangan      Keuangan[]
-  penghuni      Penghuni[]
+  penyewa       Penyewa[]
   ruangan       Ruangan[]
   images        AsetImage[]
   fasilitasAset FasilitasAset[]
@@ -206,7 +206,7 @@ model Ruangan {
   updatedById      String
   companyId        String
   asetId           String
-  penghuni         Penghuni[]
+  penyewa          Penyewa[]
   aset             Aset               @relation(fields: [asetId], references: [id])
   company          Company            @relation(fields: [companyId], references: [id])
   createdBy        User               @relation("RuanganCreatedBy", fields: [createdById], references: [id])
@@ -371,15 +371,15 @@ model Keuangan {
   @@map("keuangan")
 }
 
-model Penghuni {
+model Penyewa {
   id           String    @id @default(cuid())
   nama         String
   email        String?   @db.VarChar(191)
   nomorTelepon String?   @db.VarChar(20)
   status       String    @default("KOSONG")
   periodeSewa  String?   @db.VarChar(20)
-  mulaiHuni    DateTime  @default(now())
-  selesaiHuni  DateTime  @default(now())
+  mulaiSewa    DateTime  @default(now())
+  selesaiSewa  DateTime  @default(now())
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   createdById  String
@@ -389,13 +389,13 @@ model Penghuni {
   ruanganId    String
   aset         Aset      @relation(fields: [asetId], references: [id])
   company      Company   @relation(fields: [companyId], references: [id])
-  createdBy    User      @relation("PenghuniCreatedBy", fields: [createdById], references: [id])
+  createdBy    User      @relation("PenyewaCreatedBy", fields: [createdById], references: [id])
   ruangan      Ruangan   @relation(fields: [ruanganId], references: [id])
-  updatedBy    User      @relation("PenghuniUpdatedBy", fields: [updatedById], references: [id])
+  updatedBy    User      @relation("PenyewaUpdatedBy", fields: [updatedById], references: [id])
   tagihan      Tagihan[]
 
   @@index([companyId])
-  @@map("pelanggan")
+  @@map("penyewa")
 }
 
 model Tagihan {
@@ -421,10 +421,10 @@ model Tagihan {
   createdById String
   updatedById String
   companyId   String
-  penghuniId  String
+  penyewaId   String
   company     Company  @relation(fields: [companyId], references: [id])
   createdBy   User     @relation("TagihanCreatedBy", fields: [createdById], references: [id])
-  penghuni    Penghuni @relation(fields: [penghuniId], references: [id])
+  penyewa     Penyewa @relation(fields: [penyewaId], references: [id])
   updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
 
   @@index([companyId])

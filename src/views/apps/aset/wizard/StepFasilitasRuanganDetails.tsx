@@ -279,7 +279,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Fasilitas Item Aset' : 'Tambah Fasilitas Item Aset'}</Typography>
+        <Typography variant='h5'>{editingId ? 'Ubah Fasilitas Item Aset' : 'Tambah Fasilitas Item Aset'}</Typography>
         <Typography>Silakan lengkapi detail fasilitas item aset.</Typography>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>

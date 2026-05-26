@@ -170,7 +170,7 @@ const JenisAsetListTable = () => {
         header: 'Aksi',
         cell: ({ row }: any) => (
           <div className='flex items-center gap-1'>
-            <Tooltip title='Edit'>
+            <Tooltip title='Ubah'>
               <IconButton onClick={() => handleOpenEdit(row.original)}>
                 <i className='tabler-edit text-textSecondary' />
               </IconButton>
@@ -268,7 +268,7 @@ const JenisAsetListTable = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialog.open} onClose={() => !saving && setDialog({ open: false, mode: 'create' })} maxWidth='xs' fullWidth>
-        <DialogTitle>{dialog.mode === 'create' ? 'Tambah Jenis Aset' : 'Edit Jenis Aset'}</DialogTitle>
+        <DialogTitle>{dialog.mode === 'create' ? 'Tambah Jenis Aset' : 'Ubah Jenis Aset'}</DialogTitle>
         <DialogContent>
           <div className='flex flex-col gap-4 mt-2'>
             <TextField

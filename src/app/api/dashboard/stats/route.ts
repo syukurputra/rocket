@@ -35,15 +35,15 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       }
     })
 
-    // Get penghuni yang selesai huni dalam 1 bulan ke depan
+    // Get penyewa yang selesai huni dalam 1 bulan ke depan
     const oneMonthFromNow = new Date()
 
     oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
-    const penghuniSelesaiHuni = await prisma.penghuni.count({
+    const penyewaSelesaiHuni = await prisma.penyewa.count({
       where: {
         companyId: user.companyId,
-        selesaiHuni: {
+        selesaiSewa: {
           gte: new Date(), // dari hari ini
           lte: oneMonthFromNow // sampai 1 bulan ke depan
         }
@@ -55,7 +55,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         totalAsetAktif,
         totalRuanganHuni,
         totalRuanganTidakHuni,
-        penghuniSelesaiHuni
+        penyewaSelesaiHuni
       },
       message: 'Statistics retrieved successfully'
     })

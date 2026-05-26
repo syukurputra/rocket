@@ -259,7 +259,7 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
               element={IconButton}
               elementProps={{
                 className: 'flex',
-                'aria-label': 'Edit',
+                'aria-label': 'Ubah',
                 children: <i className='tabler-edit text-textSecondary' />
               }}
               dialog={AddEditIcon}

@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 
 // Next Imports
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -22,7 +22,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
-import { styled } from '@mui/material/styles'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -42,17 +41,28 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import dayjs from 'dayjs'
+// Type Imports
+import type { ButtonProps } from '@mui/material/Button'
 
-import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
+import type { ThemeColor } from '@core/types'
+import type { TagihanClient } from '@/src/types/apps/tagihanTypes'
+import type { Locale } from '@configs/i18n'
 
 // Component Imports
+import OptionMenu from '@core/components/option-menu'
+import CustomAvatar from '@core/components/mui/Avatar'
 import TablePaginationComponent from '@components/TablePaginationComponent'
 import CustomTextField from '@core/components/mui/TextField'
+
+// Util Imports
+import { getInitials } from '@/src/utils/getInitials'
+import { getLocalizedUrl } from '@/src/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
+import AddEditTagihan from '@components/dialogs/tagihan'
+import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -65,15 +75,16 @@ declare module '@tanstack/table-core' {
   }
 }
 
-const Icon = styled('i')({})
-
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  // Rank the item
   const itemRank = rankItem(row.getValue(columnId), value)
 
+  // Store the itemRank info
   addMeta({
     itemRank
   })
 
+  // Return if the item should be filtered in/out
   return itemRank.passed
 }
 
@@ -100,24 +111,30 @@ const DebouncedInput = ({
     }, debounce)
 
     return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-type PenghuniClientWithAction = PenghuniClient & { action?: string }
+type TagihanClientWithAction = TagihanClient & { action?: string }
 
-const columnHelper = createColumnHelper<PenghuniClientWithAction>()
+// Column Definitions
+const columnHelper = createColumnHelper<TagihanClientWithAction>()
 
-interface PenghuniListTableProps {
-  initialData?: PenghuniClient[]
+interface TagihanListTableProps {
+  asetId?: string
+  initialData?: TagihanClient[]
 }
 
-const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
-  const router = useRouter()
+const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProps) => {
+  const params = useParams()
+  const id = asetId || (params?.id as string)
+
+  const [statusFilter, setStatusFilter] = useState<'' | 'true' | 'false'>('')
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<PenghuniClientWithAction[]>(initialData)
-  const [filteredData, setFilteredData] = useState<PenghuniClientWithAction[]>(initialData)
+  const [data, setData] = useState<TagihanClientWithAction[]>(initialData)
+  const [filteredData, setFilteredData] = useState<TagihanClientWithAction[]>(initialData)
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('') // New state for API search
   const [loading, setLoading] = useState(false)
@@ -129,8 +146,9 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
-  const fetchPenghuniData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
+  const fetchTagihanData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
+      setLoading(true)
       setError(null)
 
       const params = new URLSearchParams({
@@ -143,7 +161,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
       }
 
       const result = await apiFetchClient<{
-        data: PenghuniClient[]
+        data: TagihanClient[]
         pagination: {
           totalCount: number
           totalPages: number
@@ -152,23 +170,23 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           hasNext: boolean
           hasPrev: boolean
         }
-      }>(`/api/penghuni?${params.toString()}`, undefined, {
+      }>(`/api/tagihan?${params.toString()}`, undefined, {
         redirectOn401: '/login'
       })
 
-      const penghuniData = result.data || []
+      const tagihanData = result.data || []
       const totalPagesFromAPI = result.pagination?.totalPages ?? 0
       const totalCountFromAPI = result.pagination?.totalCount
 
       const inferredTotalCount =
-        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : penghuniData.length)
+        totalCountFromAPI ?? (totalPagesFromAPI > 0 ? totalPagesFromAPI * limitNum : tagihanData.length)
 
-      setData(penghuniData)
-      setFilteredData(penghuniData)
+      setData(tagihanData)
+      setFilteredData(tagihanData)
       setTotalCount(inferredTotalCount)
       setPageCountState(totalPagesFromAPI || Math.ceil(inferredTotalCount / limitNum))
     } catch (err) {
-      console.error('Failed to fetch penghuni data:', err)
+      console.error('Failed to fetch tagihan data:', err)
 
       if (err instanceof Error && !err.message.includes('Request failed (401)')) {
         setError(err.message)
@@ -181,7 +199,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setCurrentPage(0)
-      fetchPenghuniData(0, pageSize, searchQuery)
+      fetchTagihanData(0, pageSize, searchQuery)
     }, 500)
 
     return () => clearTimeout(timeoutId)
@@ -189,13 +207,13 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchPenghuniData(currentPage, pageSize, searchQuery)
+      fetchTagihanData(currentPage, pageSize, searchQuery)
     }
   }, [])
 
   useEffect(() => {
     if (initialData.length === 0) {
-      fetchPenghuniData(currentPage, pageSize, searchQuery)
+      fetchTagihanData(currentPage, pageSize, searchQuery)
     }
   }, [currentPage])
 
@@ -203,110 +221,207 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
     const searchValue = String(value)
 
     setSearchQuery(searchValue)
-    setGlobalFilter(searchValue) // Keep local filter in sync for UI
+    setGlobalFilter(searchValue)
   }
 
-  const columns = useMemo<ColumnDef<PenghuniClientWithAction, any>[]>(
+  const buttonProps: ButtonProps = {
+    variant: 'contained',
+    children: 'Tambah'
+  }
+
+  const columns = useMemo<ColumnDef<TagihanClientWithAction, any>[]>(
     () => [
-      columnHelper.accessor('asetId', {
-        header: 'Aset',
-        cell: ({ row }) => {
-          const aset = (row.original as any).aset
-
-          return <Typography>{aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}</Typography>
-        }
+      columnHelper.accessor('keterangan', {
+        header: 'Keterangan',
+        cell: ({ row }) => <Typography>{`${row.original.keterangan}`}</Typography>
       }),
-      columnHelper.accessor('ruanganId', {
-        header: 'Ruangan',
-        cell: ({ row }) => {
-          const ruangan = (row.original as any).ruangan
-
-          return <Typography>{ruangan ? `${ruangan.nama}` : 'Penghuni tidak ditemukan'}</Typography>
-        }
-      }),
-      columnHelper.accessor('nama', {
-        header: 'Nama',
-        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
-      }),
-      columnHelper.accessor('periodeSewa', {
+      columnHelper.accessor('mulaiSewa', {
         header: 'Periode Sewa',
         cell: ({ row }) => {
-          const periodeSewa = row.original.periodeSewa
+          const start = new Date(row.original.mulaiSewa).toLocaleDateString('id-ID')
+          const end = new Date(row.original.selesaiSewa).toLocaleDateString('id-ID')
 
-          if (!periodeSewa) return <Typography>-</Typography>
-
-          return <Typography className='capitalize'>{periodeSewa}</Typography>
+          return <Typography>{`${start} - ${end}`}</Typography>
         }
       }),
-      columnHelper.accessor('mulaiHuni', {
-        header: 'Tanggal Mulai Huni',
-        cell: ({ row }) => <Typography>{dayjs(row.original.mulaiHuni).format('DD-MM-YYYY')}</Typography>
-      }),
-      columnHelper.accessor('selesaiHuni', {
-        header: 'Tanggal Selesai Huni',
-        cell: ({ row }) => <Typography>{dayjs(row.original.selesaiHuni).format('DD-MM-YYYY')}</Typography>
+      columnHelper.accessor('nominal', {
+        header: 'Total',
+        cell: ({ row }) => {
+          const formatNumber = (num: number): string => {
+            if (!num || num === 0) return '0'
+
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+          }
+
+          return <Typography>Rp {formatNumber(row.original.nominal)}</Typography>
+        }
       }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const status = row.original.status
+          const getPaymentMethodLabel = (paymentType: string | null | undefined): string => {
+            if (!paymentType) return ''
 
-          switch (status) {
-            case 'sudah terbayar':
-              return <Chip label='Sudah Bayar' color='success' size='small' variant='tonal' />
-            case 'belum terbayar':
-              return <Chip label='Belum Bayar' color='warning' size='small' variant='tonal' />
-            default:
-              return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
+            const paymentMethods: Record<string, string> = {
+              credit_card: 'Kartu Kredit',
+              bank_transfer: 'Transfer Bank',
+              gopay: 'GoPay',
+              shopeepay: 'ShopeePay',
+              qris: 'QRIS',
+              cstore: 'Minimarket',
+              akulaku: 'Akulaku',
+              kredivo: 'Kredivo'
+            }
+
+            return paymentMethods[paymentType] || paymentType
           }
+
+          return (
+            <div className='flex flex-col gap-1'>
+              {row.original.status === 'LUNAS' ? (
+                <>
+                  <Chip label='Lunas' color='success' size='small' variant='tonal' />
+                  {row.original.midtransPaymentType && (
+                    <Chip
+                      label={getPaymentMethodLabel(row.original.midtransPaymentType)}
+                      color='info'
+                      size='small'
+                      variant='outlined'
+                    />
+                  )}
+                </>
+              ) : (
+                <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
+              )}
+            </div>
+          )
         }
       }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <Tooltip title='Ubah'>
-              <IconButton onClick={() => router.push(`/pelanggan/edit/${row.original.id}`)}>
-                <i className='tabler-eye text-textSecondary' />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Hapus'>
-              <IconButton
-                onClick={async () => {
-                  try {
-                    await apiFetchClient(
-                      `/api/penghuni/${row.original.id}`,
-                      {
-                        method: 'DELETE'
-                      },
-                      {
-                        redirectOn401: '/login'
-                      }
-                    )
+            {row.original.status !== 'LUNAS' && (
+              <>
+                {!row.original.paymentUrl ? (
+                  <Tooltip title='Kirim Link Bayar'>
+                    <IconButton
+                      onClick={async () => {
+                        try {
+                          setLoading(true)
+                          await apiFetchClient(
+                            `/api/tagihan/${row.original.id}/payment/create`,
+                            {
+                              method: 'POST'
+                            },
+                            {
+                              redirectOn401: '/login'
+                            }
+                          )
 
-                    fetchPenghuniData(currentPage, pageSize, searchQuery)
-                    showSnackbar('Keuangan berhasil dihapus', 'success')
-                  } catch (err) {
-                    console.error('Delete failed:', err)
-                    const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+                          fetchTagihanData(currentPage, pageSize, searchQuery)
+                          showSnackbar('Link pembayaran berhasil dibuat dan email telah dikirim', 'success')
+                        } catch (err) {
+                          console.error('Create payment link failed:', err)
+                          const errorMessage = err instanceof Error ? err.message : 'Failed to create payment link'
 
-                    showSnackbar(errorMessage, 'error')
-                  }
-                }}
-              >
-                <i className='tabler-trash text-textSecondary' />
-              </IconButton>
-            </Tooltip>
+                          showSnackbar(errorMessage, 'error')
+                        } finally {
+                          setLoading(false)
+                        }
+                      }}
+                    >
+                      <i className='tabler-send text-textSecondary' />
+                    </IconButton>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title='Bayar Sekarang'>
+                    <IconButton
+                      onClick={() => {
+                        if (row.original.paymentUrl) {
+                          window.open(row.original.paymentUrl, '_blank')
+                        }
+                      }}
+                    >
+                      <i className='tabler-credit-card text-textSecondary' />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </>
+            )}
+            <OpenDialogOnElementClick
+              element={IconButton}
+              elementProps={{
+                className: 'flex',
+                'aria-label': 'Ubah',
+                children: <i className='tabler-edit text-textSecondary' />
+              }}
+              dialog={AddEditTagihan}
+              dialogProps={{
+                penyewaId: asetId,
+                mode: 'edit',
+                initialData: row.original
+              }}
+            />
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/tagihan/${row.original.id}/send-email`,
+                    {
+                      method: 'POST'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
+
+                  showSnackbar('Email berhasil dikirim', 'success')
+                } catch (err) {
+                  console.error('Send email failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to send email'
+
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
+              <i className='tabler-mail text-textSecondary' />
+            </IconButton>
+            <IconButton
+              onClick={async () => {
+                try {
+                  await apiFetchClient(
+                    `/api/tagihan/${row.original.id}`,
+                    {
+                      method: 'DELETE'
+                    },
+                    {
+                      redirectOn401: '/login'
+                    }
+                  )
+
+                  fetchTagihanData(currentPage, pageSize, searchQuery)
+                  showSnackbar('Tagihan berhasil dihapus', 'success')
+                } catch (err) {
+                  console.error('Delete failed:', err)
+                  const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
+
+                  showSnackbar(errorMessage, 'error')
+                }
+              }}
+            >
+              <i className='tabler-trash text-textSecondary' />
+            </IconButton>
           </div>
         ),
         enableSorting: false
       })
     ],
-    [data, filteredData, searchQuery, currentPage, pageSize, router]
+    [data, filteredData, searchQuery]
   )
 
   const table = useReactTable({
-    data: filteredData as PenghuniClient[],
+    data: filteredData as TagihanClient[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -349,7 +464,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
         <CardContent>
           <Alert severity='error'>
             {error}
-            <Button onClick={() => fetchPenghuniData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
+            <Button onClick={() => fetchTagihanData(currentPage, pageSize, searchQuery)} sx={{ ml: 2 }}>
               Retry
             </Button>
           </Alert>
@@ -372,7 +487,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
           >
             <CircularProgress size={60} />
             <Typography variant='body1' color='textSecondary'>
-              Memuat data penghuni...
+              Memuat data tagihan...
             </Typography>
           </Box>
         </CardContent>
@@ -433,15 +548,20 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
                 <MenuItem value='50'>50</MenuItem>
               </CustomTextField>
             </div>
-            <Button variant='contained' component={Link} href='/pelanggan/add' startIcon={<i className='tabler-plus' />}>
-              Tambah Pelanggan
-            </Button>
+            <OpenDialogOnElementClick
+              element={Button}
+              elementProps={buttonProps}
+              dialog={AddEditTagihan}
+              dialogProps={{
+                penyewaId: asetId
+              }}
+            />
           </div>
           <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
             <DebouncedInput
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder='Cari Penghuni'
+              placeholder='Cari Tagihan'
               className='max-sm:is-full sm:is-[250px]'
             />
           </div>
@@ -479,7 +599,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    Tidak ada data yang ditambahkan
                   </td>
                 </tr>
               </tbody>
@@ -514,6 +634,7 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
 
             setPageSize(newPageSize)
             setCurrentPage(0)
+            table.setPageSize(newPageSize)
           }}
         />
         <AppSnackbar snack={snackbar} onClose={closeSnack} />
@@ -522,4 +643,4 @@ const PenghuniListTable = ({ initialData = [] }: PenghuniListTableProps) => {
   )
 }
 
-export default PenghuniListTable
+export default ViewTagihanListTable

@@ -20,7 +20,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     whereClause.createdById = user.id
 
     const [data, total] = await Promise.all([
-      prisma.penghuni.findMany({
+      prisma.penyewa.findMany({
         where: whereClause,
         include: {
           createdBy: {
@@ -53,7 +53,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         take: limit,
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.penghuni.count({ where: whereClause })
+      prisma.penyewa.count({ where: whereClause })
     ])
 
     const totalPages = Math.ceil(total / limit)
@@ -71,7 +71,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       message: 'Data retrieved successfully'
     })
   } catch (error) {
-    console.error('Get penghuni error:', error)
+    console.error('Get penyewaerror:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -80,29 +80,29 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, periodeSewa, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId } = body
 
-    if (!nama || !status || !mulaiHuni || !selesaiHuni || !asetId || !ruanganId) {
-      return NextResponse.json({ message: 'nama, status, mulai huni, aset dan ruangan harus diisi' }, { status: 400 })
+    if (!nama || !status || !mulaiSewa || !selesaiSewa || !asetId || !ruanganId) {
+      return NextResponse.json({ message: 'nama, status, mulai sewa, aset dan ruangan harus diisi' }, { status: 400 })
     }
 
-    let mulaiHuniDate = new Date()
+    let mulaiSewaDate = new Date()
 
-    if (mulaiHuni) {
-      mulaiHuniDate = new Date(mulaiHuni)
+    if (mulaiSewa) {
+      mulaiSewaDate = new Date(mulaiSewa)
 
-      if (isNaN(mulaiHuniDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
+      if (isNaN(mulaiSewaDate.getTime())) {
+        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
-    let selesaiHuniDate = new Date()
+    let selesaiSewaDate = new Date()
 
-    if (selesaiHuni) {
-      selesaiHuniDate = new Date(selesaiHuni)
+    if (selesaiSewa) {
+      selesaiSewaDate = new Date(selesaiSewa)
 
-      if (isNaN(selesaiHuniDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
+      if (isNaN(selesaiSewaDate.getTime())) {
+        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
       }
     }
 
@@ -111,15 +111,15 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
     }
 
-    const newPenghuni = await prisma.penghuni.create({
+    const newPenyewa = await prisma.penyewa.create({
       data: {
         nama: nama,
         email: email || null,
         nomorTelepon: nomorTelepon || null,
         status: status,
         periodeSewa: periodeSewa || null,
-        mulaiHuni: mulaiHuniDate,
-        selesaiHuni: selesaiHuniDate,
+        mulaiSewa: mulaiSewaDate,
+        selesaiSewa: selesaiSewaDate,
         asetId: asetId,
         ruanganId: ruanganId,
         createdById: user.id,
@@ -150,13 +150,13 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json(
       {
-        data: newPenghuni,
-        message: 'Penghuni berhasil ditambahkan'
+        data: newPenyewa,
+        message: 'Penyewa berhasil ditambahkan'
       },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Buat penghuni error:', error)
+    console.error('Buat penyewa error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }

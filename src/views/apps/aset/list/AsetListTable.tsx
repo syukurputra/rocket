@@ -251,7 +251,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
           <div className='flex items-center'>
             <Tooltip title='Jika Status Publish Bisa Dibuka'>
               <IconButton
-                aria-label='Edit'
+                aria-label='Lihat'
                 onClick={() => window.open(`/publish/${row.original.id}`, '_blank')}
                 className='flex'
               >
@@ -260,7 +260,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             </Tooltip>
             <Tooltip title='Ubah'>
               <IconButton
-                aria-label='Edit'
+                aria-label='Ubah'
                 onClick={() => router.push(`/aset/edit/${row.original.id}`)}
                 className='flex'
               >

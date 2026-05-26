@@ -109,7 +109,7 @@ export default function AddEditUser({ open, setOpen, mode = 'create', initialDat
     try {
       if (mode === 'edit' && form.id) {
         // For edit, we need a separate endpoint (to be created)
-        showSnack('Edit user belum diimplementasikan', 'error')
+        showSnack('Ubah user belum diimplementasikan', 'error')
       } else {
         const json = await apiFetchClient<{ data: UserClient; message?: string }>(`/api/user`, {
           method: 'POST',

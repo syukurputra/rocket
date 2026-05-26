@@ -26,7 +26,7 @@ type Props = {
   mode?: 'create' | 'edit'
   initialData?: TagihanClient | null
   onSaved?: (data: TagihanClient) => void
-  penghuniId?: string
+  penyewaId?: string
 }
 
 type FormValues = {
@@ -54,7 +54,7 @@ const DEFAULTS: FormValues = {
   jumlahTahun: 1
 }
 
-export default function AddEditTagihan({ open, setOpen, mode = 'create', initialData, onSaved, penghuniId }: Props) {
+export default function AddEditTagihan({ open, setOpen, mode = 'create', initialData, onSaved, penyewaId }: Props) {
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -69,14 +69,14 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
     hargaTahunan: 0
   })
 
-  // Fetch Penghuni Data to get Periode Sewa and Room Pricing
+  // Fetch Penyewa Data to get Periode Sewa and Room Pricing
   useEffect(() => {
-    if (!open || !penghuniId) return
+    if (!open || !penyewaId) return
 
-    const fetchPenghuniData = async () => {
+    const fetchPenyewaData = async () => {
       try {
         setLoading(true)
-        const response = await apiFetchClient<any>(`/api/penghuni/${penghuniId}`)
+        const response = await apiFetchClient<any>(`/api/penyewa/${penyewaId}`)
 
         if (response.data) {
           // Set periode sewa
@@ -92,14 +92,14 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
           }
         }
       } catch (error) {
-        console.error('Failed to fetch penghuni details:', error)
+        console.error('Failed to fetch penyewa details:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchPenghuniData()
-  }, [open, penghuniId])
+    fetchPenyewaData()
+  }, [open, penyewaId])
 
   // Auto-calculate end date for bulanan and tahunan
   useEffect(() => {
@@ -202,7 +202,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
             mulaiSewa: form.mulaiSewa.toISOString(),
             selesaiSewa: form.selesaiSewa.toISOString(),
             nominal: form.nominal,
-            penghuniId: penghuniId
+            penyewaId: penyewaId
           })
         })
 
@@ -341,8 +341,8 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
               {!periodeSewa && !loading && (
                 <Grid size={{ xs: 12 }}>
                   <Alert severity='warning'>
-                    Periode sewa belum diset untuk penghuni ini. Silakan set periode sewa terlebih dahulu di form
-                    penghuni.
+                    Periode sewa belum diset untuk penyewa ini. Silakan set periode sewa terlebih dahulu di form
+                    penyewa.
                   </Alert>
                 </Grid>
               )}

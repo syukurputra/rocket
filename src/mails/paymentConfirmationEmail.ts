@@ -19,7 +19,7 @@ const formatDate = (dateString: string): string => {
 
 export const sendPaymentConfirmationEmail = async (
   email: string,
-  penghuniName: string,
+  penyewaName: string,
   keterangan: string,
   mulaiSewa: string,
   selesaiSewa: string,
@@ -62,7 +62,7 @@ export const sendPaymentConfirmationEmail = async (
               <tr>
                 <td style="padding: 40px 30px;">
                   <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                    Halo <strong>${penghuniName}</strong>! 👋
+                    Halo <strong>${penyewaName}</strong>! 👋
                   </p>
 
                   <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
@@ -131,7 +131,7 @@ export const sendPaymentConfirmationEmail = async (
   const textContent = `
 Pembayaran Berhasil - ${keterangan}
 
-Halo ${penghuniName}!
+Halo ${penyewaName}!
 
 Terima kasih atas pembayaran Anda. Tagihan Anda telah LUNAS.
 

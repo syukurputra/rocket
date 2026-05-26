@@ -34,7 +34,7 @@ type Props = {
   handlePrev: () => void
   steps: { title: string; subtitle: string }[]
   onSave: (data: any) => void
-  penghuniId: string | null
+  penyewaId: string | null
 }
 
 type TagihanData = {
@@ -50,7 +50,7 @@ type TagihanData = {
   jumlahTahun?: number
 }
 
-const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghuniId }: Props) => {
+const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewaId }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
   const [tagihan, setTagihan] = useState<TagihanClient[]>([])
@@ -68,7 +68,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
   const [jumlahBulan, setJumlahBulan] = useState(1)
   const [jumlahTahun, setJumlahTahun] = useState(1)
 
-  // Penghuni data
+  // Penyewa data
   const [periodeSewa, setPeriodeSewa] = useState<string>('')
 
   const [ruanganPricing, setRuanganPricing] = useState({
@@ -80,11 +80,11 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
   useEffect(() => {
-    if (penghuniId) {
+    if (penyewaId) {
       fetchTagihan()
-      fetchPenghuniData()
+      fetchPenyewaData()
     }
-  }, [penghuniId])
+  }, [penyewaId])
 
   // Auto-calculate end date for bulanan and tahunan
   useEffect(() => {
@@ -123,9 +123,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
     setNominal(calculatedNominal)
   }, [mulaiSewa, selesaiSewa, jumlahBulan, jumlahTahun, periodeSewa, ruanganPricing])
 
-  const fetchPenghuniData = async () => {
+  const fetchPenyewaData = async () => {
     try {
-      const response = await apiFetchClient<any>(`/api/penghuni/${penghuniId}`)
+      const response = await apiFetchClient<any>(`/api/penyewa/${penyewaId}`)
 
       if (response.data) {
         setPeriodeSewa(response.data.periodeSewa || '')
@@ -139,14 +139,14 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
         }
       }
     } catch (error) {
-      console.error('Failed to fetch penghuni details:', error)
+      console.error('Failed to fetch penyewa details:', error)
     }
   }
 
   const fetchTagihan = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: TagihanClient[] }>(`/api/tagihan?penghuniId=${penghuniId}`)
+      const res = await apiFetchClient<{ data: TagihanClient[] }>(`/api/tagihan?penyewaId=${penyewaId}`)
 
       if (res.data) {
         setTagihan(res.data)
@@ -255,7 +255,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
         // Create
         await apiFetchClient(`/api/tagihan`, {
           method: 'POST',
-          body: JSON.stringify({ ...data, penghuniId })
+          body: JSON.stringify({ ...data, penyewaId })
         })
         showSnackbar('Tagihan berhasil ditambahkan', 'success')
       }
@@ -302,7 +302,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
                 Tambah
               </Button>
             </div>
-            <Typography className='mb-4'>Kelola daftar tagihan untuk penghuni ini.</Typography>
+            <Typography className='mb-4'>Kelola daftar tagihan untuk penyewa ini.</Typography>
 
             <TableContainer component={Paper} sx={{ mt: 4 }}>
               <Table>
@@ -430,7 +430,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
                 color='success'
                 onClick={() => {
                   alert('Wizard Completed!')
-                  window.location.href = '/pelanggan'
+                  window.location.href = '/penyewa'
                 }}
               >
                 Finish
@@ -449,7 +449,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
     <>
       <Grid container spacing={6}>
         <Grid size={{ xs: 12 }}>
-          <Typography variant='h5'>{editingId ? 'Edit Tagihan' : 'Tambah Tagihan'}</Typography>
+          <Typography variant='h5'>{editingId ? 'Ubah Tagihan' : 'Tambah Tagihan'}</Typography>
           <Typography>Silakan lengkapi detail tagihan.</Typography>
         </Grid>
 
@@ -546,7 +546,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penghun
         {!periodeSewa && (
           <Grid size={{ xs: 12 }}>
             <Alert severity='warning'>
-              Periode sewa belum diset untuk penghuni ini. Silakan set periode sewa terlebih dahulu di form penghuni.
+              Periode sewa belum diset untuk penyewa ini. Silakan set periode sewa terlebih dahulu di form penyewa.
             </Alert>
           </Grid>
         )}

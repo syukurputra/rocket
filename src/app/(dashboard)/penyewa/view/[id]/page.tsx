@@ -1,5 +1,5 @@
 import Grid from '@mui/material/Grid2'
-import ViewPenghuniList from '@views/apps/penghuni/view'
+import ViewPenyewaList from '@views/apps/penyewa/view'
 
 interface PageProps {
   params: Promise<{
@@ -8,16 +8,16 @@ interface PageProps {
   }>
 }
 
-const ViewPenghuniApp = async ({ params }: PageProps) => {
+const ViewPenyewaApp = async ({ params }: PageProps) => {
   const { id, lang } = await params
 
   return (
     <Grid container>
       <Grid size={{ xs: 12 }}>
-        <ViewPenghuniList penghuniId={id} />
+        <ViewPenyewaList penyewaId={id} />
       </Grid>
     </Grid>
   )
 }
 
-export default ViewPenghuniApp
+export default ViewPenyewaApp

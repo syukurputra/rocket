@@ -14,7 +14,7 @@ export type TagihanClient = {
   midtransPaymentType?: string | null
   midtransTransactionTime?: Date | string | null
   paymentUrl?: string | null
-  penghuni?: {
+  penyewa?: {
     id: string
     nama: string
   }

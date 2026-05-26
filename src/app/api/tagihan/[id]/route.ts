@@ -14,7 +14,7 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
     const tagihan = await prisma.tagihan.findUnique({
       where: { id },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -60,7 +60,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     const existingTagihan = await prisma.tagihan.findUnique({
       where: { id },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -107,7 +107,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         updatedById: user.id
       },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -129,36 +129,36 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       }
     })
 
-    // If status changed to LUNAS, update Penghuni data
-    if (status && status.toUpperCase() === 'LUNAS' && updatedTagihan.penghuniId) {
-      console.log('Updating penghuni with dates:', {
-        mulaiHuni: updatedTagihan.mulaiSewa,
-        selesaiHuni: updatedTagihan.selesaiSewa
+    // If status changed to LUNAS, update Penyewadata
+    if (status && status.toUpperCase() === 'LUNAS' && updatedTagihan.penyewaId) {
+      console.log('Updating penyewaith dates:', {
+        mulaiSewa: updatedTagihan.mulaiSewa,
+        selesaiSewa: updatedTagihan.selesaiSewa
       })
 
-      await prisma.penghuni.update({
-        where: { id: updatedTagihan.penghuniId },
+      await prisma.penyewa.update({
+        where: { id: updatedTagihan.penyewaId },
         data: {
-          mulaiHuni: updatedTagihan.mulaiSewa,
-          selesaiHuni: updatedTagihan.selesaiSewa,
+          mulaiSewa: updatedTagihan.mulaiSewa,
+          selesaiSewa: updatedTagihan.selesaiSewa,
           status: 'sudah terbayar',
           updatedById: user.id
         }
       })
 
-      // Send email notification if penghuni has email
-      if (updatedTagihan.penghuni?.email) {
+      // Send email notification if penyewahas email
+      if (updatedTagihan.penyewa?.email) {
         try {
           await sendPaymentConfirmationEmail(
-            updatedTagihan.penghuni.email,
-            updatedTagihan.penghuni.nama,
+            updatedTagihan.penyewa.email,
+            updatedTagihan.penyewa.nama,
             updatedTagihan.keterangan,
             updatedTagihan.mulaiSewa.toISOString(),
             updatedTagihan.selesaiSewa.toISOString(),
             Number(updatedTagihan.nominal),
             updatedTagihan.metodeBayar || undefined
           )
-          console.log('Payment confirmation email sent to:', updatedTagihan.penghuni.email)
+          console.log('Payment confirmation email sent to:', updatedTagihan.penyewa.email)
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError)
 

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const tagihan = await prisma.tagihan.findUnique({
       where: { midtransOrderId: order_id },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       where: { id: tagihan.id },
       data: updateData,
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -99,32 +99,32 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // If payment successful, update penghuni and send confirmation email
-    if (shouldUpdateToLunas && tagihan.penghuniId) {
-      // Update penghuni status
-      await prisma.penghuni.update({
-        where: { id: tagihan.penghuniId },
+    // If payment successful, update penyewaand send confirmation email
+    if (shouldUpdateToLunas && tagihan.penyewaId) {
+      // Update penyewa status
+      await prisma.penyewa.update({
+        where: { id: tagihan.penyewaId },
         data: {
-          mulaiHuni: tagihan.mulaiSewa,
-          selesaiHuni: tagihan.selesaiSewa,
+          mulaiSewa: tagihan.mulaiSewa,
+          selesaiSewa: tagihan.selesaiSewa,
           status: 'sudah terbayar',
           updatedById: tagihan.updatedById
         }
       })
 
       // Send confirmation email
-      if (updatedTagihan.penghuni?.email) {
+      if (updatedTagihan.penyewa?.email) {
         try {
           await sendPaymentConfirmationEmail(
-            updatedTagihan.penghuni.email,
-            updatedTagihan.penghuni.nama,
+            updatedTagihan.penyewa.email,
+            updatedTagihan.penyewa.nama,
             updatedTagihan.keterangan,
             updatedTagihan.mulaiSewa.toISOString(),
             updatedTagihan.selesaiSewa.toISOString(),
             Number(updatedTagihan.nominal),
             payment_type
           )
-          console.log('Payment confirmation email sent to:', updatedTagihan.penghuni.email)
+          console.log('Payment confirmation email sent to:', updatedTagihan.penyewa.email)
         } catch (emailError) {
           console.error('Failed to send confirmation email:', emailError)
           // Don't fail the webhook if email fails

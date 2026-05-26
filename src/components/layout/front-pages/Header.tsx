@@ -93,7 +93,7 @@ const Header = ({ mode }: { mode: Mode }) => {
                 startIcon={<i className={isAuthenticated ? 'tabler-home text-xl' : 'tabler-login-2 text-xl'} />}
                 className='whitespace-nowrap'
               >
-                {isAuthenticated ? 'Home' : 'Login'}
+                {isAuthenticated ? 'Halaman Utama' : 'Masuk'}
               </Button>
             )}
           </div>

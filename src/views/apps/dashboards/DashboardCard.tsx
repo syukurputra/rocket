@@ -18,7 +18,7 @@ type DashboardStats = {
   totalAsetAktif: number
   totalRuanganHuni: number
   totalRuanganTidakHuni: number
-  penghuniSelesaiHuni: number
+  penyewaSelesaiHuni: number
 }
 
 const DashboardCard = () => {
@@ -82,7 +82,7 @@ const DashboardCard = () => {
     },
     {
       title: 'Selesai Huni 1 Bulan',
-      stats: stats.penghuniSelesaiHuni.toString(),
+      stats: stats.penyewaSelesaiHuni.toString(),
       icon: 'tabler-calendar-time',
       color: 'error'
     }

@@ -6,44 +6,44 @@ import Divider from '@mui/material/Divider'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 
 import type { TagihanClient } from '@/src/types/apps/tagihanTypes'
-import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
+import type { PenyewaClient } from '@/src/types/apps/penyewaTypes'
 
-import ViewTagihanListTable from '@views/apps/penghuni/view/ViewTagihanListTable'
-import ViewPenghuniCard from '@views/apps/penghuni/view/ViewPenghuniCard'
+import ViewTagihanListTable from '@views/apps/penyewa/view/ViewTagihanListTable'
+import ViewPenyewaCard from '@views/apps/penyewa/view/ViewPenyewaCard'
 
-interface PenghuniListProps {
+interface PenyewaListProps {
   initialData?: TagihanClient[]
-  penghuniData?: PenghuniClient
-  penghuniId?: string
+  penyewaData?: PenyewaClient
+  penyewaId?: string
 }
 
-const PenghuniList = ({ initialData, penghuniData, penghuniId }: PenghuniListProps) => {
+const PenyewaList = ({ initialData, penyewaData, penyewaId }: PenyewaListProps) => {
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 2 }}>
-          <Link href='/pelanggan' style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link href='/penyewa' style={{ textDecoration: 'none', color: 'inherit' }}>
             <Typography color='text.primary' sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
               Pelanggan
             </Typography>
           </Link>
-          <Typography color='text.primary'>Detail Penghuni</Typography>
+          <Typography color='text.primary'>Detail Penyewa</Typography>
         </Breadcrumbs>
-        <Typography variant='h3'>Detail Penghuni</Typography>
+        <Typography variant='h3'>Detail Penyewa</Typography>
         <Divider sx={{ mt: 2 }} />
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <ViewPenghuniCard penghuniId={penghuniId} initialData={penghuniData} />
+        <ViewPenyewaCard penyewaId={penyewaId} initialData={penyewaData} />
       </Grid>
       <Grid size={{ xs: 12 }}>
         <Typography variant='h3'>Tagihan</Typography>
         <Divider sx={{ mt: 2 }} />
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <ViewTagihanListTable asetId={penghuniId} initialData={initialData} />
+        <ViewTagihanListTable asetId={penyewaId} initialData={initialData} />
       </Grid>
     </Grid>
   )
 }
 
-export default PenghuniList
+export default PenyewaList

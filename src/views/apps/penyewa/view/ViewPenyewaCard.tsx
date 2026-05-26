@@ -19,35 +19,35 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 
 // Third-party Imports
-import type { PenghuniClient } from '@/src/types/apps/penghuniTypes'
+import type { PenyewaClient } from '@/src/types/apps/penyewaTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import dayjs from 'dayjs'
 
-type PenghuniClientWithAction = PenghuniClient & { action?: string }
+type PenyewaClientWithAction = PenyewaClient & { action?: string }
 
-interface ViewPenghuniCardProps {
-  penghuniId?: string
-  initialData?: PenghuniClient
+interface ViewPenyewaCardProps {
+  penyewaId?: string
+  initialData?: PenyewaClient
 }
 
-const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) => {
+const ViewPenyewaCard = ({ penyewaId, initialData }: ViewPenyewaCardProps) => {
   const params = useParams()
-  const id = penghuniId || (params?.id as string)
+  const id = penyewaId || (params?.id as string)
 
-  const [penghuniData, setPenghuniData] = useState<PenghuniClient | null>(initialData || null)
+  const [penyewaData, setPenyewaData] = useState<PenyewaClient | null>(initialData || null)
   const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (initialData && penghuniId === id) {
-      setPenghuniData(initialData)
+    if (initialData && penyewaId === id) {
+      setPenyewaData(initialData)
       setLoading(false)
       return
     }
 
-    const fetchPenghuniData = async () => {
+    const fetchPenyewaData = async () => {
       if (!id) {
-        setError('Penghuni ID is required')
+        setError('Penyewa ID is required')
         setLoading(false)
         return
       }
@@ -56,12 +56,12 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
         setLoading(true)
         setError(null)
 
-        const result = await apiFetchClient<{ data: PenghuniClient; total: number }>(`/api/penghuni/${id}`, undefined, {
+        const result = await apiFetchClient<{ data: PenyewaClient; total: number }>(`/api/penyewa/${id}`, undefined, {
           redirectOn401: '/login'
         })
 
         if (result && result.data) {
-          setPenghuniData(result.data)
+          setPenyewaData(result.data)
         } else {
           setError('No data received from server')
         }
@@ -73,8 +73,8 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
       }
     }
 
-    fetchPenghuniData()
-  }, [id, initialData, penghuniId])
+    fetchPenyewaData()
+  }, [id, initialData, penyewaId])
 
   if (loading) {
     return (
@@ -90,7 +90,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
           >
             <CircularProgress size={60} />
             <Typography variant='body1' color='textSecondary'>
-              Memuat data penghuni...
+              Memuat data penyewa...
             </Typography>
           </Box>
         </CardContent>
@@ -108,7 +108,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
     )
   }
 
-  if (!penghuniData) {
+  if (!penyewaData) {
     return (
       <Card>
         <CardContent>
@@ -125,11 +125,11 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
           <Grid size={{ xs: 12, sm: 6 }}>
             <CustomTextField
               fullWidth
-              label='Nama Penghuni'
+              label='Nama Penyewa'
               name='nama'
               variant='outlined'
               disabled
-              value={penghuniData.nama}
+              value={penyewaData.nama}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -139,7 +139,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='status'
               variant='outlined'
               disabled
-              value={penghuniData.status}
+              value={penyewaData.status}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -149,7 +149,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='namaAset'
               variant='outlined'
               disabled
-              value={penghuniData.aset?.nama}
+              value={penyewaData.aset?.nama}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -159,7 +159,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='namaRuangan'
               variant='outlined'
               disabled
-              value={penghuniData.ruangan?.nama}
+              value={penyewaData.ruangan?.nama}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -170,8 +170,8 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               variant='outlined'
               disabled
               value={
-                penghuniData.periodeSewa
-                  ? penghuniData.periodeSewa.charAt(0).toUpperCase() + penghuniData.periodeSewa.slice(1)
+                penyewaData.periodeSewa
+                  ? penyewaData.periodeSewa.charAt(0).toUpperCase() + penyewaData.periodeSewa.slice(1)
                   : '-'
               }
             />
@@ -179,21 +179,21 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
           <Grid size={{ xs: 12, sm: 6 }}>
             <CustomTextField
               fullWidth
-              label='Mulai Huni'
-              name='mulaiHuni'
+              label='Mulai Sewa'
+              name='mulaiSewa'
               variant='outlined'
               disabled
-              value={dayjs(penghuniData.mulaiHuni).format('DD-MM-YYYY')}
+              value={dayjs(penyewaData.mulaiSewa).format('DD-MM-YYYY')}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <CustomTextField
               fullWidth
-              label='Selesai Huni'
-              name='selesaiHuni'
+              label='Selesai Sewa'
+              name='selesaiSewa'
               variant='outlined'
               disabled
-              value={dayjs(penghuniData.selesaiHuni).format('DD-MM-YYYY')}
+              value={dayjs(penyewaData.selesaiSewa).format('DD-MM-YYYY')}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -203,7 +203,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='email'
               variant='outlined'
               disabled
-              value={penghuniData.email || '-'}
+              value={penyewaData.email || '-'}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -213,7 +213,7 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
               name='nomorTelepon'
               variant='outlined'
               disabled
-              value={penghuniData.nomorTelepon || '-'}
+              value={penyewaData.nomorTelepon || '-'}
             />
           </Grid>
         </Grid>
@@ -222,4 +222,4 @@ const ViewPenghuniCard = ({ penghuniId, initialData }: ViewPenghuniCardProps) =>
   )
 }
 
-export default ViewPenghuniCard
+export default ViewPenyewaCard

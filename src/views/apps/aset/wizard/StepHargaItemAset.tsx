@@ -231,7 +231,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Harga Item Aset' : 'Tambah Harga Item Aset'}</Typography>
+        <Typography variant='h5'>{editingId ? 'Ubah Harga Item Aset' : 'Tambah Harga Item Aset'}</Typography>
         <Typography>Silakan lengkapi detail harga item aset.</Typography>
       </Grid>
 

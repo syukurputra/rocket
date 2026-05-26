@@ -10,7 +10,7 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
 
-    const penghuni = await prisma.penghuni.findUnique({
+    const penyewa= await prisma.penyewa.findUnique({
       where: { id },
       include: {
         aset: {
@@ -42,16 +42,16 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
       }
     })
 
-    if (!penghuni) {
-      return NextResponse.json({ message: 'Penghuni tidak ditemukan' }, { status: 404 })
+    if (!penyewa) {
+      return NextResponse.json({ message: 'Penyewa tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
-      data: penghuni,
+      data: penyewa,
       message: 'Data retrieved successfully'
     })
   } catch (error) {
-    console.error('Get penghuni by ID error:', error)
+    console.error('Get penyewa by ID error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -61,37 +61,37 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, periodeSewa, mulaiHuni, selesaiHuni, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId } = body
 
-    let mulaiHuniDate = new Date()
+    let mulaiSewaDate = new Date()
 
-    if (mulaiHuni) {
-      mulaiHuniDate = new Date(mulaiHuni)
+    if (mulaiSewa) {
+      mulaiSewaDate = new Date(mulaiSewa)
 
-      if (isNaN(mulaiHuniDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
+      if (isNaN(mulaiSewaDate.getTime())) {
+        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
       }
     }
 
-    let selesaiHuniDate = new Date()
+    let selesaiSewaDate = new Date()
 
-    if (selesaiHuni) {
-      selesaiHuniDate = new Date(selesaiHuni)
+    if (selesaiSewa) {
+      selesaiSewaDate = new Date(selesaiSewa)
 
-      if (isNaN(selesaiHuniDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai huni tidak valid' }, { status: 400 })
+      if (isNaN(selesaiSewaDate.getTime())) {
+        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
       }
     }
 
-    const existingPenghuni = await prisma.penghuni.findUnique({
+    const existingPenyewa = await prisma.penyewa.findUnique({
       where: { id }
     })
 
-    if (!existingPenghuni) {
-      return NextResponse.json({ message: 'Penghuni tidak ditemukan' }, { status: 404 })
+    if (!existingPenyewa) {
+      return NextResponse.json({ message: 'Penyewa tidak ditemukan' }, { status: 404 })
     }
 
-    const updatedPenghuni = await prisma.penghuni.update({
+    const updatedPenyewa = await prisma.penyewa.update({
       where: { id },
       data: {
         ...(nama && { nama }),
@@ -99,8 +99,8 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(nomorTelepon !== undefined && { nomorTelepon: nomorTelepon || null }),
         ...(status && { status }),
         ...(periodeSewa !== undefined && { periodeSewa: periodeSewa || null }),
-        ...(mulaiHuni && { mulaiHuni: mulaiHuniDate }),
-        ...(selesaiHuni && { selesaiHuni: selesaiHuniDate }),
+        ...(mulaiSewa && { mulaiSewa: mulaiSewaDate }),
+        ...(selesaiSewa && { selesaiSewa: selesaiSewaDate }),
         ...(asetId && { asetId }),
         ...(ruanganId && { ruanganId }),
         updatedById: user.id
@@ -122,11 +122,11 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     return NextResponse.json({
-      data: updatedPenghuni,
-      message: 'Penghuni berhasil diupdate'
+      data: updatedPenyewa,
+      message: 'Penyewa berhasil diubah'
     })
   } catch (error) {
-    console.error('Update penghuni error:', error)
+    console.error('Update penyewa error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -136,23 +136,23 @@ async function handleDelete(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
 
-    const existingPenghuni = await prisma.penghuni.findUnique({
+    const existingPenyewa = await prisma.penyewa.findUnique({
       where: { id }
     })
 
-    if (!existingPenghuni) {
-      return NextResponse.json({ message: 'Penghuni tidak ditemukan' }, { status: 404 })
+    if (!existingPenyewa) {
+      return NextResponse.json({ message: 'Penyewa tidak ditemukan' }, { status: 404 })
     }
 
-    await prisma.penghuni.delete({
+    await prisma.penyewa.delete({
       where: { id }
     })
 
     return NextResponse.json({
-      message: 'Penghuni berhasil dihapus'
+      message: 'Penyewa berhasil dihapus'
     })
   } catch (error) {
-    console.error('Delete penghuni error:', error)
+    console.error('Delete penyewa error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }

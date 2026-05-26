@@ -47,20 +47,20 @@ type RuanganOption = {
   status: string
 }
 
-type PenghuniData = {
+type PenyewaData = {
   id?: string
   nama: string
   status: string
   asetId: string
   ruanganId: string
   periodeSewa: string
-  mulaiHuni: Date | null
-  selesaiHuni: Date | null
+  mulaiSewa: Date | null
+  selesaiSewa: Date | null
   email: string
   nomorTelepon: string
 }
 
-const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, initialData }: Props) => {
+const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, initialData }: Props) => {
   // View State
   const [view, setView] = useState<'form'>('form')
   const [editingId, setEditingId] = useState<string | null>(initialData?.id || null)
@@ -72,12 +72,12 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
   const [ruanganId, setRuanganId] = useState(initialData?.ruanganId || '')
   const [periodeSewa, setPeriodeSewa] = useState(initialData?.periodeSewa || 'bulanan')
 
-  const [mulaiHuni, setMulaiHuni] = useState<Date | null>(
-    initialData?.mulaiHuni ? new Date(initialData.mulaiHuni) : new Date()
+  const [mulaiSewa, setMulaiSewa] = useState<Date | null>(
+    initialData?.mulaiSewa ? new Date(initialData.mulaiSewa) : new Date()
   )
 
-  const [selesaiHuni, setSelesaiHuni] = useState<Date | null>(
-    initialData?.selesaiHuni ? new Date(initialData.selesaiHuni) : null
+  const [selesaiSewa, setSelesaiSewa] = useState<Date | null>(
+    initialData?.selesaiSewa ? new Date(initialData.selesaiSewa) : null
   )
 
   const [email, setEmail] = useState(initialData?.email || '')
@@ -147,8 +147,8 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
       asetId,
       ruanganId,
       periodeSewa,
-      mulaiHuni,
-      selesaiHuni,
+      mulaiSewa,
+      selesaiSewa,
       email,
       nomorTelepon
     })
@@ -167,8 +167,8 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Penghuni' : 'Tambah Penghuni'}</Typography>
-        <Typography>Silakan lengkapi detail penghuni.</Typography>
+        <Typography variant='h5'>{editingId ? 'Ubah Penyewa' : 'Tambah Penyewa'}</Typography>
+        <Typography>Silakan lengkapi detail penyewa.</Typography>
       </Grid>
 
       <Grid size={{ xs: 12 }}>
@@ -178,7 +178,7 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
               <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomTextField
                   fullWidth
-                  label='Nama Penghuni'
+                  label='Nama Penyewa'
                   placeholder='Nama Lengkap'
                   value={nama}
                   onChange={e => setNama(e.target.value)}
@@ -218,7 +218,7 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
                 <CustomTextField
                   select
                   fullWidth
-                  label='Nama Ruangan'
+                  label='Nama Item Aset'
                   value={ruanganId}
                   onChange={e => setRuanganId(e.target.value)}
                   disabled={!asetId}
@@ -245,20 +245,20 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <AppReactDatepicker
-                  selected={mulaiHuni}
-                  onChange={(date: Date | null) => setMulaiHuni(date)}
+                  selected={mulaiSewa}
+                  onChange={(date: Date | null) => setMulaiSewa(date)}
                   placeholderText='DD-MM-YYYY'
                   dateFormat='dd-MM-yyyy'
-                  customInput={<CustomTextField fullWidth label='Mulai Huni' />}
+                  customInput={<CustomTextField fullWidth label='Mulai Sewa' />}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <AppReactDatepicker
-                  selected={selesaiHuni}
-                  onChange={(date: Date | null) => setSelesaiHuni(date)}
+                  selected={selesaiSewa}
+                  onChange={(date: Date | null) => setSelesaiSewa(date)}
                   placeholderText='DD-MM-YYYY'
                   dateFormat='dd-MM-yyyy'
-                  customInput={<CustomTextField fullWidth label='Selesai Huni' />}
+                  customInput={<CustomTextField fullWidth label='Selesai Sewa' />}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -309,4 +309,4 @@ const StepPenghuniDetails = ({ activeStep, handleNext, handlePrev, steps, onSave
   )
 }
 
-export default StepPenghuniDetails
+export default StepPenyewaDetails

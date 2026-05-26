@@ -27,38 +27,39 @@ import frontCommonStyles from '@views/front-pages/styles.module.css'
 const feature = [
   {
     icon: <LaptopCharging color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Aset',
+    title: 'Kelola Aset Sewa',
     description:
-      'Kelola seluruh properti Anda dalam satu platform. Tambah, edit, dan monitor villa, apartemen, atau kos dengan mudah.'
+      'Tambah dan kelola semua aset bisnis sewa Anda — properti, kendaraan, peralatan, atau barang sewaan lainnya dalam satu dasbor.'
   },
   {
     icon: <Rocket color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Ruangan',
+    title: 'Manajemen Item Sewa',
     description:
-      'Atur detail setiap ruangan dengan harga harian, bulanan, dan tahunan. Upload foto dan kelola status ketersediaan.'
-  },
-  {
-    icon: <Paper color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Penghuni',
-    description: 'Catat data penghuni lengkap dengan periode sewa, kontak, dan riwayat pembayaran dalam satu tempat.'
-  },
-  {
-    icon: <Check color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Keuangan',
-    description:
-      'Pantau pemasukan dan pengeluaran properti Anda. Laporan keuangan otomatis untuk analisis bisnis yang lebih baik.'
+      'Atur setiap unit atau item sewaan lengkap dengan harga, foto, dan status ketersediaan secara real-time.'
   },
   {
     icon: <User color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Promosi',
+    title: 'Data Pelanggan',
     description:
-      'Buat dan kelola promosi menarik untuk meningkatkan okupansi. Atur diskon dan periode promo dengan fleksibel.'
+      'Simpan data penyewa lengkap dengan riwayat penyewaan, kontak, dan status pembayaran dalam satu tempat.'
+  },
+  {
+    icon: <Check color='var(--mui-palette-primary-main)' />,
+    title: 'Tagihan Otomatis',
+    description:
+      'Buat dan kirim tagihan otomatis ke penyewa. Lacak status pembayaran dan kirim pengingat via WhatsApp atau email.'
+  },
+  {
+    icon: <Paper color='var(--mui-palette-primary-main)' />,
+    title: 'Laporan Keuangan',
+    description:
+      'Pantau pemasukan dan pengeluaran bisnis sewa Anda. Laporan keuangan otomatis untuk analisis dan pengambilan keputusan.'
   },
   {
     icon: <Document color='var(--mui-palette-primary-main)' />,
-    title: 'Fitur Tagihan',
+    title: 'Halaman Publikasi',
     description:
-      'Generate tagihan otomatis untuk penghuni. Kirim invoice via email dan lacak status pembayaran secara real-time.'
+      'Tampilkan katalog aset sewa Anda secara online. Pelanggan dapat langsung melihat ketersediaan dan harga dari browser.'
   }
 ]
 
@@ -104,12 +105,12 @@ const UsefulFeature = () => {
                     className='absolute block-end-0 z-[1] bs-[40%] is-[125%] sm:is-[132%] -inline-start-[13%] sm:inline-start-[-19%] block-start-[17px]'
                   />
                 </span>{' '}
-                untuk kelola properti Anda
+                untuk bisnis sewa Anda
               </Typography>
             </div>
             <Typography className='text-center'>
-              Platform lengkap untuk mengelola villa, apartemen, dan kos. Dari pendaftaran penghuni hingga laporan
-              keuangan, semua dalam satu sistem.
+              Platform lengkap untuk semua jenis bisnis sewa. Dari pencatatan aset dan penyewa hingga tagihan dan
+              laporan keuangan, semua dalam satu sistem.
             </Typography>
           </div>
         </div>

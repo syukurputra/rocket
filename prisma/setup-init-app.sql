@@ -51,7 +51,7 @@ VALUES
   ('menu-dashboard', 'Dashboard', '/dashboard', 'tabler-chart-pie', 0, NULL, true, NOW(), NOW()),
   ('menu-aset', 'Aset', '/aset/list', 'tabler-home-dollar', 2, NULL, true, NOW(), NOW()),
   ('menu-keuangan', 'Keuangan', '/keuangan/list', 'tabler-chart-histogram', 3, NULL,true, NOW(), NOW()),
-  ('menu-penghuni', 'Penghuni', '/penghuni/list', 'tabler-friends', 4, NULL,true, NOW(), NOW()),
+  ('menu-penyewa', 'Penyewa', '/penyewa/list', 'tabler-friends', 4, NULL,true, NOW(), NOW()),
 
   -- Management Master Parent Menu
   ('menu-management', 'Management', NULL, 'tabler-settings', 5, NULL, true, NOW(), NOW()),
@@ -85,7 +85,7 @@ VALUES (
 ON CONFLICT DO NOTHING;
 
 -- Assign menus to Free Package
--- Free package includes basic menus: Home, Aset, Keuangan, Penghuni
+-- Free package includes basic menus: Home, Aset, Keuangan, Penyewa
 INSERT INTO "paket_menu" ("id", "paketId", "menuId", "createdAt", "updatedAt")
 SELECT
   'pm-free-' || m.id,

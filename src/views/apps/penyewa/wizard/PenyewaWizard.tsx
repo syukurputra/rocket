@@ -18,7 +18,7 @@ import classnames from 'classnames'
 
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
-import StepPenghuniDetails from './StepPenghuniDetails'
+import StepPenyewaDetails from './StepPenyewaDetails'
 import StepTagihanDetails from './StepTagihanDetails'
 
 // Styled Component Imports
@@ -28,8 +28,8 @@ import StepperWrapper from '@core/styles/stepper'
 const steps = [
   {
     icon: 'tabler-building',
-    title: 'Penghuni',
-    subtitle: 'Informasi Penghuni'
+    title: 'Penyewa',
+    subtitle: 'Informasi Penyewa'
   },
   {
     icon: 'tabler-door',
@@ -48,18 +48,18 @@ import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type Props = {
   mode?: 'create' | 'edit'
-  initialData?: PenghuniData
+  initialData?: PenyewaData
 }
 
-type PenghuniData = {
+type PenyewaData = {
   id?: string
   nama: string
   status: string
   asetId?: string
   ruanganId?: string
   periodeSewa?: string
-  mulaiHuni?: Date
-  selesaiHuni?: Date
+  mulaiSewa?: Date
+  selesaiSewa?: Date
   email?: string
   nomorTelepon?: string
 }
@@ -72,10 +72,10 @@ type TagihanData = {
   jatuhTempo: Date
 }
 
-const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
+const PenyewaWizard = ({ mode = 'create', initialData }: Props) => {
   // States
   const [activeStep, setActiveStep] = useState<number>(0)
-  const [penghuniId, setPenghuniId] = useState<string | null>(initialData?.id || null)
+  const [penyewaId, setPenyewaId] = useState<string | null>(initialData?.id || null)
 
   const handleNext = () => {
     setActiveStep(prev => prev + 1)
@@ -87,32 +87,32 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
     }
   }
 
-  const handleCreateOrUpdatePenghuni = async (data: PenghuniData) => {
+  const handleCreateOrUpdatePenyewa = async (data: PenyewaData) => {
     try {
-      let targetId = penghuniId
+      let targetId = penyewaId
 
-      if (penghuniId && initialData?.id) {
-        // Update existing Penghuni
-        console.log('Updating existing penghuni:', penghuniId, data)
+      if (penyewaId && initialData?.id) {
+        // Update existing Penyewa
+        console.log('Updating existing penyewa:', penyewaId, data)
 
-        const res = await apiFetchClient<{ data: any }>(`/api/penghuni/${penghuniId}`, {
+        const res = await apiFetchClient<{ data: any }>(`/api/penyewa/${penyewaId}`, {
           method: 'PUT',
           body: JSON.stringify(data)
         })
 
         console.log('Update response:', res)
 
-        if (!res.data) throw new Error('Failed to update penghuni')
+        if (!res.data) throw new Error('Failed to update penyewa')
       } else {
-        // Create new Penghuni
-        console.log('Creating new penghuni:', data)
+        // Create new Penyewa
+        console.log('Creating new penyewa:', data)
 
         // For Create, asetId derived from state might be empty initially,
         // but data.asetId should be populated from Step 1.
         // Actually, 'asetId' state variable in this Wizard seems to track the PENGHUNI ID (since it was copied from AsetWizard where it tracked Aset ID).
-        // Let's assume setAsetId sets the Penghuni ID.
+        // Let's assume setAsetId sets the Penyewa ID.
 
-        const res = await apiFetchClient<{ data: any }>('/api/penghuni', {
+        const res = await apiFetchClient<{ data: any }>('/api/penyewa', {
           method: 'POST',
           body: JSON.stringify(data)
         })
@@ -121,28 +121,28 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
 
         if (res.data) {
           targetId = res.data.id
-          setPenghuniId(res.data.id)
+          setPenyewaId(res.data.id)
         } else {
-          throw new Error('Failed to create penghuni: No data returned')
+          throw new Error('Failed to create penyewa: No data returned')
         }
       }
 
       handleNext()
     } catch (error) {
-      console.error('Error saving penghuni details:', error)
+      console.error('Error saving penyewa details:', error)
 
       if (error instanceof Error) {
         console.error('Error message:', error.message)
         console.error('Error stack:', error.stack)
       }
 
-      alert(`Gagal menyimpan penghuni: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`Gagal menyimpan penyewa: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   const handleCreateRuangan = async (data: TagihanData) => {
-    if (!penghuniId) {
-      alert('Penghuni belum dibuat!')
+    if (!penyewaId) {
+      alert('Penyewa belum dibuat!')
 
       return
     }
@@ -150,7 +150,7 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
     try {
       const res = await apiFetchClient('/ruangan', {
         method: 'POST',
-        body: JSON.stringify({ ...data, penghuniId })
+        body: JSON.stringify({ ...data, penyewaId })
       })
 
       if (res) {
@@ -168,12 +168,12 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
     switch (step) {
       case 0:
         return (
-          <StepPenghuniDetails
+          <StepPenyewaDetails
             activeStep={step}
             handleNext={handleNext} // Passed only for back-button or manual override if needed, but logical next is handled in onSave
             handlePrev={handlePrev}
             steps={steps}
-            onSave={handleCreateOrUpdatePenghuni}
+            onSave={handleCreateOrUpdatePenyewa}
             initialData={initialData}
           />
         )
@@ -185,7 +185,7 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
             handlePrev={handlePrev}
             steps={steps}
             onSave={handleCreateRuangan}
-            penghuniId={penghuniId}
+            penyewaId={penyewaId}
           />
         )
       default:
@@ -237,4 +237,4 @@ const PenghuniWizard = ({ mode = 'create', initialData }: Props) => {
   )
 }
 
-export default PenghuniWizard
+export default PenyewaWizard

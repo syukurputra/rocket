@@ -57,7 +57,7 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
                 tanpa salah tagih
               </Typography>
               <Typography variant='h6' color='text.secondary' className='font-normal max-is-[520px] max-lg:mli-auto'>
-                Dari properti, kendaraan, perlengkapan bayi, hingga perlengkapan acara — semua transaksi, pelanggan,
+                Dari properti, kendaraan, perlengkapan bayi, hingga perlengkapan acara — semua transaksi, penyewa,
                 dan aset sewa Anda dalam satu dasbor cerdas.
               </Typography>
               <div className='flex gap-4 flex-wrap max-lg:justify-center'>

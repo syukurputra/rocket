@@ -95,7 +95,7 @@ export default function AuthSuccessPage() {
       <Box display='flex' flexDirection='column' justifyContent='center' alignItems='center' minHeight='100vh' gap={2}>
         <CircularProgress size={60} />
         <Typography variant='body1' color='textSecondary'>
-          Menyelesaikan login...
+          Menyelesaikan masuk...
         </Typography>
       </Box>
       <PhoneNumberModal open={showPhoneModal} onSubmit={handlePhoneSubmit} />

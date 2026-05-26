@@ -21,18 +21,18 @@ import classnames from 'classnames'
 // Utils
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
-interface PenghuniStats {
-  totalPenghuni: number
+interface Penyewatats {
+  totalPenyewa: number
   totalNonAktif: number
 }
 
-const PenghuniCard = () => {
+const PenyewaCard = () => {
   // Hooks
   const isBelowMdScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const isBelowSmScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
   // State
-  const [stats, setStats] = useState<PenghuniStats>({ totalPenghuni: 0, totalNonAktif: 0 })
+  const [stats, setStats] = useState<PenyewaStats>({ totalPenyewa: 0, totalNonAktif: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -40,13 +40,13 @@ const PenghuniCard = () => {
       try {
         setLoading(true)
 
-        const result = await apiFetchClient<{ data: PenghuniStats }>('/api/penghuni/stats', undefined, {
+        const result = await apiFetchClient<{ data: PenyewaStats }>('/api/penyewa/stats', undefined, {
           redirectOn401: '/login'
         })
 
         setStats(result.data)
       } catch (error) {
-        console.error('Failed to fetch penghuni stats:', error)
+        console.error('Failed to fetch penyewa stats:', error)
       } finally {
         setLoading(false)
       }
@@ -57,13 +57,13 @@ const PenghuniCard = () => {
 
   const data = [
     {
-      title: stats.totalPenghuni,
-      subtitle: 'Total Penghuni',
+      title: stats.totalPenyewa,
+      subtitle: 'Total Penyewa',
       icon: 'tabler-users'
     },
     {
       title: stats.totalNonAktif,
-      subtitle: 'Penghuni Non Aktif',
+      subtitle: 'Penyewa Non Aktif',
       icon: 'tabler-user-off'
     }
   ]
@@ -119,4 +119,4 @@ const PenghuniCard = () => {
   )
 }
 
-export default PenghuniCard
+export default PenyewaCard

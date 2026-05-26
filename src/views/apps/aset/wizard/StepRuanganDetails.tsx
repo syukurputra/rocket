@@ -320,7 +320,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
     <>
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='h5'>{editingId ? 'Edit Item Aset' : 'Tambah Item Aset'}</Typography>
+        <Typography variant='h5'>{editingId ? 'Ubah Item Aset' : 'Tambah Item Aset'}</Typography>
         <Typography>Silakan lengkapi detail item aset.</Typography>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>

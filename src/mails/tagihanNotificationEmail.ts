@@ -2,7 +2,7 @@ import { sendEmail } from '@/src/libs/mailer'
 
 export const sendTagihanNotificationEmail = async (
   email: string,
-  penghuniName: string,
+  penyewaName: string,
   keterangan: string,
   mulaiSewa: string,
   selesaiSewa: string,
@@ -214,7 +214,7 @@ export const sendTagihanNotificationEmail = async (
 
         <!-- Content -->
         <div class="content">
-            <p class="welcome-text">Halo <strong>${penghuniName}</strong>! 👋</p>
+            <p class="welcome-text">Halo <strong>${penyewaName}</strong>! 👋</p>
 
             <p class="description">
                 Anda memiliki tagihan baru yang perlu diselesaikan. Berikut adalah detail tagihan Anda:
@@ -264,7 +264,7 @@ export const sendTagihanNotificationEmail = async (
 `
 
   const textContent = `
-Halo ${penghuniName}!
+Halo ${penyewaName}!
 
 Anda memiliki tagihan baru yang perlu diselesaikan.
 

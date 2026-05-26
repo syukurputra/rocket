@@ -12,11 +12,11 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
 
-    // Find tagihan with penghuni details
+    // Find tagihan with penyewaetails
     const tagihan = await prisma.tagihan.findUnique({
       where: { id },
       include: {
-        penghuni: {
+        penyewa: {
           select: {
             id: true,
             nama: true,
@@ -36,10 +36,10 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       return NextResponse.json({ message: 'Tagihan sudah dibayar' }, { status: 400 })
     }
 
-    // Check if penghuni has email
-    if (!tagihan.penghuni?.email) {
+    // Check if penyewa has email
+    if (!tagihan.penyewa?.email) {
       return NextResponse.json(
-        { message: 'Email penghuni tidak tersedia. Tidak dapat mengirim link pembayaran.' },
+        { message: 'Email penyewa tidak tersedia. Tidak dapat mengirim link pembayaran.' },
         { status: 400 }
       )
     }
@@ -53,9 +53,9 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       orderId,
       grossAmount: Number(tagihan.nominal),
       customerDetails: {
-        first_name: tagihan.penghuni.nama,
-        email: tagihan.penghuni.email,
-        phone: tagihan.penghuni.nomorTelepon || undefined
+        first_name: tagihan.penyewa.nama,
+        email: tagihan.penyewa.email,
+        phone: tagihan.penyewa.nomorTelepon || undefined
       },
       itemDetails: [
         {
@@ -79,8 +79,8 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
 
     // Send payment instruction email
     await sendPaymentInstructionEmail(
-      tagihan.penghuni.email,
-      tagihan.penghuni.nama,
+      tagihan.penyewa.email,
+      tagihan.penyewa.nama,
       tagihan.keterangan,
       tagihan.mulaiSewa.toISOString(),
       tagihan.selesaiSewa.toISOString(),

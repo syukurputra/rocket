@@ -8,14 +8,14 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       companyId: user.companyId
     }
 
-    // Get total penghuni count
-    const totalPenghuni = await prisma.penghuni.count({
+    // Get total penyewacount
+    const totalPenyewa = await prisma.penyewa.count({
       where: whereClause
     })
 
-    // Get total non-aktif penghuni count
+    // Get total non-aktif penyewacount
     // Assuming non-aktif means status is not "huni" or "HUNI"
-    const totalNonAktif = await prisma.penghuni.count({
+    const totalNonAktif = await prisma.penyewa.count({
       where: {
         ...whereClause,
         status: {
@@ -27,13 +27,13 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: {
-        totalPenghuni,
+        totalPenyewa,
         totalNonAktif
       },
       message: 'Statistics retrieved successfully'
     })
   } catch (error) {
-    console.error('Get penghuni stats error:', error)
+    console.error('Get penyewa stats error:', error)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

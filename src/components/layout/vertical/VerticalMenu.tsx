@@ -145,13 +145,13 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     }
 
     // Check if pathname starts with menu path (for nested routes)
-    // This makes menu active for routes like /penghuni/list, /penghuni/add, /penghuni/edit/[id]
+    // This makes menu active for routes like /penyewa/list, /penyewa/add, /penyewa/edit/[id]
     if (pathname.startsWith(menu.path)) {
       return true
     }
 
     // Also check if pathname starts with the base path (without /list suffix)
-    // For example, if menu.path is '/penghuni/list', also match '/penghuni/*'
+    // For example, if menu.path is '/penyewa/list', also match '/penyewa/*'
     const basePath = menu.path.replace(/\/(list|add|edit|view).*$/, '')
 
     // Check if basePath is different from original path and pathname starts with basePath
@@ -201,7 +201,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     }
 
     // Render as regular MenuItem
-    // Extract base path for activeUrl (e.g., /penghuni/list -> /penghuni)
+    // Extract base path for activeUrl (e.g., /penyewa/list -> /penyewa)
     const basePath = menu.path ? menu.path.replace(/\/(list|add|edit|view).*$/, '') : ''
 
     return (
