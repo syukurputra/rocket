@@ -3,6 +3,13 @@ export type PenyewaClient = {
   nama: string
   email?: string | null
   nomorTelepon?: string | null
+  alamat?: string | null
+  provinsi?: string | null
+  kota?: string | null
+  kecamatan?: string | null
+  kelurahan?: string | null
+  latitude?: number | null
+  longitude?: number | null
   status: string
   periodeSewa?: string
   mulaiSewa: string | Date

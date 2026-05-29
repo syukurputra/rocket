@@ -80,7 +80,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
 
     if (!nama || !status || !mulaiSewa || !selesaiSewa || !asetId || !ruanganId) {
       return NextResponse.json({ message: 'nama, status, mulai sewa, aset dan ruangan harus diisi' }, { status: 400 })
@@ -116,6 +116,13 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nama: nama,
         email: email || null,
         nomorTelepon: nomorTelepon || null,
+        alamat: alamat || null,
+        provinsi: provinsi || null,
+        kota: kota || null,
+        kecamatan: kecamatan || null,
+        kelurahan: kelurahan || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
         status: status,
         periodeSewa: periodeSewa || null,
         mulaiSewa: mulaiSewaDate,

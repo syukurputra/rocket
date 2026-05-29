@@ -61,7 +61,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId } = body
+    const { nama, email, nomorTelepon, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
 
     let mulaiSewaDate = new Date()
 
@@ -97,6 +97,13 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(nama && { nama }),
         ...(email !== undefined && { email: email || null }),
         ...(nomorTelepon !== undefined && { nomorTelepon: nomorTelepon || null }),
+        ...(alamat !== undefined && { alamat: alamat || null }),
+        ...(provinsi !== undefined && { provinsi: provinsi || null }),
+        ...(kota !== undefined && { kota: kota || null }),
+        ...(kecamatan !== undefined && { kecamatan: kecamatan || null }),
+        ...(kelurahan !== undefined && { kelurahan: kelurahan || null }),
+        ...(latitude !== undefined && { latitude: latitude || null }),
+        ...(longitude !== undefined && { longitude: longitude || null }),
         ...(status && { status }),
         ...(periodeSewa !== undefined && { periodeSewa: periodeSewa || null }),
         ...(mulaiSewa && { mulaiSewa: mulaiSewaDate }),

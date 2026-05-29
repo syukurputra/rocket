@@ -30,6 +30,7 @@ type MapPickerProps = {
   latitude?: number
   longitude?: number
   onLocationChange?: (lat: number, lng: number) => void
+  containerId?: string
 }
 
 type SearchResult = {
@@ -39,7 +40,7 @@ type SearchResult = {
   lon: string
 }
 
-export default function MapPicker({ latitude, longitude, onLocationChange }: MapPickerProps) {
+export default function MapPicker({ latitude, longitude, onLocationChange, containerId = 'map-container' }: MapPickerProps) {
   const [map, setMap] = useState<LeafletMap | null>(null)
   const markerRef = useRef<L.Marker | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -59,7 +60,7 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
     if (!mounted) return
 
     // Create map
-    const mapContainer = document.getElementById('map-container')
+    const mapContainer = document.getElementById(containerId)
 
     if (!mapContainer) return
 
@@ -68,7 +69,7 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
       return
     }
 
-    const newMap = L.map('map-container').setView(
+    const newMap = L.map(containerId).setView(
       latitude && longitude ? [latitude, longitude] : defaultCenter,
       defaultZoom
     )
@@ -250,7 +251,7 @@ export default function MapPicker({ latitude, longitude, onLocationChange }: Map
 
       {/* Map Container */}
       <div
-        id='map-container'
+        id={containerId}
         style={{
           width: '100%',
           height: '400px',

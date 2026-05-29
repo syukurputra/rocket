@@ -377,6 +377,13 @@ model Penyewa {
   nama         String
   email        String?   @db.VarChar(191)
   nomorTelepon String?   @db.VarChar(20)
+  alamat       String?
+  provinsi     String?
+  kota         String?
+  kecamatan    String?
+  kelurahan    String?
+  latitude     Float?
+  longitude    Float?
   status       String    @default("KOSONG")
   periodeSewa  String?   @db.VarChar(20)
   mulaiSewa    DateTime  @default(now())

@@ -216,6 +216,65 @@ const ViewPenyewaCard = ({ penyewaId, initialData }: ViewPenyewaCardProps) => {
               value={penyewaData.nomorTelepon || '-'}
             />
           </Grid>
+
+          {/* Address Section */}
+          <Grid size={{ xs: 12 }}>
+            <Typography variant='h6' sx={{ mt: 2 }}>
+              Alamat Penyewa
+            </Typography>
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <CustomTextField
+              fullWidth
+              label='Alamat'
+              name='alamat'
+              variant='outlined'
+              disabled
+              multiline
+              rows={2}
+              value={penyewaData.alamat || '-'}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Provinsi'
+              name='provinsi'
+              variant='outlined'
+              disabled
+              value={penyewaData.provinsi || '-'}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Kota/Kabupaten'
+              name='kota'
+              variant='outlined'
+              disabled
+              value={penyewaData.kota || '-'}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Kecamatan'
+              name='kecamatan'
+              variant='outlined'
+              disabled
+              value={penyewaData.kecamatan || '-'}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Kelurahan'
+              name='kelurahan'
+              variant='outlined'
+              disabled
+              value={penyewaData.kelurahan || '-'}
+            />
+          </Grid>
         </Grid>
       </CardContent>
     </Card>

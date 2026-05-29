@@ -66,7 +66,14 @@ const PenyewaEditPage = () => {
             nomorTelepon: data.nomorTelepon ?? undefined,
             periodeSewa: data.periodeSewa ?? undefined,
             mulaiSewa: data.mulaiSewa ? new Date(data.mulaiSewa) : undefined,
-            selesaiSewa: data.selesaiSewa ? new Date(data.selesaiSewa) : undefined
+            selesaiSewa: data.selesaiSewa ? new Date(data.selesaiSewa) : undefined,
+            alamat: data.alamat ?? undefined,
+            provinsi: data.provinsi ?? undefined,
+            kota: data.kota ?? undefined,
+            kecamatan: data.kecamatan ?? undefined,
+            kelurahan: data.kelurahan ?? undefined,
+            latitude: data.latitude ?? undefined,
+            longitude: data.longitude ?? undefined
           }}
         />
       </Grid>
