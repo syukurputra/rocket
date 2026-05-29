@@ -41,7 +41,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, hargaBulanan, hargaTahunan, urutan = 0, status = true } = body
+    const { nama, deskripsi, iconUrl, hargaBulanan, hargaTahunan, urutan = 0, status = true } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Nama paket harus diisi' }, { status: 400 })
@@ -51,6 +51,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       data: {
         nama,
         deskripsi: deskripsi || null,
+        iconUrl: iconUrl || null,
         hargaBulanan,
         hargaTahunan,
         urutan,

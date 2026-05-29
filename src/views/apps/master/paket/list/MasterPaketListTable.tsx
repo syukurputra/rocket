@@ -65,6 +65,35 @@ const MasterPaketListTable = () => {
 
   const columns = useMemo<ColumnDef<PaketWithAction, any>[]>(
     () => [
+      columnHelper.display({
+        id: 'icon',
+        header: 'Icon',
+        cell: ({ row }) => (
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 8,
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'var(--mui-palette-action-hover)'
+            }}
+          >
+            {row.original.iconUrl ? (
+              <img
+                src={row.original.iconUrl}
+                alt={row.original.nama}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }}
+              />
+            ) : (
+              <i className='tabler-package text-xl' style={{ opacity: 0.4 }} />
+            )}
+          </div>
+        ),
+        enableSorting: false
+      }),
       columnHelper.accessor('nama', {
         header: 'Nama Paket',
         cell: ({ row }) => <Typography fontWeight={600}>{row.original.nama}</Typography>

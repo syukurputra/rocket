@@ -292,6 +292,7 @@ model MasterPaket {
   id           String      @id @default(cuid())
   nama         String
   deskripsi    String?
+  iconUrl      String?
   hargaBulanan Decimal     @db.Decimal(15, 2)
   hargaTahunan Decimal     @db.Decimal(15, 2)
   urutan       Int         @default(0)

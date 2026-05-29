@@ -2,6 +2,7 @@ export type MasterPaketClient = {
   id: string
   nama: string
   deskripsi: string | null
+  iconUrl: string | null
   hargaBulanan: number | string
   hargaTahunan: number | string
   urutan: number

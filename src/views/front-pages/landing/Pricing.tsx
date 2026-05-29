@@ -100,7 +100,7 @@ const PricingPlan = () => {
               </Typography>
             </div>
             <Typography className='text-center'>
-              Semua paket mencakup 40+ fitur canggih untuk meningkatkan bisnis properti Anda.
+              Semua paket mencakup 20+ fitur canggih untuk meningkatkan bisnis properti Anda.
               <br />
               Pilih paket terbaik yang sesuai dengan kebutuhan Anda.
             </Typography>

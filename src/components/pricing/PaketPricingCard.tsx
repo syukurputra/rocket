@@ -30,8 +30,12 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
   const monthlyPrice = paket.hargaBulanan
   const yearlyPrice = paket.hargaTahunan
 
-  // Get icon based on package name
+  // Get icon: use uploaded icon if available, otherwise fallback to default
   const getPackageIcon = () => {
+    if (paket.iconUrl) {
+      return paket.iconUrl
+    }
+
     const name = paket.nama.toLowerCase()
 
     if (name.includes('basic') || name.includes('dasar')) {

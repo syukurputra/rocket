@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -12,6 +12,10 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid2'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import CircularProgress from '@mui/material/CircularProgress'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
@@ -30,6 +34,7 @@ type FormValues = {
   id?: string
   nama: string
   deskripsi: string
+  iconUrl: string
   hargaBulanan: string
   hargaTahunan: string
   urutan: string
@@ -47,6 +52,7 @@ const formatRupiah = (value: string): string => {
 const DEFAULTS: FormValues = {
   nama: '',
   deskripsi: '',
+  iconUrl: '',
   hargaBulanan: '',
   hargaTahunan: '',
   urutan: '0',
@@ -57,6 +63,9 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
   const router = useRouter()
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [iconPreview, setIconPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   useEffect(() => {
@@ -67,13 +76,17 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         id: initialData.id,
         nama: initialData.nama ?? '',
         deskripsi: initialData.deskripsi ?? '',
+        iconUrl: initialData.iconUrl ?? '',
         hargaBulanan: Math.floor(Number(initialData.hargaBulanan ?? 0)).toString(),
         hargaTahunan: Math.floor(Number(initialData.hargaTahunan ?? 0)).toString(),
         urutan: initialData.urutan?.toString() ?? '0',
         status: initialData.status ?? true
       })
+
+      setIconPreview(initialData.iconUrl || null)
     } else {
       setForm(DEFAULTS)
+      setIconPreview(null)
     }
   }, [open, mode, initialData])
 
@@ -82,6 +95,74 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, status: e.target.checked }))
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml']
+
+    if (!allowedTypes.includes(file.type)) {
+      showSnack('Tipe file tidak valid. Hanya JPG, PNG, WebP, dan SVG yang diizinkan', 'error')
+
+      return
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 3 * 1024 * 1024) {
+      showSnack('Ukuran file melebihi batas 3MB', 'error')
+
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      const formData = new FormData()
+
+      formData.append('file', file)
+
+      if (form.iconUrl) {
+        formData.append('oldFilePath', form.iconUrl)
+      }
+
+      const token = localStorage.getItem('accessToken')
+
+      const response = await fetch('/api/upload/paket-icon', {
+        method: 'POST',
+        body: formData,
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Upload gagal')
+      }
+
+      setForm(prev => ({ ...prev, iconUrl: result.url }))
+      setIconPreview(result.url)
+      showSnack('Icon berhasil diupload', 'success')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengupload icon'
+
+      showSnack(msg, 'error')
+    } finally {
+      setUploading(false)
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveIcon = () => {
+    setForm(prev => ({ ...prev, iconUrl: '' }))
+    setIconPreview(null)
+  }
 
   const handleSubmit = async () => {
     if (!form.nama) {
@@ -101,6 +182,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
             body: JSON.stringify({
               nama: form.nama,
               deskripsi: form.deskripsi || null,
+              iconUrl: form.iconUrl || null,
               hargaBulanan: parseFloat(form.hargaBulanan),
               hargaTahunan: parseFloat(form.hargaTahunan),
               urutan: parseInt(form.urutan, 10),
@@ -113,9 +195,6 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         setOpen(false)
         setSaving(false)
 
-        // Show success message - REMOVED to avoid double toast with parent
-        // setSnack({ open: true, message: json.message ?? 'Paket berhasil diupdate', severity: 'success' })
-
         // Callback and refresh in background
         onSaved?.(json.data)
         setTimeout(() => router.refresh(), 300)
@@ -125,6 +204,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
           body: JSON.stringify({
             nama: form.nama,
             deskripsi: form.deskripsi || null,
+            iconUrl: form.iconUrl || null,
             hargaBulanan: parseFloat(form.hargaBulanan),
             hargaTahunan: parseFloat(form.hargaTahunan),
             urutan: parseInt(form.urutan, 10),
@@ -135,9 +215,6 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
         // Close dialog immediately for better UX
         setOpen(false)
         setSaving(false)
-
-        // Show success message - REMOVED to avoid double toast with parent
-        // setSnack({ open: true, message: json.message ?? 'Paket berhasil ditambahkan', severity: 'success' })
 
         // Callback and refresh in background
         onSaved?.(json.data)
@@ -168,6 +245,91 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
               <i className='tabler-x' />
             </DialogCloseButton>
             <Grid container spacing={6}>
+              {/* Icon Upload Section */}
+              <Grid size={{ xs: 12 }}>
+                <Typography variant='subtitle2' className='mbe-2'>
+                  Icon Paket
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3
+                  }}
+                >
+                  {/* Icon Preview */}
+                  <Box
+                    sx={{
+                      width: 88,
+                      height: 88,
+                      borderRadius: 2,
+                      border: '2px dashed',
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      backgroundColor: 'action.hover',
+                      flexShrink: 0
+                    }}
+                  >
+                    {uploading ? (
+                      <CircularProgress size={28} />
+                    ) : iconPreview ? (
+                      <img
+                        src={iconPreview}
+                        alt='Icon preview'
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          padding: 8
+                        }}
+                      />
+                    ) : (
+                      <i className='tabler-photo text-3xl' style={{ opacity: 0.4 }} />
+                    )}
+                  </Box>
+
+                  {/* Upload Actions */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant='tonal'
+                        size='small'
+                        component='label'
+                        disabled={uploading}
+                        startIcon={<i className='tabler-upload' />}
+                      >
+                        Upload Icon
+                        <input
+                          ref={fileInputRef}
+                          type='file'
+                          hidden
+                          accept='image/jpeg,image/png,image/webp,image/svg+xml'
+                          onChange={handleIconUpload}
+                        />
+                      </Button>
+                      {iconPreview && (
+                        <IconButton
+                          size='small'
+                          color='error'
+                          onClick={handleRemoveIcon}
+                          disabled={uploading}
+                          title='Hapus icon'
+                        >
+                          <i className='tabler-trash' />
+                        </IconButton>
+                      )}
+                    </Box>
+                    <Typography variant='caption' color='text.disabled'>
+                      JPG, PNG, WebP, SVG. Maks 3MB.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
               <Grid size={{ xs: 12, sm: 8 }}>
                 <CustomTextField
                   fullWidth
@@ -260,7 +422,7 @@ export default function AddEditPaket({ open, setOpen, mode = 'create', initialDa
             <Button
               variant='contained'
               type='submit'
-              disabled={saving || !form.nama || !form.hargaBulanan || !form.hargaTahunan}
+              disabled={saving || uploading || !form.nama || !form.hargaBulanan || !form.hargaTahunan}
             >
               {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
