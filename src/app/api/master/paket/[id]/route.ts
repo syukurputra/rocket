@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { deleteFromS3, getS3KeyFromUrl } from '@/src/libs/s3'
 
 // GET /api/master/paket/[id] - Get paket by ID
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
@@ -51,6 +52,34 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'Nama paket harus diisi' }, { status: 400 })
     }
 
+    const existingPaket = await prisma.masterPaket.findUnique({
+      where: { id: params.id }
+    })
+
+    if (!existingPaket) {
+      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+    }
+
+    // If icon is being removed (set to null) and there was an existing icon, delete it from S3
+    if (iconUrl === null && existingPaket.iconUrl) {
+      try {
+        const s3Key = getS3KeyFromUrl(existingPaket.iconUrl)
+
+        if (s3Key) {
+          await deleteFromS3(s3Key)
+        } else {
+          // Fallback to local filesystem for old files
+          const { unlink } = await import('fs/promises')
+          const { join } = await import('path')
+          const fullPath = join(process.cwd(), 'public', existingPaket.iconUrl)
+
+          await unlink(fullPath)
+        }
+      } catch (err) {
+        console.error('Failed to delete removed icon:', err)
+      }
+    }
+
     const paket = await prisma.masterPaket.update({
       where: { id: params.id },
       data: {
@@ -78,6 +107,34 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 // DELETE /api/master/paket/[id] - Delete paket
 async function handleDelete(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
+    const existingPaket = await prisma.masterPaket.findUnique({
+      where: { id: params.id }
+    })
+
+    if (!existingPaket) {
+      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+    }
+
+    // Delete icon from S3 if exists
+    if (existingPaket.iconUrl) {
+      try {
+        const s3Key = getS3KeyFromUrl(existingPaket.iconUrl)
+
+        if (s3Key) {
+          await deleteFromS3(s3Key)
+        } else {
+          // Fallback to local filesystem for old files
+          const { unlink } = await import('fs/promises')
+          const { join } = await import('path')
+          const fullPath = join(process.cwd(), 'public', existingPaket.iconUrl)
+
+          await unlink(fullPath)
+        }
+      } catch (err) {
+        console.error('Failed to delete icon during paket deletion:', err)
+      }
+    }
+
     await prisma.masterPaket.delete({
       where: { id: params.id }
     })

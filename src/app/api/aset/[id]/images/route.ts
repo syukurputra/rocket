@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { uploadToS3 } from '@/src/libs/s3'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
@@ -29,7 +28,7 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       return NextResponse.json({ message: 'No files uploaded' }, { status: 400 })
     }
 
-    // Validate max 10 images
+    // Validate max 3 images
     const existingImagesCount = await prisma.asetImage.count({
       where: { asetId }
     })
@@ -65,19 +64,15 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      // Save to public/uploads/aset
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'aset')
-      await mkdir(uploadDir, { recursive: true })
+      // Upload to S3 Object Storage
+      const s3Key = `aset/${filename}`
+      const publicUrl = await uploadToS3(buffer, s3Key, file.type)
 
-      const filepath = join(uploadDir, filename)
-      await writeFile(filepath, buffer)
-
-      // Create database record
-      const publicPath = `/uploads/aset/${filename}`
+      // Create database record with S3 URL
       const imageRecord = await prisma.asetImage.create({
         data: {
           filename: file.name,
-          filepath: publicPath,
+          filepath: publicUrl,
           filesize: file.size,
           mimetype: file.type,
           asetId

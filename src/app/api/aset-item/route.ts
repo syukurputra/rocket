@@ -64,7 +64,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       message: 'Data retrieved successfully'
     })
   } catch (error) {
-    console.error('Get ruangan error:', error)
+    console.error('Get aset-item error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -114,12 +114,12 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: newRuangan,
-        message: 'Ruangan berhasil ditambahkan'
+        message: 'Item aset berhasil ditambahkan'
       },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Buat ruangan error:', error)
+    console.error('Buat aset-item error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }

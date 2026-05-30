@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { deleteFromS3, getS3KeyFromUrl } from '@/src/libs/s3'
 
 type ParamCtx = AuthContext & { params: { id: string; imageId: string } }
 
@@ -34,10 +34,20 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
       return NextResponse.json({ message: 'Image tidak ditemukan' }, { status: 404 })
     }
 
-    // Delete file from filesystem
+    // Delete file from S3 Object Storage
     try {
-      const fullPath = join(process.cwd(), 'public', image.filepath)
-      await unlink(fullPath)
+      const s3Key = getS3KeyFromUrl(image.filepath)
+
+      if (s3Key) {
+        await deleteFromS3(s3Key)
+      } else {
+        // Fallback: try to delete from local filesystem for old images
+        const { unlink } = await import('fs/promises')
+        const { join } = await import('path')
+        const fullPath = join(process.cwd(), 'public', image.filepath)
+
+        await unlink(fullPath)
+      }
     } catch (error) {
       console.log('File not found or already deleted:', error)
     }
@@ -52,6 +62,7 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
     })
   } catch (error) {
     console.error('Delete image error:', error)
+
     return NextResponse.json({ message: 'Failed to delete image' }, { status: 500 })
   }
 }

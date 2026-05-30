@@ -416,13 +416,6 @@ model Tagihan {
   nominal         Decimal  @default(0) @db.Decimal(15, 2)
   buktiPembayaran String?
 
-  // Midtrans payment fields
-  midtransOrderId           String?   @unique
-  midtransTransactionId     String?
-  midtransTransactionStatus String?
-  midtransPaymentType       String?
-  midtransTransactionTime   DateTime?
-  paymentUrl                String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -436,7 +429,7 @@ model Tagihan {
   updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
 
   @@index([companyId])
-  @@index([midtransOrderId])
+
   @@map("tagihan")
 }
 

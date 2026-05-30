@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { deleteFromS3, getS3KeyFromUrl } from '@/src/libs/s3'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
@@ -28,7 +30,7 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
     })
 
     if (!ruangan) {
-      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -36,7 +38,8 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
       message: 'Data retrieved successfully'
     })
   } catch (error) {
-    console.error('Get ruangan by ID error:', error)
+    console.error('Get aset-item by ID error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
@@ -52,7 +55,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     if (!existingRuangan) {
-      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
     const updatedRuangan = await prisma.ruangan.update({
@@ -83,35 +86,59 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
 
     return NextResponse.json({
       data: updatedRuangan,
-      message: 'Ruangan berhasil diupdate'
+      message: 'Item aset berhasil diupdate'
     })
   } catch (error) {
-    console.error('Update ruangan error:', error)
+    console.error('Update aset-item error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 
-async function handleDelete(request: NextRequest, { params }: ParamCtx) {
+async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
 
     const existingRuangan = await prisma.ruangan.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        images: true
+      }
     })
 
     if (!existingRuangan) {
-      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
+    // Check ownership
+    if (existingRuangan.companyId !== user.companyId) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+    }
+
+    // Delete all item aset images from S3 before deleting the record
+    for (const image of existingRuangan.images) {
+      try {
+        const s3Key = getS3KeyFromUrl(image.filepath)
+
+        if (s3Key) {
+          await deleteFromS3(s3Key)
+        }
+      } catch (err) {
+        console.error(`Failed to delete item aset image from S3: ${image.filepath}`, err)
+      }
+    }
+
+    // Delete from DB (cascade will remove images, fasilitas, harga from DB)
     await prisma.ruangan.delete({
       where: { id }
     })
 
     return NextResponse.json({
-      message: 'Ruangan berhasil dihapus'
+      message: 'Item aset berhasil dihapus'
     })
   } catch (error) {
-    console.error('Delete ruangan error:', error)
+    console.error('Delete aset-item error:', error)
+
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }

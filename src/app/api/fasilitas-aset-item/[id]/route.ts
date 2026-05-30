@@ -17,7 +17,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     if (!existingFasilitas) {
-      return NextResponse.json({ message: 'Fasilitas ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Fasilitas item aset tidak ditemukan' }, { status: 404 })
     }
 
     const updatedFasilitas = await prisma.fasilitasRuangan.update({
@@ -40,10 +40,10 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
 
     return NextResponse.json({
       data: updatedFasilitas,
-      message: 'Fasilitas ruangan berhasil diupdate'
+      message: 'Fasilitas item aset berhasil diupdate'
     })
   } catch (error) {
-    console.error('Update fasilitas ruangan error:', error)
+    console.error('Update fasilitas aset-item error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
@@ -58,7 +58,7 @@ async function handleDelete(request: NextRequest, { params }: ParamCtx) {
     })
 
     if (!existingFasilitas) {
-      return NextResponse.json({ message: 'Fasilitas ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Fasilitas item aset tidak ditemukan' }, { status: 404 })
     }
 
     await prisma.fasilitasRuangan.delete({
@@ -66,10 +66,10 @@ async function handleDelete(request: NextRequest, { params }: ParamCtx) {
     })
 
     return NextResponse.json({
-      message: 'Fasilitas ruangan berhasil dihapus'
+      message: 'Fasilitas item aset berhasil dihapus'
     })
   } catch (error) {
-    console.error('Delete fasilitas ruangan error:', error)
+    console.error('Delete fasilitas aset-item error:', error)
 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }

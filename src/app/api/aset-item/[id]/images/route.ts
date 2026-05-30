@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { uploadToS3 } from '@/src/libs/s3'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
@@ -20,7 +19,7 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     if (!ruangan) {
-      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
     const formData = await request.formData()
@@ -30,7 +29,7 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       return NextResponse.json({ message: 'No files uploaded' }, { status: 400 })
     }
 
-    // Validate max 10 images
+    // Validate max 3 images
     const existingImagesCount = await prisma.ruanganImage.count({
       where: { ruanganId }
     })
@@ -68,21 +67,15 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      // Save to public/uploads/ruangan
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'ruangan')
+      // Upload to S3 Object Storage
+      const s3Key = `item-aset/${filename}`
+      const publicUrl = await uploadToS3(buffer, s3Key, file.type)
 
-      await mkdir(uploadDir, { recursive: true })
-
-      const filepath = join(uploadDir, filename)
-
-      await writeFile(filepath, buffer)
-
-      // Create database record
-      const publicPath = `/uploads/ruangan/${filename}`
+      // Create database record with S3 URL
       const imageRecord = await prisma.ruanganImage.create({
         data: {
           filename: file.name,
-          filepath: publicPath,
+          filepath: publicUrl,
           filesize: file.size,
           mimetype: file.type,
           ruanganId

@@ -226,7 +226,7 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
     }
 
     try {
-      const res = await apiFetchClient<{ data: any }>('/api/ruangan', {
+      const res = await apiFetchClient<{ data: any }>('/api/aset-item', {
         method: 'POST',
         body: JSON.stringify({ ...data, asetId })
       })

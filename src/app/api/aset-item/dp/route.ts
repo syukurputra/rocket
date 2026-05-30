@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
-import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { withAuth } from '@/src/libs/auth-middleware'
 
 async function handleGet(request: NextRequest) {
   try {
@@ -29,9 +31,9 @@ async function handleGet(request: NextRequest) {
       data,
       message: 'Data retrieved successfully'
     })
-
   } catch (error) {
-    console.error('Get ruangan error:', error)
+    console.error('Get aset-item error:', error)
+
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

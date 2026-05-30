@@ -88,7 +88,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
 
   const fetchRuangans = async () => {
     try {
-      const res = await apiFetchClient<{ data: RuanganData[] }>(`/api/ruangan?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: RuanganData[] }>(`/api/aset-item?asetId=${asetId}`)
 
       if (res.data) {
         setRuangans(res.data)
@@ -101,7 +101,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   const fetchFasilitas = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: FasilitasRuanganData[] }>(`/api/fasilitas-ruangan?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: FasilitasRuanganData[] }>(`/api/fasilitas-aset-item?asetId=${asetId}`)
 
       if (res.data) {
         setFasilitas(res.data)
@@ -130,7 +130,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   const handleDelete = async (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
       try {
-        await apiFetchClient(`/api/fasilitas-ruangan/${id}`, { method: 'DELETE' })
+        await apiFetchClient(`/api/fasilitas-aset-item/${id}`, { method: 'DELETE' })
         fetchFasilitas()
       } catch (error) {
         console.error('Error deleting fasilitas:', error)
@@ -161,13 +161,13 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
     try {
       if (editingId) {
         // Update
-        await apiFetchClient(`/api/fasilitas-ruangan/${editingId}`, {
+        await apiFetchClient(`/api/fasilitas-aset-item/${editingId}`, {
           method: 'PUT',
           body: JSON.stringify(data)
         })
       } else {
         // Create
-        await apiFetchClient(`/api/fasilitas-ruangan`, {
+        await apiFetchClient(`/api/fasilitas-aset-item`, {
           method: 'POST',
           body: JSON.stringify(data)
         })

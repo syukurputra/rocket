@@ -63,7 +63,7 @@ export const checkPaymentStatusJob: ScheduledJob = {
     console.log('💳 Checking payment status...')
 
     // Implementasi cek status pembayaran di sini
-    // Contoh: cek Midtrans, update status invoice, dll
+    // Contoh: cek status dari payment gateway lain, update status invoice, dll
     console.log('✅ Payment status checked')
   },
   enabled: false, // Disabled by default

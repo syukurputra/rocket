@@ -66,7 +66,7 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
     }
   })
 
-  return NextResponse.json({ data: newFasilitas, message: 'Fasilitas ruangan berhasil ditambahkan' }, { status: 201 })
+  return NextResponse.json({ data: newFasilitas, message: 'Fasilitas item aset berhasil ditambahkan' }, { status: 201 })
 }
 
 export const GET = withAuth(handleGet)

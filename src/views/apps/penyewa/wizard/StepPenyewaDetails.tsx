@@ -138,7 +138,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
   const fetchRuangan = async (id: string) => {
     try {
-      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/ruangan?asetId=${id}`)
+      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/aset-item?asetId=${id}`)
 
       if (res.data) {
         setRuanganList(res.data)

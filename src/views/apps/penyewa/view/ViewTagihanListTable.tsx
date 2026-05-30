@@ -259,36 +259,13 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const getPaymentMethodLabel = (paymentType: string | null | undefined): string => {
-            if (!paymentType) return ''
 
-            const paymentMethods: Record<string, string> = {
-              credit_card: 'Kartu Kredit',
-              bank_transfer: 'Transfer Bank',
-              gopay: 'GoPay',
-              shopeepay: 'ShopeePay',
-              qris: 'QRIS',
-              cstore: 'Minimarket',
-              akulaku: 'Akulaku',
-              kredivo: 'Kredivo'
-            }
-
-            return paymentMethods[paymentType] || paymentType
-          }
 
           return (
             <div className='flex flex-col gap-1'>
               {row.original.status === 'LUNAS' ? (
                 <>
                   <Chip label='Lunas' color='success' size='small' variant='tonal' />
-                  {row.original.midtransPaymentType && (
-                    <Chip
-                      label={getPaymentMethodLabel(row.original.midtransPaymentType)}
-                      color='info'
-                      size='small'
-                      variant='outlined'
-                    />
-                  )}
                 </>
               ) : (
                 <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
@@ -301,54 +278,7 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            {row.original.status !== 'LUNAS' && (
-              <>
-                {!row.original.paymentUrl ? (
-                  <Tooltip title='Kirim Link Bayar'>
-                    <IconButton
-                      onClick={async () => {
-                        try {
-                          setLoading(true)
-                          await apiFetchClient(
-                            `/api/tagihan/${row.original.id}/payment/create`,
-                            {
-                              method: 'POST'
-                            },
-                            {
-                              redirectOn401: '/login'
-                            }
-                          )
 
-                          fetchTagihanData(currentPage, pageSize, searchQuery)
-                          showSnackbar('Link pembayaran berhasil dibuat dan email telah dikirim', 'success')
-                        } catch (err) {
-                          console.error('Create payment link failed:', err)
-                          const errorMessage = err instanceof Error ? err.message : 'Failed to create payment link'
-
-                          showSnackbar(errorMessage, 'error')
-                        } finally {
-                          setLoading(false)
-                        }
-                      }}
-                    >
-                      <i className='tabler-send text-textSecondary' />
-                    </IconButton>
-                  </Tooltip>
-                ) : (
-                  <Tooltip title='Bayar Sekarang'>
-                    <IconButton
-                      onClick={() => {
-                        if (row.original.paymentUrl) {
-                          window.open(row.original.paymentUrl, '_blank')
-                        }
-                      }}
-                    >
-                      <i className='tabler-credit-card text-textSecondary' />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </>
-            )}
             <OpenDialogOnElementClick
               element={IconButton}
               elementProps={{

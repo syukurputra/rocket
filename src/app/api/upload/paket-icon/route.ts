@@ -1,10 +1,8 @@
-import { writeFile, mkdir, unlink } from 'fs/promises'
-import { join } from 'path'
-
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { uploadToS3, deleteFromS3, getS3KeyFromUrl } from '@/src/libs/s3'
 
 async function handlePost(request: NextRequest, { }: AuthContext) {
   try {
@@ -34,29 +32,32 @@ async function handlePost(request: NextRequest, { }: AuthContext) {
     const extension = file.name.split('.').pop() || 'png'
     const timestamp = Date.now()
     const filename = `paket-icon-${timestamp}.${extension}`
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'paket-icons')
-
-    await mkdir(uploadDir, { recursive: true })
-
+    
     // Delete old file if exists
     if (oldFilePath) {
       try {
-        const oldFullPath = join(process.cwd(), 'public', oldFilePath)
+        const oldS3Key = getS3KeyFromUrl(oldFilePath)
 
-        await unlink(oldFullPath)
-      } catch {
-        // ignore if old file doesn't exist
+        if (oldS3Key) {
+          await deleteFromS3(oldS3Key)
+        } else {
+          // Fallback to local filesystem for old files
+          const { unlink } = await import('fs/promises')
+          const { join } = await import('path')
+          const oldFullPath = join(process.cwd(), 'public', oldFilePath)
+
+          await unlink(oldFullPath)
+        }
+      } catch (err) {
+        console.error('Failed to delete old icon:', err)
       }
     }
 
-    const filepath = join(uploadDir, filename)
-
-    await writeFile(filepath, buffer)
-
-    const publicUrl = `/uploads/paket-icons/${filename}`
+    // Convert file to buffer and upload to S3
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const s3Key = `paket-icons/${filename}`
+    const publicUrl = await uploadToS3(buffer, s3Key, file.type)
 
     return NextResponse.json({
       message: 'Icon berhasil diupload',

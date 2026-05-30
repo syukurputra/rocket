@@ -69,7 +69,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   const fetchRooms = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: (RuanganData & { images: any[] })[] }>(`/api/ruangan?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: (RuanganData & { images: any[] })[] }>(`/api/aset-item?asetId=${asetId}`)
 
       if (res.data) {
         // @ts-ignore
@@ -101,7 +101,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   const handleDelete = async (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus item aset ini?')) {
       try {
-        await apiFetchClient(`/api/ruangan/${id}`, { method: 'DELETE' })
+        await apiFetchClient(`/api/aset-item/${id}`, { method: 'DELETE' })
         fetchRooms()
       } catch (error) {
         console.error('Error deleting room:', error)
@@ -139,7 +139,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
 
   const handleDeleteImage = async (imageId: string) => {
     try {
-      await apiFetchClient(`/api/ruangan-image/${imageId}`, { method: 'DELETE' })
+      await apiFetchClient(`/api/aset-item-image/${imageId}`, { method: 'DELETE' })
       setExistingImages(prev => prev.filter(img => img.id !== imageId))
     } catch (error) {
       console.error('Error deleting image:', error)
@@ -170,13 +170,13 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
 
       if (editingId) {
         // Update
-        await apiFetchClient(`/api/ruangan/${editingId}`, {
+        await apiFetchClient(`/api/aset-item/${editingId}`, {
           method: 'PUT',
           body: JSON.stringify(data)
         })
       } else {
         // Create
-        const res = await apiFetchClient<{ data: RuanganData }>(`/api/ruangan`, {
+        const res = await apiFetchClient<{ data: RuanganData }>(`/api/aset-item`, {
           method: 'POST',
           body: JSON.stringify(data)
         })
@@ -197,7 +197,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
         // Use fetch with Auth header
         const token = localStorage.getItem('accessToken')
 
-        await fetch(`/api/ruangan/${roomId}/images`, {
+        await fetch(`/api/aset-item/${roomId}/images`, {
           method: 'POST',
           headers: {
             ...(token && { Authorization: `Bearer ${token}` })

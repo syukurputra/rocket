@@ -200,19 +200,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }
 
-  const handleCreatePayment = async (id: string) => {
-    try {
-      setLoading(true)
-      await apiFetchClient(`/api/tagihan/${id}/payment/create`, { method: 'POST' })
-      fetchTagihan()
-      showSnackbar('Link pembayaran berhasil dibuat dan email telah dikirim', 'success')
-    } catch (error) {
-      console.error('Error creating payment:', error)
-      showSnackbar('Gagal membuat link pembayaran', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const resetForm = () => {
     setKeterangan('')
@@ -268,22 +256,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }
 
-  const getPaymentMethodLabel = (paymentType: string | null | undefined): string => {
-    if (!paymentType) return ''
 
-    const paymentMethods: Record<string, string> = {
-      credit_card: 'Kartu Kredit',
-      bank_transfer: 'Transfer Bank',
-      gopay: 'GoPay',
-      shopeepay: 'ShopeePay',
-      qris: 'QRIS',
-      cstore: 'Minimarket',
-      akulaku: 'Akulaku',
-      kredivo: 'Kredivo'
-    }
-
-    return paymentMethods[paymentType] || paymentType
-  }
 
   const formatNumber = (num: number): string => {
     if (!num || num === 0) return '0'
@@ -336,14 +309,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                             {item.status === 'LUNAS' ? (
                               <>
                                 <Chip label='Lunas' color='success' size='small' variant='tonal' />
-                                {item.midtransPaymentType && (
-                                  <Chip
-                                    label={getPaymentMethodLabel(item.midtransPaymentType)}
-                                    color='info'
-                                    size='small'
-                                    variant='outlined'
-                                  />
-                                )}
                               </>
                             ) : (
                               <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
@@ -352,35 +317,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                         </TableCell>
                         <TableCell>
                           <div className='flex gap-2'>
-                            {item.status !== 'LUNAS' && (
-                              <>
-                                {!item.paymentUrl ? (
-                                  <Tooltip title='Kirim Link Bayar'>
-                                    <IconButton
-                                      aria-label='Kirim Link Bayar'
-                                      onClick={() => handleCreatePayment(item.id)}
-                                      sx={{ minWidth: 0, p: 1 }}
-                                    >
-                                      <i className='tabler-send' />
-                                    </IconButton>
-                                  </Tooltip>
-                                ) : (
-                                  <Tooltip title='Bayar Sekarang'>
-                                    <IconButton
-                                      aria-label='Bayar Sekarang'
-                                      onClick={() => {
-                                        if (item.paymentUrl) {
-                                          window.open(item.paymentUrl, '_blank')
-                                        }
-                                      }}
-                                      sx={{ minWidth: 0, p: 1 }}
-                                    >
-                                      <i className='tabler-credit-card' />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </>
-                            )}
+
                             <Tooltip title='Ubah'>
                               <IconButton aria-label='Ubah' onClick={() => handleEdit(item)} sx={{ minWidth: 0, p: 1 }}>
                                 <i className='tabler-edit' />

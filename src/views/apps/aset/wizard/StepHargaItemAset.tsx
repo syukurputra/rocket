@@ -79,7 +79,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
 
   const fetchItemAsets = async () => {
     try {
-      const res = await apiFetchClient<{ data: ItemAsetData[] }>(`/api/ruangan?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: ItemAsetData[] }>(`/api/aset-item?asetId=${asetId}`)
 
       if (res.data) setItemAsets(res.data)
     } catch { /* noop */ }
