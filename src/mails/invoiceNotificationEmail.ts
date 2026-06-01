@@ -20,7 +20,7 @@ type InvoiceEmailType = 'PENDING' | 'PAID' | 'CANCELLED'
 
 interface InvoiceEmailData {
   nomorInvoice: string
-  companyName: string
+  userName: string
   paketName: string
   billingCycle: string
   subtotal: number
@@ -110,7 +110,7 @@ export async function sendInvoiceNotificationEmail(
               <tr>
                 <td style="padding: 40px 30px;">
                   <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                    Halo <strong>${data.companyName}</strong>,
+                    Halo <strong>${data.userName}</strong>,
                   </p>
 
                   <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
@@ -163,29 +163,7 @@ export async function sendInvoiceNotificationEmail(
                     </table>
                   </div>
 
-                  ${type === 'PENDING' ? `
-                  <!-- Payment Instructions -->
-                  <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                    <h3 style="margin: 0 0 12px; color: #1d4ed8; font-size: 16px;">💳 Informasi Pembayaran</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                      <tr>
-                        <td style="padding: 6px 0; color: #4b5563; font-size: 14px;">Bank:</td>
-                        <td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">Bank BCA</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0; color: #4b5563; font-size: 14px;">No. Rekening:</td>
-                        <td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">123-456-7890</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0; color: #4b5563; font-size: 14px;">A/N:</td>
-                        <td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">PT Rocket Indonesia</td>
-                      </tr>
-                    </table>
-                    <p style="margin: 12px 0 0; color: #1d4ed8; font-size: 13px;">
-                      Setelah melakukan pembayaran, silakan upload bukti pembayaran melalui halaman invoice di aplikasi.
-                    </p>
-                  </div>
-                  ` : ''}
+
 
                   ${data.catatan && type === 'CANCELLED' ? `
                   <!-- Catatan -->
@@ -210,7 +188,7 @@ export async function sendInvoiceNotificationEmail(
                   </p>
                   <p style="margin: 0; color: #6b7280; font-size: 14px;">
                     Jika Anda memerlukan bantuan, hubungi kami di
-                    <a href="mailto:${process.env.SUPPORT_EMAIL || 'support@example.com'}" style="color: #6366f1; text-decoration: none;">${process.env.SUPPORT_EMAIL || 'support@example.com'}</a>
+                    <a href="mailto:${process.env.SUPPORT_EMAIL || 'notif@bantusewa.com'}" style="color: #6366f1; text-decoration: none;">${process.env.SUPPORT_EMAIL || 'notif@bantusewa.com'}</a>
                   </p>
                   <p style="margin: 20px 0 0; color: #9ca3af; font-size: 12px;">
                     © ${new Date().getFullYear()} Rocket Property Management System. All rights reserved.
@@ -228,7 +206,7 @@ export async function sendInvoiceNotificationEmail(
   const textContent = `
 ${config.headerTitle} - ${data.nomorInvoice}
 
-Halo ${data.companyName},
+Halo ${data.userName},
 
 ${type === 'PENDING' ? `Invoice langganan paket ${data.paketName} telah berhasil dibuat. Silakan lakukan pembayaran sebelum tanggal jatuh tempo.` : ''}${type === 'PAID' ? `Pembayaran untuk paket ${data.paketName} telah dikonfirmasi. Terima kasih!` : ''}${type === 'CANCELLED' ? `Invoice untuk paket ${data.paketName} telah dibatalkan.${data.catatan ? ` Alasan: ${data.catatan}` : ''}` : ''}
 
@@ -243,12 +221,6 @@ Status: ${config.statusLabel}
 Subtotal: ${formatCurrency(data.subtotal)}
 PPN (11%): ${formatCurrency(data.pajak)}
 Total: ${formatCurrency(data.total)}
-${type === 'PENDING' ? `
-Informasi Pembayaran:
-Bank: Bank BCA
-No. Rekening: 123-456-7890
-A/N: PT Rocket Indonesia
-` : ''}
 ---
 Email ini dikirim secara otomatis.
 © ${new Date().getFullYear()} Rocket Property Management System.

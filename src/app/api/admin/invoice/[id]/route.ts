@@ -39,7 +39,7 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
       include: {
         paket: { select: { id: true, nama: true } },
         company: { select: { id: true, nama: true } },
-        createdBy: { select: { id: true, email: true } }
+        createdBy: { select: { id: true, email: true, username: true } }
       }
     })
 
@@ -105,7 +105,7 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
       if (emailTo) {
         sendInvoiceNotificationEmail(emailTo, status as 'PAID' | 'CANCELLED', {
           nomorInvoice: invoice.nomorInvoice,
-          companyName: invoice.company?.nama || '-',
+          userName: invoice.createdBy?.username || invoice.createdBy?.email || 'Pengguna',
           paketName: invoice.paket?.nama || '-',
           billingCycle: invoice.billingCycle,
           subtotal: Number(invoice.subtotal),

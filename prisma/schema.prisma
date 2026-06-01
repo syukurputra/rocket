@@ -319,6 +319,11 @@ model Invoice {
   tanggalJatuhTempo DateTime
   tanggalBayar    DateTime?
   buktiPembayaran String?
+  
+  // iPaymu fields
+  ipaymuSessionId String?
+  paymentUrl      String?
+
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   companyId       String

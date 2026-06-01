@@ -30,7 +30,7 @@ const CheckoutActions = ({ paketId, billingCycle, onPrint }: CheckoutActionsProp
     try {
       setLoading(true)
 
-      const result = await apiFetchClient<{ data: { nomorInvoice: string }; message: string }>(
+      const result = await apiFetchClient<{ data: { nomorInvoice: string; paymentUrl?: string }; message: string }>(
         '/api/invoice',
         {
           method: 'POST',
@@ -41,9 +41,13 @@ const CheckoutActions = ({ paketId, billingCycle, onPrint }: CheckoutActionsProp
 
       showSnack(`Invoice ${result.data?.nomorInvoice || ''} berhasil dibuat! Silakan lakukan pembayaran.`)
 
-      // Redirect to invoice detail after short delay
+      // Redirect to payment URL if available
       setTimeout(() => {
-        router.push('/setting/invoice')
+        if (result.data?.paymentUrl) {
+          window.location.href = result.data.paymentUrl
+        } else {
+          router.push('/setting/invoice')
+        }
       }, 1500)
     } catch (err) {
       console.error('Subscribe error:', err)
@@ -68,7 +72,7 @@ const CheckoutActions = ({ paketId, billingCycle, onPrint }: CheckoutActionsProp
             onClick={handleSubscribe}
             disabled={loading}
           >
-            {loading ? 'Memproses...' : 'Konfirmasi & Langganan'}
+            {loading ? 'Memproses...' : 'Pembayaran'}
           </Button>
 
           <Button
@@ -82,17 +86,7 @@ const CheckoutActions = ({ paketId, billingCycle, onPrint }: CheckoutActionsProp
             Download Invoice
           </Button>
 
-          <div className='flex items-center gap-3'>
-            <Button
-              fullWidth
-              color='secondary'
-              variant='tonal'
-              className='capitalize'
-              startIcon={<i className='tabler-printer' />}
-              onClick={onPrint}
-            >
-              Print
-            </Button>
+          <div className='flex items-center gap-4'>
             <Button
               fullWidth
               color='secondary'

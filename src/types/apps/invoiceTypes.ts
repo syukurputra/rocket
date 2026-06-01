@@ -13,6 +13,8 @@ export type InvoiceClient = {
   tanggalJatuhTempo: Date | string
   tanggalBayar?: Date | string | null
   buktiPembayaran?: string | null
+  ipaymuSessionId?: string | null
+  paymentUrl?: string | null
   createdAt: Date | string
   updatedAt: Date | string
   companyId: string

@@ -72,7 +72,11 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
   const getDueDate = (): Date => {
     const due = new Date(today)
 
-    due.setDate(due.getDate() + 14)
+    if (billingCycle === 'annually') {
+      due.setFullYear(due.getFullYear() + 1)
+    } else {
+      due.setMonth(due.getMonth() + 1)
+    }
 
     return due
   }
@@ -107,16 +111,14 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
               <div className='flex justify-between gap-y-4 flex-col sm:flex-row'>
                 <div className='flex flex-col gap-4'>
                   <div className='flex items-center gap-3'>
-                    <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-primary'>
-                      <i className='tabler-building text-white text-xl' />
-                    </div>
+                    <img src='/images/bantu-sewa/Logo_Bantu_Sewa.svg' alt='Bantu Sewa' className='w-10 h-10' />
                     <div>
                       <Typography variant='h5' color='primary' className='font-extrabold'>
-                        Rocket
+                        Bantu Sewa
                       </Typography>
-                      <Typography variant='caption' color='text.secondary'>
+                      {/* <Typography variant='caption' color='text.secondary'>
                         Property Management System
-                      </Typography>
+                      </Typography> */}
                     </div>
                   </div>
                   <div>
@@ -158,49 +160,18 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
           {/* Invoice To & Bill To */}
           <Grid size={{ xs: 12 }}>
             <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <div className='flex flex-col gap-4'>
-                  <Typography className='font-medium' color='text.primary'>
+              <Grid size={{ xs: 12 }}>
+                <div className='flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4'>
+                  <Typography className='font-medium min-is-[130px]' color='text.primary'>
                     Order Untuk:
                   </Typography>
-                  <div>
+                  <div className='flex items-center gap-2'>
                     <Typography className='font-semibold' color='text.primary'>
                       {company?.nama || 'Perusahaan Anda'}
                     </Typography>
-                    <Typography color='text.secondary'>Pelanggan</Typography>
-                  </div>
-                </div>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <div className='flex flex-col gap-4'>
-                  <Typography className='font-medium' color='text.primary'>
-                    Detail Pembayaran:
-                  </Typography>
-                  <div className='flex flex-col gap-1'>
-                    <div className='flex items-center gap-4'>
-                      <Typography className='min-is-[130px]' color='text.secondary'>
-                        Metode:
-                      </Typography>
-                      <Typography color='text.primary'>Transfer Bank</Typography>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                      <Typography className='min-is-[130px]' color='text.secondary'>
-                        Bank:
-                      </Typography>
-                      <Typography color='text.primary'>Bank BCA</Typography>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                      <Typography className='min-is-[130px]' color='text.secondary'>
-                        No. Rekening:
-                      </Typography>
-                      <Typography color='text.primary'>123-456-7890</Typography>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                      <Typography className='min-is-[130px]' color='text.secondary'>
-                        A/N:
-                      </Typography>
-                      <Typography color='text.primary'>PT Rocket Indonesia</Typography>
-                    </div>
+                    <Typography color='text.secondary'>
+                      (Pelanggan)
+                    </Typography>
                   </div>
                 </div>
               </Grid>
@@ -229,7 +200,7 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                     </td>
                     <td>
                       <Typography color='text.secondary'>
-                        {paket.deskripsi || `Paket ${paket.nama} - Sistem Manajemen Properti`}
+                        {paket.deskripsi || `Paket ${paket.nama}`}
                       </Typography>
                     </td>
                     <td>
@@ -275,7 +246,9 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                         .slice(0, 5)
                         .map(pm => (
                           <div key={pm.menu.id} className='flex items-center gap-2'>
-                            <i className='tabler-check text-primary text-sm' />
+                            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' className='text-primary min-w-[16px]'>
+                              <path d='M5 12l5 5l10 -10'></path>
+                            </svg>
                             <Typography variant='body2' color='text.secondary'>
                               {pm.deskripsi || pm.menu.keterangan || pm.menu.nama}
                             </Typography>
@@ -284,9 +257,6 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                     </div>
                   </div>
                 )}
-                <Typography color='text.secondary' className='mt-4'>
-                  Terima kasih telah memilih layanan kami!
-                </Typography>
               </div>
 
               <div className='min-is-[220px]'>
@@ -331,8 +301,7 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                 <Typography component='span' className='font-medium' color='text.primary'>
                   Catatan:{' '}
                 </Typography>
-                Silakan lakukan pembayaran sebelum tanggal jatuh tempo. Setelah konfirmasi pembayaran,
-                paket Anda akan langsung aktif. Hubungi kami jika membutuhkan bantuan.
+                Segera lakukan pembayaran untuk berlangganan.
               </Typography>
             </Box>
           </Grid>

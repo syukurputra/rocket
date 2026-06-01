@@ -134,6 +134,10 @@ code {
 }
 
 @media print {
+  @page {
+    margin: 0;
+  }
+
   /* Hide layout chrome */
   .ts-vertical-nav-root,
   .ts-vertical-layout-header,

@@ -71,7 +71,7 @@ const CheckoutView = ({ paketId }: CheckoutViewProps) => {
   return (
     <Box>
       {/* Breadcrumb */}
-      <Breadcrumbs className='mb-6'>
+      <Breadcrumbs className='mb-6 no-print'>
         <Link href='/paket/pricing' color='inherit' underline='hover'>
           <Typography color='text.secondary'>Paket</Typography>
         </Link>
@@ -79,7 +79,7 @@ const CheckoutView = ({ paketId }: CheckoutViewProps) => {
       </Breadcrumbs>
 
       <Grid container spacing={6}>
-        <Grid size={{ xs: 12, md: 9 }}>
+        <Grid size={{ xs: 12, md: 9 }} className='invoice-print-area'>
           <CheckoutCard
             paket={paket}
             loading={loading}
@@ -87,7 +87,7 @@ const CheckoutView = ({ paketId }: CheckoutViewProps) => {
             company={user?.company}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 3 }} className='no-print'>
           <CheckoutActions paketId={paketId} billingCycle={billingCycle} onPrint={handlePrint} />
         </Grid>
       </Grid>

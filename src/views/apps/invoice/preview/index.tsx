@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 // MUI Imports
 import Grid from '@mui/material/Grid2'
@@ -14,11 +14,6 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Link from '@mui/material/Link'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import IconButton from '@mui/material/IconButton'
 
 import { useRouter } from 'next/navigation'
 
@@ -50,16 +45,13 @@ interface InvoicePreviewProps {
   invoiceId: string
 }
 
-const isImageUrl = (url: string) => /\.(jpe?g|png|webp|gif)$/i.test(url)
-const isPdfUrl = (url: string) => /\.pdf$/i.test(url)
+
 
 const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
   const [invoice, setInvoice] = useState<InvoiceClient | null>(null)
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
-  const [buktiOpen, setBuktiOpen] = useState(false)
+  const [checking, setChecking] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const formatRupiah = (num: number | string): string => {
@@ -94,53 +86,43 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
     fetchInvoice()
   }, [invoiceId])
 
-  const handleUploadBukti = async (file: File) => {
+  const handleCheckTransaction = async () => {
     if (!invoice) return
 
-    setUploading(true)
-
+    setChecking(true)
     try {
-      const formData = new FormData()
+      const result = await apiFetchClient<{ data: InvoiceClient; message: string }>(
+        `/api/invoice/${invoice.id}/check`,
+        { method: 'POST' }
+      )
 
-      formData.append('file', file)
-      formData.append('invoiceId', invoice.id)
+      setInvoice(result.data)
 
-      if (invoice.buktiPembayaran) {
-        formData.append('oldFilePath', invoice.buktiPembayaran)
+      if (result.data.status === 'PAID') {
+        showSnack(result.message, 'success')
+      } else {
+        showSnack(`${result.message}. Mengalihkan ke halaman pembayaran...`, 'warning')
+        setTimeout(() => {
+          if (result.data.paymentUrl) {
+            window.location.href = result.data.paymentUrl
+          }
+        }, 1500)
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengecek transaksi'
+      showSnack(`${msg}. Mengalihkan ke halaman pembayaran...`, 'error')
 
-      const token = localStorage.getItem('accessToken')
-
-      const response = await fetch('/api/upload/invoice-bukti-pembayaran', {
-        method: 'POST',
-        body: formData,
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
-      if (!response.ok) {
-        const err = await response.json()
-
-        throw new Error(err.message || 'Upload gagal')
-      }
-
-      const data = await response.json()
-
-      // Save URL + update status to KONFIRMASI in one call
-      await apiFetchClient(`/api/invoice/${invoice.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ buktiPembayaran: data.url, status: 'KONFIRMASI' })
-      })
-
-      setInvoice(prev => prev ? { ...prev, buktiPembayaran: data.url, status: 'KONFIRMASI' } : prev)
-      showSnack('Bukti pembayaran berhasil diupload')
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Gagal mengupload file'
-
-      showSnack(msg, 'error')
+      setTimeout(() => {
+        if (invoice.paymentUrl) {
+          window.location.href = invoice.paymentUrl
+        }
+      }, 1500)
     } finally {
-      setUploading(false)
+      setChecking(false)
     }
   }
+
+
 
   if (loading) {
     return (
@@ -161,7 +143,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
   }
 
   const status = invoice.status as InvoiceStatus
-  const buktiUrl = invoice.buktiPembayaran || ''
 
   return (
     <Box>
@@ -184,16 +165,14 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                     <div className='flex justify-between gap-y-4 flex-col sm:flex-row'>
                       <div className='flex flex-col gap-4'>
                         <div className='flex items-center gap-3'>
-                          <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-primary'>
-                            <i className='tabler-building text-white text-xl' />
-                          </div>
+                          <img src='/images/bantu-sewa/Logo_Bantu_Sewa.svg' alt='Bantu Sewa' className='w-10 h-10' />
                           <div>
                             <Typography variant='h5' color='primary' className='font-extrabold'>
-                              Rocket
+                              Bantu Sewa
                             </Typography>
-                            <Typography variant='caption' color='text.secondary'>
+                            {/* <Typography variant='caption' color='text.secondary'>
                               Property Management System
-                            </Typography>
+                            </Typography> */}
                           </div>
                         </div>
                         <div>
@@ -242,12 +221,12 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                 {/* Company & Payment Info */}
                 <Grid size={{ xs: 12 }}>
                   <Grid container spacing={6}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <div className='flex flex-col gap-4'>
-                        <Typography className='font-medium' color='text.primary'>
+                    <Grid size={{ xs: 12 }}>
+                      <div className='flex flex-col sm:flex-row items-start gap-2 sm:gap-4'>
+                        <Typography className='font-medium min-is-[140px]' color='text.primary'>
                           Ditagihkan Kepada:
                         </Typography>
-                        <div>
+                        <div className='flex flex-col gap-1'>
                           <Typography className='font-semibold' color='text.primary'>
                             {(invoice as any).company?.nama || '-'}
                           </Typography>
@@ -261,27 +240,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                               {(invoice as any).company.email}
                             </Typography>
                           )}
-                        </div>
-                      </div>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <div className='flex flex-col gap-4'>
-                        <Typography className='font-medium' color='text.primary'>
-                          Detail Pembayaran:
-                        </Typography>
-                        <div className='flex flex-col gap-1'>
-                          <div className='flex items-center gap-4'>
-                            <Typography className='min-is-[130px]' color='text.secondary'>Bank:</Typography>
-                            <Typography color='text.primary'>Bank BCA</Typography>
-                          </div>
-                          <div className='flex items-center gap-4'>
-                            <Typography className='min-is-[130px]' color='text.secondary'>No. Rekening:</Typography>
-                            <Typography color='text.primary'>123-456-7890</Typography>
-                          </div>
-                          <div className='flex items-center gap-4'>
-                            <Typography className='min-is-[130px]' color='text.secondary'>A/N:</Typography>
-                            <Typography color='text.primary'>PT Rocket Indonesia</Typography>
-                          </div>
                         </div>
                       </div>
                     </Grid>
@@ -383,6 +341,17 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
             <CardContent className='flex flex-col gap-4'>
               <Button
                 fullWidth
+                color='primary'
+                variant='contained'
+                className='capitalize'
+                disabled={checking || status === 'PAID'}
+                startIcon={checking ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-refresh' />}
+                onClick={handleCheckTransaction}
+              >
+                {checking ? 'Mengecek...' : 'Check Transaksi'}
+              </Button>
+              <Button
+                fullWidth
                 color='secondary'
                 variant='tonal'
                 className='capitalize'
@@ -404,159 +373,11 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
             </CardContent>
           </Card>
 
-          {/* Upload bukti pembayaran — only when PENDING */}
-          {status === 'PENDING' && (
-            <Card className='mt-6'>
-              <CardContent className='flex flex-col gap-4'>
-                <div>
-                  <Typography variant='subtitle2' className='font-semibold' color='text.primary'>
-                    Bukti Pembayaran
-                  </Typography>
-                  <Typography variant='caption' color='text.secondary'>
-                    Upload bukti transfer (JPG, PNG, PDF, maks. 5MB)
-                  </Typography>
-                </div>
 
-                {buktiUrl ? (
-                  <div className='flex flex-col gap-2'>
-                    <Button
-                      fullWidth
-                      variant='outlined'
-                      size='small'
-                      startIcon={<i className='tabler-eye' />}
-                      onClick={() => setBuktiOpen(true)}
-                    >
-                      Lihat Bukti
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant='tonal'
-                      color='primary'
-                      size='small'
-                      component='label'
-                      disabled={uploading}
-                      startIcon={uploading ? <CircularProgress size={16} /> : <i className='tabler-refresh' />}
-                    >
-                      Ganti File
-                      <input
-                        type='file'
-                        hidden
-                        accept='image/jpeg,image/png,image/jpg,application/pdf'
-                        onChange={e => {
-                          const file = e.target.files?.[0]
-
-                          if (file) handleUploadBukti(file)
-                          e.target.value = ''
-                        }}
-                      />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    fullWidth
-                    variant='contained'
-                    color='primary'
-                    component='label'
-                    disabled={uploading}
-                    startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-upload' />}
-                  >
-                    {uploading ? 'Mengupload...' : 'Upload Bukti'}
-                    <input
-                      ref={fileInputRef}
-                      type='file'
-                      hidden
-                      accept='image/jpeg,image/png,image/jpg,application/pdf'
-                      onChange={e => {
-                        const file = e.target.files?.[0]
-
-                        if (file) handleUploadBukti(file)
-                        e.target.value = ''
-                      }}
-                    />
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Show uploaded proof for non-PENDING invoices if exists */}
-          {status !== 'PENDING' && buktiUrl && (
-            <Card className='mt-6'>
-              <CardContent className='flex flex-col gap-4'>
-                <Typography variant='subtitle2' className='font-semibold' color='text.primary'>
-                  Bukti Pembayaran
-                </Typography>
-                <Button
-                  fullWidth
-                  variant='outlined'
-                  size='small'
-                  startIcon={<i className='tabler-eye' />}
-                  onClick={() => setBuktiOpen(true)}
-                >
-                  Lihat Bukti
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </Grid>
       </Grid>
 
-      {/* Popup Bukti Pembayaran */}
-      <Dialog open={buktiOpen} onClose={() => setBuktiOpen(false)} maxWidth='md' fullWidth>
-        <DialogTitle>
-          <Box className='flex items-center justify-between'>
-            <Typography variant='h6'>Bukti Pembayaran</Typography>
-            <IconButton onClick={() => setBuktiOpen(false)} size='small'>
-              <i className='tabler-x' />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers>
-          {buktiUrl && isImageUrl(buktiUrl) && (
-            <Box className='flex justify-center'>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={buktiUrl}
-                alt='Bukti Pembayaran'
-                style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
-              />
-            </Box>
-          )}
-          {buktiUrl && isPdfUrl(buktiUrl) && (
-            <Box sx={{ height: '70vh' }}>
-              <iframe
-                src={buktiUrl}
-                title='Bukti Pembayaran'
-                width='100%'
-                height='100%'
-                style={{ border: 'none', borderRadius: 8 }}
-              />
-            </Box>
-          )}
-          {buktiUrl && !isImageUrl(buktiUrl) && !isPdfUrl(buktiUrl) && (
-            <Box className='text-center py-8'>
-              <i className='tabler-file text-5xl text-textSecondary mb-4 block' />
-              <Typography color='text.secondary'>
-                File tidak dapat ditampilkan. Silakan download untuk melihat.
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            component='a'
-            href={buktiUrl}
-            download
-            startIcon={<i className='tabler-download' />}
-            variant='outlined'
-          >
-            Download
-          </Button>
-          <Button onClick={() => setBuktiOpen(false)} variant='contained' color='secondary'>
-            Tutup
-          </Button>
-        </DialogActions>
-      </Dialog>
+
 
       <AppSnackbar snack={snack} onClose={closeSnack} />
     </Box>
