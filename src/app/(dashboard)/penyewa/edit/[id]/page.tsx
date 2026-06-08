@@ -73,7 +73,8 @@ const PenyewaEditPage = () => {
             kecamatan: data.kecamatan ?? undefined,
             kelurahan: data.kelurahan ?? undefined,
             latitude: data.latitude ?? undefined,
-            longitude: data.longitude ?? undefined
+            longitude: data.longitude ?? undefined,
+            nomorKtp: data.nomorKtp ?? undefined
           }}
         />
       </Grid>
