@@ -4,8 +4,12 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
-async function handleGet(request: NextRequest, { user }: AuthContext) {
+async function handleGet(_request: NextRequest, { user }: AuthContext) {
   try {
+    if (!user.companyId) {
+      return NextResponse.json({ data: [] })
+    }
+
     const penyewaList = await prisma.penyewa.findMany({
       where: { companyId: user.companyId },
       include: {
