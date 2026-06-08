@@ -53,6 +53,7 @@ type PenyewaData = {
   selesaiSewa: Date | null
   email: string
   nomorTelepon: string
+  nomorKtp: string
   alamat: string
   provinsi: string
   kota: string
@@ -82,6 +83,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
   const [email, setEmail] = useState(initialData?.email || '')
   const [nomorTelepon, setNomorTelepon] = useState(initialData?.nomorTelepon || '')
+  const [nomorKtp, setNomorKtp] = useState(initialData?.nomorKtp || '')
 
   // Address States
   const [alamat, setAlamat] = useState(initialData?.alamat || '')
@@ -259,6 +261,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
     setSelesaiSewa(null)
     setEmail('')
     setNomorTelepon('')
+    setNomorKtp('')
     setAlamat('')
     setProvinsi('')
     setKota('')
@@ -287,6 +290,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
       selesaiSewa,
       email,
       nomorTelepon,
+      nomorKtp,
       alamat,
       provinsi,
       kota,
@@ -376,6 +380,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
           value={periodeSewa}
           onChange={e => setPeriodeSewa(e.target.value)}
         >
+          <MenuItem value='jam'>Jam</MenuItem>
           <MenuItem value='harian'>Harian</MenuItem>
           <MenuItem value='bulanan'>Bulanan</MenuItem>
           <MenuItem value='tahunan'>Tahunan</MenuItem>
@@ -415,6 +420,15 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
           placeholder='08123456789'
           value={nomorTelepon}
           onChange={e => setNomorTelepon(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <CustomTextField
+          fullWidth
+          label='Nomor KTP'
+          placeholder='3201xxxxxxxxxxxxxxxx'
+          value={nomorKtp}
+          onChange={e => setNomorKtp(e.target.value)}
         />
       </Grid>
 

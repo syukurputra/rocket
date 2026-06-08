@@ -102,39 +102,46 @@ export default function MapPicker({ latitude, longitude, onLocationChange, conta
     }
   }, [mounted])
 
-  // Update marker position when props change
+  // Update marker position when props change (don't call onLocationChange — parent owns these values)
   useEffect(() => {
     if (!map) return
 
     if (latitude && longitude) {
-      updateMarker(latitude, longitude, map)
+      placeMarker(latitude, longitude, map)
       map.setView([latitude, longitude], defaultZoom)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latitude, longitude, map])
 
+  const placeMarker = (lat: number, lng: number, mapInstance: LeafletMap) => {
+    if (markerRef.current) {
+      markerRef.current.remove()
+      markerRef.current = null
+    }
+
+    try {
+      const newMarker = L.marker([lat, lng], { draggable: !!onLocationChange }).addTo(mapInstance as any)
+
+      if (onLocationChange) {
+        newMarker.on('dragend', () => {
+          const pos = newMarker.getLatLng()
+
+          onLocationChange(pos.lat, pos.lng)
+        })
+      }
+
+      markerRef.current = newMarker
+    } catch {
+      // map may have been removed
+    }
+  }
+
   const updateMarker = (lat: number, lng: number, mapInstance: LeafletMap) => {
+    placeMarker(lat, lng, mapInstance)
+
     if (onLocationChange) {
       onLocationChange(lat, lng)
     }
-
-    // Remove existing marker if any
-    if (markerRef.current) {
-      markerRef.current.remove()
-    }
-
-    // Create new marker
-    // Draggable only if onLocationChange is provided
-    const newMarker = L.marker([lat, lng], { draggable: !!onLocationChange }).addTo(mapInstance)
-
-    if (onLocationChange) {
-      newMarker.on('dragend', () => {
-        const pos = newMarker.getLatLng()
-
-        onLocationChange(pos.lat, pos.lng)
-      })
-    }
-
-    markerRef.current = newMarker
   }
 
   const handleSearch = async () => {

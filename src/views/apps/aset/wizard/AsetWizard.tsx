@@ -84,6 +84,8 @@ type AsetData = {
   latitude?: number
   longitude?: number
   status: string
+  bookingOnline?: boolean
+  pembayaranOnline?: boolean
 }
 
 type RuanganData = {

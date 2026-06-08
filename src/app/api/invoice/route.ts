@@ -193,6 +193,20 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       // We don't fail the invoice creation if payment link fails, we can handle it later or retry
     }
 
+    // Buat notifikasi di database per user (non-blocking)
+    prisma.notifikasi.create({
+      data: {
+        title: 'Invoice Paket Belum Dibayar',
+        subtitle: `${paket.nama} — ${nomorInvoice} — Rp ${total.toLocaleString('id-ID')}`,
+        avatarIcon: 'tabler-receipt',
+        avatarColor: 'primary',
+        type: 'invoice',
+        url: `/setting/invoice/preview/${invoice.id}`,
+        refId: invoice.id,
+        userId: user.id
+      }
+    }).catch(err => console.error('Failed to create notifikasi:', err))
+
     // Send email notification to the user who created the invoice (non-blocking)
     const emailTo = user.email
 

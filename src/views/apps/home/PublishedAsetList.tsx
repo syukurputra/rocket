@@ -258,9 +258,9 @@ const PublishedAsetList = (props: Props) => {
                         color={getChipColor(item.jenis)}
                       />
                       <div className='flex items-center gap-1'>
-                        <i className='tabler-door text-lg text-textSecondary' />
+                        <i className='tabler-box text-lg text-textSecondary' />
                         <Typography variant='body2' color='text.secondary'>
-                          {getAvailableRoomCount(item.ruangan)}/{item.ruangan.length} Kamar
+                          {getAvailableRoomCount(item.ruangan)}/{item.ruangan.length} Item Aset
                         </Typography>
                       </div>
                     </div>

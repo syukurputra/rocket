@@ -62,6 +62,7 @@ type PenyewaData = {
   selesaiSewa?: Date
   email?: string
   nomorTelepon?: string
+  nomorKtp?: string
   alamat?: string
   provinsi?: string
   kota?: string

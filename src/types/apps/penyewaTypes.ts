@@ -3,6 +3,7 @@ export type PenyewaClient = {
   nama: string
   email?: string | null
   nomorTelepon?: string | null
+  nomorKtp?: string | null
   alamat?: string | null
   provinsi?: string | null
   kota?: string | null

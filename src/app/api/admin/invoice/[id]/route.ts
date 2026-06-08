@@ -98,6 +98,30 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
       }
     }
 
+    // Buat notifikasi per user saat status berubah
+    if ((status === 'PAID' || status === 'CANCELLED' || status === 'EXPIRED') && invoice.createdBy?.id) {
+      const notifMap: Record<string, { title: string; avatarIcon: string; avatarColor: string }> = {
+        PAID:      { title: 'Pembayaran Invoice Berhasil',  avatarIcon: 'tabler-circle-check', avatarColor: 'success' },
+        CANCELLED: { title: 'Invoice Dibatalkan',           avatarIcon: 'tabler-circle-x',     avatarColor: 'error' },
+        EXPIRED:   { title: 'Invoice Kadaluarsa',           avatarIcon: 'tabler-clock-x',      avatarColor: 'warning' }
+      }
+
+      const notif = notifMap[status]
+
+      prisma.notifikasi.create({
+        data: {
+          title: notif.title,
+          subtitle: `${invoice.paket?.nama ?? '-'} — ${invoice.nomorInvoice} — Rp ${Number(invoice.total).toLocaleString('id-ID')}`,
+          avatarIcon: notif.avatarIcon,
+          avatarColor: notif.avatarColor,
+          type: 'invoice',
+          url: `/setting/invoice/preview/${invoice.id}`,
+          refId: invoice.id,
+          userId: invoice.createdBy.id
+        }
+      }).catch(err => console.error('Failed to create notifikasi:', err))
+    }
+
     // Send email notification for PAID or CANCELLED (non-blocking)
     if (status === 'PAID' || status === 'CANCELLED') {
       const emailTo = invoice.createdBy?.email

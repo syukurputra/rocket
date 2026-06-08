@@ -3,46 +3,75 @@ import prisma from '@/src/libs/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData()
-    const status = formData.get('status') as string
-    const referenceId = formData.get('reference_id') as string // This is our nomorInvoice
-    const trxId = formData.get('trx_id') as string
-    
-    // Fallback to json if not formData
-    // let body
-    // if (!status && !referenceId) {
-    //   body = await request.json()
-    //   status = body.status
-    //   referenceId = body.reference_id
-    //   trxId = body.trx_id
-    // }
+    const contentType = request.headers.get('content-type') || ''
 
-    if (!referenceId) {
-      return NextResponse.json({ message: 'Missing reference_id' }, { status: 400 })
+    let status = ''
+    let referenceId = ''
+    let trxId = ''
+
+    if (contentType.includes('application/json')) {
+      const body = await request.json()
+
+      status = body.status
+      referenceId = body.reference_id
+      trxId = String(body.trx_id || '')
+    } else if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+
+      status = formData.get('status') as string
+      referenceId = formData.get('reference_id') as string
+      trxId = formData.get('trx_id') as string
+    } else {
+      // Fallback: coba baca sebagai text lalu parse
+      const text = await request.text()
+
+      try {
+        const body = JSON.parse(text)
+
+        status = body.status
+        referenceId = body.reference_id
+        trxId = String(body.trx_id || '')
+      } catch {
+        const params = new URLSearchParams(text)
+
+        status = params.get('status') || ''
+        referenceId = params.get('reference_id') || ''
+        trxId = params.get('trx_id') || ''
+      }
     }
 
-    console.log(`[iPaymu Webhook] Received status ${status} for ${referenceId}`)
+    console.log(`[iPaymu Notify] status=${status} reference_id=${referenceId} trx_id=${trxId}`)
 
-    // Find the invoice
+    if (!referenceId) {
+      console.error('[iPaymu Notify] Missing reference_id')
+
+      return new NextResponse('true', { status: 200 })
+    }
+
+    // Cari invoice berdasarkan nomorInvoice
     const invoice = await prisma.invoice.findUnique({
-      where: { nomorInvoice: referenceId }
+      where: { nomorInvoice: referenceId },
+      include: { createdBy: { select: { id: true } } }
     })
 
     if (!invoice) {
-      return NextResponse.json({ message: 'Invoice not found' }, { status: 404 })
+      console.error(`[iPaymu Notify] Invoice ${referenceId} tidak ditemukan`)
+
+      return new NextResponse('true', { status: 200 })
     }
 
+    // Map status iPaymu ke sistem
     let newStatus = invoice.status
     let tanggalBayar = invoice.tanggalBayar
 
-    // Map iPaymu status to our system
-    // iPaymu status: 'berhasil', 'pending', 'expired' (based on generic payment gateway standard, iPaymu uses lowercase ID)
-    if (status?.toLowerCase() === 'berhasil') {
+    const statusLower = status?.toLowerCase() || ''
+
+    if (statusLower === 'berhasil') {
       newStatus = 'PAID'
       tanggalBayar = new Date()
-    } else if (status?.toLowerCase() === 'expired') {
+    } else if (statusLower === 'expired') {
       newStatus = 'EXPIRED'
-    } else if (status?.toLowerCase() === 'gagal') {
+    } else if (statusLower === 'gagal') {
       newStatus = 'CANCELLED'
     }
 
@@ -52,17 +81,70 @@ export async function POST(request: NextRequest) {
         data: {
           status: newStatus,
           tanggalBayar,
-          catatan: invoice.catatan 
-            ? `${invoice.catatan}\n\n[System] iPaymu Trx ID: ${trxId} - Status: ${status}`
-            : `[System] iPaymu Trx ID: ${trxId} - Status: ${status}`
+          catatan: invoice.catatan
+            ? `${invoice.catatan}\n[iPaymu] Trx ID: ${trxId} — ${status}`
+            : `[iPaymu] Trx ID: ${trxId} — ${status}`
         }
       })
-      console.log(`[iPaymu Webhook] Updated ${referenceId} to ${newStatus}`)
+
+      console.log(`[iPaymu Notify] Invoice ${referenceId} updated → ${newStatus}`)
+
+      // Update periode aktif company sesuai billingCycle invoice
+      if (newStatus === 'PAID' && invoice.companyId && invoice.paketId) {
+        const startDate = tanggalBayar ?? new Date()
+        const endDate = new Date(startDate)
+
+        if (invoice.billingCycle === 'annually') {
+          endDate.setFullYear(endDate.getFullYear() + 1)
+        } else {
+          endDate.setMonth(endDate.getMonth() + 1)
+        }
+
+        await prisma.company.update({
+          where: { id: invoice.companyId },
+          data: {
+            paketId: invoice.paketId,
+            paketStartDate: startDate,
+            paketEndDate: endDate
+          }
+        })
+
+        console.log(`[iPaymu Notify] Company ${invoice.companyId} periode updated: ${startDate.toISOString()} → ${endDate.toISOString()}`)
+      }
+
+      // Buat notifikasi untuk user pembuat invoice
+      if (invoice.createdBy?.id) {
+        const notifMap: Record<string, { title: string; icon: string; color: string }> = {
+          PAID:      { title: 'Pembayaran Invoice Berhasil', icon: 'tabler-circle-check', color: 'success' },
+          EXPIRED:   { title: 'Invoice Kadaluarsa',          icon: 'tabler-clock-x',      color: 'warning' },
+          CANCELLED: { title: 'Invoice Dibatalkan',          icon: 'tabler-circle-x',      color: 'error' }
+        }
+
+        const notif = notifMap[newStatus]
+
+        if (notif) {
+          await prisma.notifikasi.create({
+            data: {
+              title: notif.title,
+              subtitle: `${referenceId} — Rp ${Number(invoice.total).toLocaleString('id-ID')}`,
+              avatarIcon: notif.icon,
+              avatarColor: notif.color,
+              type: 'invoice',
+              url: `/setting/invoice/preview/${invoice.id}`,
+              refId: invoice.id,
+              userId: invoice.createdBy.id
+            }
+          })
+        }
+      }
     }
 
-    return NextResponse.json({ message: 'OK' })
+    // iPaymu mengharapkan response 'true'
+    return new NextResponse('true', { status: 200 })
   } catch (error) {
-    console.error('[iPaymu Webhook] Error:', error)
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 })
+    console.error('[iPaymu Notify] Error:', error)
+
+    // Tetap return true agar iPaymu tidak retry terus
+    return new NextResponse('true', { status: 200 })
   }
 }

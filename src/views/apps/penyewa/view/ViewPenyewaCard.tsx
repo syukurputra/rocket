@@ -216,6 +216,16 @@ const ViewPenyewaCard = ({ penyewaId, initialData }: ViewPenyewaCardProps) => {
               value={penyewaData.nomorTelepon || '-'}
             />
           </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <CustomTextField
+              fullWidth
+              label='Nomor KTP'
+              name='nomorKtp'
+              variant='outlined'
+              disabled
+              value={penyewaData.nomorKtp || '-'}
+            />
+          </Grid>
 
           {/* Address Section */}
           <Grid size={{ xs: 12 }}>

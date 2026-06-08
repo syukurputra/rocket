@@ -86,6 +86,14 @@ model User {
   username         String    @unique @db.VarChar(50)
   email            String    @unique @db.VarChar(191)
   nomorTelepon     String?   @db.VarChar(20)
+  nomorKtp         String?   @db.VarChar(50)
+  alamat           String?   @db.Text
+  provinsi         String?   @db.VarChar(100)
+  kota             String?   @db.VarChar(100)
+  kecamatan        String?   @db.VarChar(100)
+  kelurahan        String?   @db.VarChar(100)
+  latitude         Float?
+  longitude        Float?
   password         String?   @db.VarChar(191)
   tokenVersion     Int       @default(0)
   createdAt        DateTime  @default(now())
@@ -120,6 +128,7 @@ model User {
   company                 Company?           @relation(fields: [companyId], references: [id])
   role                    Role?              @relation(fields: [roleId], references: [id])
   invoicesCreated         Invoice[]          @relation("InvoiceCreatedBy")
+  notifikasi              Notifikasi[]
 
   // Self-relation for invitations
   invitedBy    User?  @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
@@ -146,8 +155,10 @@ model Aset {
   kelurahan     String?
   latitude      Float?
   longitude     Float?
-  status        String          @default("aktif")
-  createdAt     DateTime        @default(now())
+  status           String          @default("aktif")
+  bookingOnline    Boolean         @default(false)
+  pembayaranOnline Boolean         @default(false)
+  createdAt        DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   nominal       Decimal         @default(0) @db.Decimal(15, 2)
   createdById   String
@@ -339,6 +350,26 @@ model Invoice {
   @@map("invoice")
 }
 
+model Notifikasi {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String   @db.Text
+  avatarIcon  String?
+  avatarColor String?
+  type        String   // invoice | tagihan | penyewa | system
+  url         String?  // redirect URL saat diklik
+  refId       String?  // ID referensi ke record terkait
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifikasi")
+}
+
 model PaketMenu {
   id        String      @id @default(cuid())
   deskripsi String?
@@ -382,6 +413,7 @@ model Penyewa {
   nama         String
   email        String?   @db.VarChar(191)
   nomorTelepon String?   @db.VarChar(20)
+  nomorKtp     String?   @db.VarChar(20)
   alamat       String?
   provinsi     String?
   kota         String?

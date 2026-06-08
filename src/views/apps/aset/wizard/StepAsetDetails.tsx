@@ -39,6 +39,8 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [nama, setNama] = useState(initialData?.nama || '')
   const [jenis, setJenis] = useState(initialData?.status || 'aktif')
   const [tipe, setTipe] = useState(initialData?.jenis || '') // Map DB 'jenis' to UI 'tipe'
+  const [bookingOnline, setBookingOnline] = useState<boolean>(initialData?.bookingOnline ?? false)
+  const [pembayaranOnline, setPembayaranOnline] = useState<boolean>(initialData?.pembayaranOnline ?? false)
   const [jenisAsetOptions, setJenisAsetOptions] = useState<{ id: string; nama: string }[]>([])
   const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi || '')
 
@@ -254,6 +256,8 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           nama,
           jenis: tipe, // UI Tipe -> DB jenis
           status: jenis, // UI Jenis -> DB status
+          bookingOnline,
+          pembayaranOnline,
           deskripsi,
           alamat,
           provinsi, // String name
@@ -293,6 +297,30 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           <MenuItem value='aktif'>Aktif</MenuItem>
           <MenuItem value='non_aktif'>Non Aktif</MenuItem>
           <MenuItem value='publish'>Publish</MenuItem>
+        </CustomTextField>
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <CustomTextField
+          select
+          fullWidth
+          label='Booking Online'
+          value={bookingOnline ? 'aktif' : 'non_aktif'}
+          onChange={e => setBookingOnline(e.target.value === 'aktif')}
+        >
+          <MenuItem value='aktif'>Aktif</MenuItem>
+          <MenuItem value='non_aktif'>Non Aktif</MenuItem>
+        </CustomTextField>
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <CustomTextField
+          select
+          fullWidth
+          label='Pembayaran Online'
+          value={pembayaranOnline ? 'aktif' : 'non_aktif'}
+          onChange={e => setPembayaranOnline(e.target.value === 'aktif')}
+        >
+          <MenuItem value='aktif'>Aktif</MenuItem>
+          <MenuItem value='non_aktif'>Non Aktif</MenuItem>
         </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>

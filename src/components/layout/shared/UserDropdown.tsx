@@ -208,13 +208,9 @@ const UserDropdown = () => {
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e, '/my-profile')} disabled={logoutLoading}>
                     <i className='tabler-user' />
-                    <Typography color='text.primary'>My Profile</Typography>
-                  </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
-                    <i className='tabler-settings' />
-                    <Typography color='text.primary'>Settings</Typography>
+                    <Typography color='text.primary'>Akun Saya</Typography>
                   </MenuItem>
                   <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
                     <i className='tabler-help-circle' />
