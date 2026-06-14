@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -80,7 +80,7 @@ async function handleDelete(req: NextRequest, { user, params }: AuthContext & { 
       }
     })
 
-    return NextResponse.json({ message: 'Fasilitas deleted successfully' })
+    return NextResponse.json({ message: 'Fasilitas berhasil dihapus' })
   } catch (error) {
     console.error('Error deleting fasilitas:', error)
 

@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -22,7 +22,7 @@ async function handlePut(request: NextRequest, { params }: AuthContext & { param
   } catch (error) {
     console.error('Update jenis aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -34,7 +34,7 @@ async function handleDelete(_request: NextRequest, { params }: AuthContext & { p
   } catch (error) {
     console.error('Delete jenis aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

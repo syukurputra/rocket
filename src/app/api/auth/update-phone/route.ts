@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 401 })
     }
 
     const token = authHeader.substring(7)
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     try {
       decoded = jwt.verify(token, JWT_SECRET)
     } catch (error) {
-      return NextResponse.json({ message: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ message: 'Token tidak valid' }, { status: 401 })
     }
 
     // Validate phone number
@@ -65,6 +65,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Update phone error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

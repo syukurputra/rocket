@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 
@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     })
 
     if (!data) {
-      return NextResponse.json({ message: 'Data not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Data tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({ data }, { status: 200 })

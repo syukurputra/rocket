@@ -12,27 +12,23 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { token, username, password } = body
 
-    // Validation
     if (!token || !username || !password) {
-      return NextResponse.json({ message: 'Token, username, and password are required' }, { status: 400 })
+      return NextResponse.json({ message: 'Token, username, dan password wajib diisi' }, { status: 400 })
     }
 
-    // Validate username (alphanumeric, underscore, 3-50 chars)
     const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/
 
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
-        { message: 'Username must be 3-50 characters and contain only letters, numbers, and underscores' },
+        { message: 'Username harus 3-50 karakter dan hanya boleh mengandung huruf, angka, dan garis bawah' },
         { status: 400 }
       )
     }
 
-    // Validate password (minimum 8 characters)
     if (password.length < 8) {
-      return NextResponse.json({ message: 'Password must be at least 8 characters' }, { status: 400 })
+      return NextResponse.json({ message: 'Password minimal 8 karakter' }, { status: 400 })
     }
 
-    // Find user with this invitation token
     const user = await prisma.user.findUnique({
       where: { invitationToken: token },
       select: {
@@ -49,20 +45,17 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ message: 'Invalid invitation token' }, { status: 404 })
+      return NextResponse.json({ message: 'Token undangan tidak valid' }, { status: 404 })
     }
 
-    // Check if already verified
     if (user.verifikasi) {
-      return NextResponse.json({ message: 'Invitation already accepted' }, { status: 400 })
+      return NextResponse.json({ message: 'Undangan sudah diterima' }, { status: 400 })
     }
 
-    // Check if expired
     if (user.invitationExpiry && new Date() > user.invitationExpiry) {
-      return NextResponse.json({ message: 'Invitation has expired' }, { status: 400 })
+      return NextResponse.json({ message: 'Undangan sudah kadaluarsa' }, { status: 400 })
     }
 
-    // Check if username already exists
     const existingUsername = await prisma.user.findFirst({
       where: {
         username,
@@ -71,13 +64,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUsername) {
-      return NextResponse.json({ message: 'Username already taken' }, { status: 400 })
+      return NextResponse.json({ message: 'Username sudah digunakan' }, { status: 400 })
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -90,17 +81,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Send confirmation email
     try {
       await sendConfirmationEmail(user.email, username, user.company?.nama || 'Bantu Sewa')
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError)
-
-      // Don't fail the request if email fails, user is already activated
     }
 
     return NextResponse.json({
-      message: 'Account activated successfully',
+      message: 'Akun berhasil diaktifkan',
       data: {
         username: updatedUser.username,
         email: updatedUser.email
@@ -109,6 +97,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Accept invitation error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

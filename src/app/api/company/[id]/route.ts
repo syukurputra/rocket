@@ -7,11 +7,6 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 // GET /api/company/[id] - Get company by ID (Super Admin only)
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    // Check if user is super admin
-    if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized. Super admin access required.' }, { status: 403 })
-    }
-
     const company = await prisma.company.findUnique({
       where: { id: params.id },
       include: {
@@ -26,28 +21,23 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!company) {
-      return NextResponse.json({ message: 'Company not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Perusahaan tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: company,
-      message: 'Company retrieved successfully'
+      message: 'Data perusahaan berhasil diambil'
     })
   } catch (error) {
     console.error('Get company error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
 // PUT /api/company/[id] - Update company (Super Admin only)
 async function handlePut(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    // Check if user is super admin
-    if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized. Super admin access required.' }, { status: 403 })
-    }
-
     const body = await request.json()
     const { nama, alamat, telepon, email, status, paketStartDate, paketEndDate } = body
 
@@ -66,34 +56,29 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: company,
-      message: 'Company updated successfully'
+      message: 'Perusahaan berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update company error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
 // DELETE /api/company/[id] - Delete company (Super Admin only)
 async function handleDelete(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    // Check if user is super admin
-    if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Unauthorized. Super admin access required.' }, { status: 403 })
-    }
-
     await prisma.company.delete({
       where: { id: params.id }
     })
 
     return NextResponse.json({
-      message: 'Company deleted successfully'
+      message: 'Perusahaan berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete company error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

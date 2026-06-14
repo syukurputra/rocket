@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -29,13 +29,13 @@ async function handleGet(request: NextRequest) {
 
     return NextResponse.json({
       data,
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error) {
     console.error('Get aset-item error:', error)
 
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Terjadi kesalahan server' },
       { status: 500 }
     )
   }

@@ -9,7 +9,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     const menus = await prisma.menu.findMany({
       where: {
-        status: true // Only active menus
+        status: true
       },
       orderBy: [{ urutan: 'asc' }, { nama: 'asc' }],
       include: {
@@ -19,12 +19,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: menus,
-      message: 'Menus retrieved successfully'
+      message: 'Data menu berhasil diambil'
     })
   } catch (error) {
     console.error('Get menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -35,7 +35,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const { nama, keterangan, path, icon, urutan = 0, parentId, status = true } = body
 
     if (!nama) {
-      return NextResponse.json({ message: 'Menu name is required' }, { status: 400 })
+      return NextResponse.json({ message: 'Nama menu wajib diisi' }, { status: 400 })
     }
 
     const menu = await prisma.menu.create({
@@ -53,14 +53,14 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: menu,
-        message: 'Menu created successfully'
+        message: 'Menu berhasil dibuat'
       },
       { status: 201 }
     )
   } catch (error) {
     console.error('Create menu error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -45,14 +45,14 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: { ...company, lastInvoice: lastInvoice ?? null },
-      message: 'Company retrieved successfully'
+      message: 'Data perusahaan berhasil diambil'
     })
   } catch (error) {
     console.error('Get company error:', error)
 
     return NextResponse.json(
       {
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan server',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
@@ -97,14 +97,14 @@ async function handlePut(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: company,
-      message: 'Company updated successfully'
+      message: 'Perusahaan berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update company error:', error)
 
     return NextResponse.json(
       {
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan server',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

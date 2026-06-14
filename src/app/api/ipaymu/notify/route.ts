@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
+import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEmail'
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,7 +52,10 @@ export async function POST(request: NextRequest) {
     // Cari invoice berdasarkan nomorInvoice
     const invoice = await prisma.invoice.findUnique({
       where: { nomorInvoice: referenceId },
-      include: { createdBy: { select: { id: true } } }
+      include: {
+        createdBy: { select: { id: true, email: true, username: true } },
+        paket: { select: { nama: true } }
+      }
     })
 
     if (!invoice) {
@@ -135,6 +139,29 @@ export async function POST(request: NextRequest) {
               userId: invoice.createdBy.id
             }
           })
+
+          // Kirim email notifikasi (non-blocking)
+          const emailTo = invoice.createdBy.email
+          if (emailTo && (newStatus === 'PAID' || newStatus === 'CANCELLED')) {
+            sendInvoiceNotificationEmail(emailTo, newStatus as 'PAID' | 'CANCELLED', {
+              nomorInvoice: referenceId,
+              userName: invoice.createdBy.username || emailTo,
+              paketName: invoice.paket?.nama || '-',
+              billingCycle: invoice.billingCycle,
+              subtotal: Number(invoice.subtotal),
+              pajak: Number(invoice.pajak),
+              total: Number(invoice.total),
+              tanggalInvoice: invoice.tanggalInvoice.toISOString(),
+              tanggalJatuhTempo: invoice.tanggalJatuhTempo.toISOString(),
+              catatan: invoice.catatan
+            }).then(result => {
+              if (result.success) {
+                console.log(`[iPaymu Notify] Email ${newStatus} sent to:`, emailTo)
+              } else {
+                console.error('[iPaymu Notify] Failed to send email:', result.error)
+              }
+            }).catch(err => console.error('[iPaymu Notify] Email error:', err))
+          }
         }
       }
     }

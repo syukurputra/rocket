@@ -12,14 +12,14 @@ export async function GET(req: NextRequest) {
       getAccessTokenFromCookies(req)
 
     if (!token) {
-      return NextResponse.json({ message: 'Access token required' }, { status: 401 })
+      return NextResponse.json({ message: 'Token akses diperlukan' }, { status: 401 })
     }
 
     let payload: { userId: string }
     try {
       payload = verifyAccessToken(token) as { userId: string }
     } catch {
-      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 })
+      return NextResponse.json({ message: 'Token tidak valid atau sudah kadaluarsa' }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -36,18 +36,19 @@ export async function GET(req: NextRequest) {
         kecamatan: true,
         kelurahan: true,
         latitude: true,
-        longitude: true
+        longitude: true,
+        photoUrl: true
       }
     })
 
     if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({ user })
   } catch (err) {
     console.error('Get user profile error:', err)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -58,14 +59,14 @@ export async function PUT(req: NextRequest) {
       getAccessTokenFromCookies(req)
 
     if (!token) {
-      return NextResponse.json({ message: 'Access token required' }, { status: 401 })
+      return NextResponse.json({ message: 'Token akses diperlukan' }, { status: 401 })
     }
 
     let payload: { userId: string }
     try {
       payload = verifyAccessToken(token) as { userId: string }
     } catch {
-      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 })
+      return NextResponse.json({ message: 'Token tidak valid atau sudah kadaluarsa' }, { status: 401 })
     }
 
     const data = await req.json()
@@ -112,13 +113,14 @@ export async function PUT(req: NextRequest) {
         kecamatan: true,
         kelurahan: true,
         latitude: true,
-        longitude: true
+        longitude: true,
+        photoUrl: true
       }
     })
 
-    return NextResponse.json({ user, message: 'Profile updated successfully' })
+    return NextResponse.json({ user, message: 'Profil berhasil diperbarui' })
   } catch (err) {
     console.error('Update user profile error:', err)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

@@ -22,6 +22,9 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import type { TextFieldProps } from '@mui/material/TextField'
+import Badge from '@mui/material/Badge'
+import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -102,6 +105,29 @@ const InvoiceListTable = () => {
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0)
+
+  // Filter panel
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [pendingStatus, setPendingStatus] = useState('')
+  const [pendingSearch, setPendingSearch] = useState('')
+
+  const activeFilterCount = [pendingStatus, pendingSearch].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setStatusFilter(pendingStatus)
+    setSearchQuery(pendingSearch)
+    setCurrentPage(0)
+    fetchData(0, pageSize, pendingStatus)
+  }
+
+  const handleResetFilter = () => {
+    setPendingStatus('')
+    setPendingSearch('')
+    setStatusFilter('')
+    setSearchQuery('')
+    setCurrentPage(0)
+    fetchData(0, pageSize, '')
+  }
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; invoice: InvoiceClient | null }>({
     open: false,
     invoice: null
@@ -138,7 +164,7 @@ const InvoiceListTable = () => {
 
   useEffect(() => {
     fetchData(currentPage, pageSize, statusFilter)
-  }, [currentPage, pageSize, statusFilter])
+  }, [currentPage, pageSize])
 
   const formatRupiah = (num: number | string): string => {
     const n = typeof num === 'string' ? parseFloat(num) : num
@@ -294,53 +320,85 @@ const InvoiceListTable = () => {
 
   return (
     <Card>
-      <CardHeader title='Daftar Invoice' />
-      <Divider />
-      <CardContent className='flex justify-between flex-wrap items-center gap-4'>
-        <div className='flex items-center gap-4 flex-wrap'>
+      <CardHeader
+        title='Daftar Invoice'
+        action={
           <div className='flex items-center gap-2'>
-            <Typography className='hidden sm:block'>Show</Typography>
-            <CustomTextField
-              select
-              value={pageSize}
-              onChange={e => {
-                setPageSize(Number(e.target.value))
-                setCurrentPage(0)
-              }}
-              className='is-[70px]'
-            >
-              <MenuItem value='10'>10</MenuItem>
-              <MenuItem value='25'>25</MenuItem>
-              <MenuItem value='50'>50</MenuItem>
-            </CustomTextField>
+            <Badge badgeContent={activeFilterCount || undefined} color='error'>
+              <Button
+                variant={filterOpen ? 'contained' : 'outlined'}
+                size='small'
+                startIcon={<i className='tabler-filter' />}
+                onClick={() => setFilterOpen(o => !o)}
+              >
+                Filter
+              </Button>
+            </Badge>
+            {activeFilterCount > 0 && (
+              <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+            )}
           </div>
+        }
+      />
+
+      <Collapse in={filterOpen}>
+        <Divider />
+        <CardContent>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <CustomTextField
+                select
+                fullWidth
+                label='Status'
+                value={pendingStatus}
+                onChange={e => setPendingStatus(e.target.value)}
+                slotProps={{ select: { displayEmpty: true } }}
+              >
+                <MenuItem value=''>Semua Status</MenuItem>
+                <MenuItem value='PENDING'>Menunggu</MenuItem>
+                <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
+                <MenuItem value='PAID'>Lunas</MenuItem>
+                <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
+                <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
+              </CustomTextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <CustomTextField
+                fullWidth
+                label='Cari'
+                placeholder='Cari invoice...'
+                value={pendingSearch}
+                onChange={e => setPendingSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12 }} className='flex justify-end'>
+              <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                Cari
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Collapse>
+
+      <Divider />
+      <CardContent className='flex justify-between flex-wrap items-end gap-4'>
+        <div className='flex items-end gap-4 flex-wrap'>
           <CustomTextField
             select
-            value={statusFilter}
+            value={pageSize}
             onChange={e => {
-              setStatusFilter(e.target.value)
+              setPageSize(Number(e.target.value))
               setCurrentPage(0)
             }}
-            className='is-[160px]'
-            label='Filter Status'
+            className='is-[70px]'
+            label='Show'
           >
-            <MenuItem value=''>Semua</MenuItem>
-            <MenuItem value='PENDING'>Menunggu</MenuItem>
-            <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
-            <MenuItem value='PAID'>Lunas</MenuItem>
-            <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
-            <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
+            <MenuItem value='10'>10</MenuItem>
+            <MenuItem value='25'>25</MenuItem>
+            <MenuItem value='50'>50</MenuItem>
           </CustomTextField>
         </div>
-        <DebouncedInput
-          value={searchQuery}
-          onChange={value => {
-            setSearchQuery(String(value))
-            setCurrentPage(0)
-          }}
-          placeholder='Cari Invoice'
-          className='sm:is-[250px]'
-        />
       </CardContent>
 
       <div className='overflow-x-auto'>

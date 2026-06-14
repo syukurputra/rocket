@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -48,12 +48,12 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
 
     return NextResponse.json({
       data: penyewa,
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error) {
     console.error('Get penyewa by ID error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -136,7 +136,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   } catch (error) {
     console.error('Update penyewa error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -162,7 +162,7 @@ async function handleDelete(request: NextRequest, { params }: ParamCtx) {
   } catch (error) {
     console.error('Delete penyewa error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

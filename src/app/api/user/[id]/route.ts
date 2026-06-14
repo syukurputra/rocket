@@ -34,24 +34,23 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!targetUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    // Check authorization
     const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
     return NextResponse.json({
       data: targetUser,
-      message: 'Data Penyewaerhasil diambil'
+      message: 'Data user berhasil diambil'
     })
   } catch (error) {
     console.error('Get user error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -61,23 +60,20 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const body = await request.json()
     const { username, email, password, roleId, verifikasi, companyId, status } = body
 
-    // Check if target user exists
     const targetUser = await prisma.user.findUnique({
       where: { id: params.id }
     })
 
     if (!targetUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    // Check authorization
     const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
-    // Prepare update data
     const updateData: any = {}
 
     if (username !== undefined) updateData.username = username
@@ -87,7 +83,6 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     if (status !== undefined) updateData.status = status
     if (isSuperAdmin && companyId !== undefined) updateData.companyId = companyId
 
-    // Hash password if provided
     if (password) {
       const bcrypt = require('bcryptjs')
 
@@ -123,41 +118,38 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: updatedUser,
-      message: 'Penyewa berhasil diperbarui'
+      message: 'User berhasil diperbarui'
     })
   } catch (error: any) {
     console.error('Update user error:', error)
 
     if (error.code === 'P2002') {
-      return NextResponse.json({ message: 'Username or email already exists' }, { status: 400 })
+      return NextResponse.json({ message: 'Username atau email sudah terdaftar' }, { status: 400 })
     }
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
 // DELETE /api/user/[id] - Delete user
 async function handleDelete(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    // Check if target user exists
     const targetUser = await prisma.user.findUnique({
       where: { id: params.id }
     })
 
     if (!targetUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    // Check authorization
     const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
-    // Prevent self-deletion
     if (params.id === user.id) {
-      return NextResponse.json({ message: 'Cannot delete your own account' }, { status: 400 })
+      return NextResponse.json({ message: 'Tidak dapat menghapus akun sendiri' }, { status: 400 })
     }
 
     await prisma.user.delete({
@@ -165,12 +157,12 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'Penyewa berhasil dihapus'
+      message: 'User berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete user error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

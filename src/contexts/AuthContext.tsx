@@ -13,6 +13,7 @@ interface User {
     id: string
     nama: string
     paketId: string | null
+    isTrial: boolean
   } | null
 }
 

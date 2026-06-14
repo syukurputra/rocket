@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { sendTagihanNotificationEmail } from '@/src/mails/tagihanNotificationEmail'
@@ -51,7 +51,7 @@ async function handlePost(request: NextRequest, { params }: ParamCtx) {
     }
   } catch (error) {
     console.error('Send email error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

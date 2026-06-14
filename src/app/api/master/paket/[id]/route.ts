@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -28,7 +28,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!paket) {
-      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Paket tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -38,7 +38,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
   } catch (error) {
     console.error('Get paket error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -57,7 +57,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!existingPaket) {
-      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Paket tidak ditemukan' }, { status: 404 })
     }
 
     // If icon is being removed (set to null) and there was an existing icon, delete it from S3
@@ -100,7 +100,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
   } catch (error) {
     console.error('Update paket error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -112,7 +112,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     if (!existingPaket) {
-      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Paket tidak ditemukan' }, { status: 404 })
     }
 
     // Delete icon from S3 if exists
@@ -145,7 +145,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
   } catch (error) {
     console.error('Delete paket error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

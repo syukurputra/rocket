@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -61,12 +61,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         hasNext: page < totalPages,
         hasPrev: page > 1
       },
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error) {
     console.error('Get aset-item error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -121,7 +121,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Buat aset-item error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

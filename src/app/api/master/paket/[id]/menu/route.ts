@@ -7,7 +7,6 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 // GET /api/master/paket/[id]/menu - Get menus for a paket
 async function handleGet(request: NextRequest, { params }: AuthContext & { params: { id: string } }) {
   try {
-    // Verify paket exists
     const paket = await prisma.masterPaket.findUnique({
       where: { id: params.id },
       include: {
@@ -20,24 +19,21 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
     })
 
     if (!paket) {
-      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Paket tidak ditemukan' }, { status: 404 })
     }
 
-    // Get all menus
     const allMenus = await prisma.menu.findMany({
       where: { status: true },
       orderBy: [{ urutan: 'asc' }, { nama: 'asc' }]
     })
 
-    // Create a map of assigned menu IDs to their descriptions for quick lookup
     const assignedMenuData = new Map(
       (paket.paketMenus as any[]).map(pm => [
-        pm.menuId, 
+        pm.menuId,
         { deskripsi: pm.deskripsi, tampilkan: pm.tampilkan }
       ])
     )
 
-    // Map menus with assignment status
     const menusWithStatus = allMenus.map(menu => ({
       id: menu.id,
       nama: menu.nama,
@@ -56,12 +52,12 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
         },
         menus: menusWithStatus
       },
-      message: 'Menus retrieved successfully'
+      message: 'Data menu berhasil diambil'
     })
   } catch (error) {
     console.error('Get paket menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -72,26 +68,22 @@ async function handlePut(request: NextRequest, { params }: AuthContext & { param
     const { menus } = body
 
     if (!Array.isArray(menus)) {
-      return NextResponse.json({ message: 'menus must be an array' }, { status: 400 })
+      return NextResponse.json({ message: 'Menus harus berupa array' }, { status: 400 })
     }
 
-    // Verify paket exists
     const paket = await prisma.masterPaket.findUnique({
       where: { id: params.id }
     })
 
     if (!paket) {
-      return NextResponse.json({ message: 'Paket not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Paket tidak ditemukan' }, { status: 404 })
     }
 
-    // Delete existing paket_menu entries and create new ones in a transaction
     await prisma.$transaction(async tx => {
-      // Delete all existing menu assignments for this paket
       await tx.paketMenu.deleteMany({
         where: { paketId: params.id }
       })
 
-      // Create new menu assignments
       if (menus.length > 0) {
         await tx.paketMenu.createMany({
           data: menus.map((menu: { id: string; deskripsi: string | null; tampilkan: boolean }) => ({
@@ -105,12 +97,12 @@ async function handlePut(request: NextRequest, { params }: AuthContext & { param
     })
 
     return NextResponse.json({
-      message: 'Paket menus updated successfully'
+      message: 'Menu paket berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update paket menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

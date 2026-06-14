@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         hasNext: page < totalPages,
         hasPrev: page > 1
       },
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 })

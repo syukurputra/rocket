@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -38,17 +38,17 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!category) {
-      return NextResponse.json({ message: 'Category not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Kategori tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: category,
-      message: 'Category retrieved successfully'
+      message: 'Data kategori berhasil diambil'
     })
   } catch (error) {
     console.error('Get category error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -71,7 +71,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!existingCategory) {
-      return NextResponse.json({ message: 'Category not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Kategori tidak ditemukan' }, { status: 404 })
     }
 
     const category = await prisma.categoryKeuangan.update({
@@ -111,12 +111,12 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: category,
-      message: 'Category updated successfully'
+      message: 'Kategori berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update category error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -132,7 +132,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     if (!existingCategory) {
-      return NextResponse.json({ message: 'Category not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Kategori tidak ditemukan' }, { status: 404 })
     }
 
     await prisma.categoryKeuangan.delete({
@@ -140,12 +140,12 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'Category deleted successfully'
+      message: 'Kategori berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete category error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

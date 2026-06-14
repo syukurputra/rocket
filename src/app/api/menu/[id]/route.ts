@@ -16,17 +16,17 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!menu) {
-      return NextResponse.json({ message: 'Menu not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Menu tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
       data: menu,
-      message: 'Menu retrieved successfully'
+      message: 'Data menu berhasil diambil'
     })
   } catch (error) {
     console.error('Get menu error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -37,7 +37,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const { nama, keterangan, path, icon, urutan, parentId, status } = body
 
     if (!nama) {
-      return NextResponse.json({ message: 'Menu name is required' }, { status: 400 })
+      return NextResponse.json({ message: 'Nama menu wajib diisi' }, { status: 400 })
     }
 
     const menu = await prisma.menu.update({
@@ -55,19 +55,18 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
 
     return NextResponse.json({
       data: menu,
-      message: 'Menu updated successfully'
+      message: 'Menu berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update menu error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
 // DELETE /api/menu/[id] - Delete menu
 async function handleDelete(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
-    // Check if menu has children
     const menuWithChildren = await prisma.menu.findUnique({
       where: { id: params.id },
       include: {
@@ -76,12 +75,12 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     if (!menuWithChildren) {
-      return NextResponse.json({ message: 'Menu not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Menu tidak ditemukan' }, { status: 404 })
     }
 
     if (menuWithChildren.children.length > 0) {
       return NextResponse.json(
-        { message: 'Cannot delete menu with sub-menus. Please delete sub-menus first.' },
+        { message: 'Tidak dapat menghapus menu yang memiliki sub-menu. Hapus sub-menu terlebih dahulu.' },
         { status: 400 }
       )
     }
@@ -91,12 +90,12 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
     })
 
     return NextResponse.json({
-      message: 'Menu deleted successfully'
+      message: 'Menu berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete menu error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

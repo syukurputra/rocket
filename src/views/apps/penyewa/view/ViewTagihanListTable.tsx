@@ -459,25 +459,23 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
       )}
       <Card>
         <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
-          <div className='flex flex-col sm:flex-row items-center justify-between gap-4 is-full sm:is-auto'>
-            <div className='flex items-center gap-2 is-full sm:is-auto'>
-              <Typography className='hidden sm:block'>Show</Typography>
-              <CustomTextField
-                select
-                value={pageSize}
-                onChange={e => {
-                  const newPageSize = Number(e.target.value)
+          <div className='flex flex-col sm:flex-row items-end justify-between gap-4 is-full sm:is-auto'>
+            <CustomTextField
+              select
+              value={pageSize}
+              onChange={e => {
+                const newPageSize = Number(e.target.value)
 
-                  setPageSize(newPageSize)
-                  setCurrentPage(0)
-                }}
-                className='is-[70px] max-sm:is-full'
-              >
-                <MenuItem value='10'>10</MenuItem>
-                <MenuItem value='25'>25</MenuItem>
-                <MenuItem value='50'>50</MenuItem>
-              </CustomTextField>
-            </div>
+                setPageSize(newPageSize)
+                setCurrentPage(0)
+              }}
+              className='is-[70px] max-sm:is-full'
+              label='Show'
+            >
+              <MenuItem value='10'>10</MenuItem>
+              <MenuItem value='25'>25</MenuItem>
+              <MenuItem value='50'>50</MenuItem>
+            </CustomTextField>
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
@@ -487,10 +485,11 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
               }}
             />
           </div>
-          <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
+          <div className='flex max-sm:flex-col max-sm:is-full sm:items-end gap-4'>
             <DebouncedInput
               value={searchQuery}
               onChange={handleSearchChange}
+              label='Cari'
               placeholder='Cari Tagihan'
               className='max-sm:is-full sm:is-[250px]'
             />

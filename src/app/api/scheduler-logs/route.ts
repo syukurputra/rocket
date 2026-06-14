@@ -89,7 +89,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Deleted ${result.count} logs older than ${olderThanDays} days`
+      message: `${result.count} log lebih dari ${olderThanDays} hari berhasil dihapus`
     })
   } catch (error) {
     console.error('Failed to delete old logs:', error)

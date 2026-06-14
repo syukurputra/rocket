@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 
 import { initializeBackgroundServices } from '@/src/lib/backgroundServices'
 
@@ -12,7 +12,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message: 'Background services initialized'
+      message: 'Layanan latar belakang berhasil diinisialisasi'
     })
   } catch (error) {
     console.error('Failed to initialize background services:', error)

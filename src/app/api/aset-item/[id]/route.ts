@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
@@ -35,12 +35,12 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
 
     return NextResponse.json({
       data: ruangan,
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error) {
     console.error('Get aset-item by ID error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -91,7 +91,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   } catch (error) {
     console.error('Update aset-item error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -112,7 +112,7 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
 
     // Check ownership
     if (existingRuangan.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
     // Delete all item aset images from S3 before deleting the record
@@ -139,7 +139,7 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
   } catch (error) {
     console.error('Delete aset-item error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

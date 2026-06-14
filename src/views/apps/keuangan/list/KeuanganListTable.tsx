@@ -20,6 +20,9 @@ import Alert from '@mui/material/Alert'
 import TablePagination from '@mui/material/TablePagination'
 import type { TextFieldProps } from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
+import Badge from '@mui/material/Badge'
+import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -52,7 +55,6 @@ import type { KeuanganClient } from '@/src/types/apps/keuanganTypes'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
-import TableFilters from '../TableFilters'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -61,7 +63,6 @@ import AddEditKeuangan from '@components/dialogs/keuangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import type { FilterValues } from '../TableFilters'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -161,6 +162,71 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null)
   const exportMenuOpen = Boolean(exportAnchorEl)
 
+  // Filter panel state
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [pendingStartDate, setPendingStartDate] = useState(getDefaultStartDate())
+  const [pendingEndDate, setPendingEndDate] = useState(getDefaultEndDate())
+  const [pendingJenis, setPendingJenis] = useState('')
+  const [pendingAsetId, setPendingAsetId] = useState('')
+  const [pendingCategoryId, setPendingCategoryId] = useState('')
+  const [pendingSearch, setPendingSearch] = useState('')
+
+  const [asetOptions, setAsetOptions] = useState<{ id: string; nama: string; jenis: string }[]>([])
+  const [kategoriOptions, setKategoriOptions] = useState<{ id: string; nama: string; jenis: string }[]>([])
+
+  useEffect(() => {
+    apiFetchClient<{ data: { id: string; nama: string; jenis: string }[] }>('/api/aset?limit=999', undefined, { redirectOn401: '/login' })
+      .then(res => setAsetOptions(res.data || []))
+      .catch(() => {})
+    apiFetchClient<{ data: { id: string; nama: string; jenis: string }[] }>('/api/setting/category-keuangan?limit=999', undefined, { redirectOn401: '/login' })
+      .then(res => setKategoriOptions(res.data || []))
+      .catch(() => {})
+  }, [])
+
+  const filteredKategoriOptions = useMemo(
+    () => (!pendingJenis ? kategoriOptions : kategoriOptions.filter(k => k.jenis.toLowerCase() === pendingJenis.toLowerCase())),
+    [kategoriOptions, pendingJenis]
+  )
+
+  const activeFilterCount = [
+    pendingStartDate !== getDefaultStartDate(),
+    pendingEndDate !== getDefaultEndDate(),
+    pendingJenis,
+    pendingAsetId,
+    pendingCategoryId,
+    pendingSearch
+  ].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setStartDate(pendingStartDate)
+    setEndDate(pendingEndDate)
+    setJenis(pendingJenis)
+    setAsetId(pendingAsetId)
+    setCategoryKeuanganId(pendingCategoryId)
+    setSearchQuery(pendingSearch)
+    setCurrentPage(0)
+    fetchKeuanganData(0, pageSize, pendingSearch, pendingStartDate, pendingEndDate, pendingJenis, pendingAsetId, pendingCategoryId)
+  }
+
+  const handleResetFilter = () => {
+    const s = getDefaultStartDate()
+    const e = getDefaultEndDate()
+    setPendingStartDate(s)
+    setPendingEndDate(e)
+    setPendingJenis('')
+    setPendingAsetId('')
+    setPendingCategoryId('')
+    setPendingSearch('')
+    setStartDate(s)
+    setEndDate(e)
+    setJenis('')
+    setAsetId('')
+    setCategoryKeuanganId('')
+    setSearchQuery('')
+    setCurrentPage(0)
+    fetchKeuanganData(0, pageSize, '', s, e, '', '', '')
+  }
+
   const fetchKeuanganData = async (
     pageNum: number = 0,
     limitNum: number = 10,
@@ -220,40 +286,9 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
     }
   }
 
-  const handleFilterChange = (filters: FilterValues) => {
-    setStartDate(filters.startDate)
-    setEndDate(filters.endDate)
-    setJenis(filters.jenis)
-    setAsetId(filters.asetId)
-    setCategoryKeuanganId(filters.categoryKeuanganId)
-    setCurrentPage(0)
-    
-    if (onFiltersChange) {
-      onFiltersChange({
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        jenis: filters.jenis,
-        asetId: filters.asetId,
-        categoryKeuanganId: filters.categoryKeuanganId,
-        searchQuery
-      })
-    }
-    
-    fetchKeuanganData(
-      0, pageSize, searchQuery,
-      filters.startDate, filters.endDate,
-      filters.jenis, filters.asetId, filters.categoryKeuanganId
-    )
-  }
-
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setCurrentPage(0)
-      fetchKeuanganData(0, pageSize, searchQuery, startDate, endDate)
-    }, 500)
-
-    return () => clearTimeout(timeoutId)
-  }, [searchQuery, pageSize])
+    fetchKeuanganData(currentPage, pageSize, searchQuery, startDate, endDate, jenis, asetId, categoryKeuanganId)
+  }, [pageSize])
 
   useEffect(() => {
     if (initialData.length === 0) {
@@ -428,23 +463,6 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   }
 
 
-  const handleSearchChange = (value: string | number) => {
-    const searchValue = String(value)
-
-    setSearchQuery(searchValue)
-    setGlobalFilter(searchValue)
-    
-    if (onFiltersChange) {
-      onFiltersChange({
-        startDate,
-        endDate,
-        jenis,
-        asetId,
-        categoryKeuanganId,
-        searchQuery: searchValue
-      })
-    }
-  }
 
   const buttonProps: ButtonProps = {
     variant: 'contained',
@@ -625,32 +643,138 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   return (
     <>
       <Card>
-        {/* Filter Section */}
-        <CardHeader title='Filters' />
-        <TableFilters onFilterChange={handleFilterChange} />
+        <CardHeader
+          title='Data Keuangan'
+          action={
+            <div className='flex items-center gap-2'>
+              <Badge badgeContent={activeFilterCount || undefined} color='error'>
+                <Button
+                  variant={filterOpen ? 'contained' : 'outlined'}
+                  size='small'
+                  startIcon={<i className='tabler-filter' />}
+                  onClick={() => setFilterOpen(o => !o)}
+                >
+                  Filter
+                </Button>
+              </Badge>
+              {activeFilterCount > 0 && (
+                <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+              )}
+            </div>
+          }
+        />
+
+        {/* Collapsible Filter Panel */}
+        <Collapse in={filterOpen}>
+          <Divider />
+          <CardContent>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  label='Dari Tanggal'
+                  value={pendingStartDate}
+                  onChange={e => setPendingStartDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: pendingEndDate || undefined }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  label='Sampai Tanggal'
+                  value={pendingEndDate}
+                  onChange={e => setPendingEndDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: pendingStartDate || undefined }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Jenis'
+                  value={pendingJenis}
+                  onChange={e => { setPendingJenis(e.target.value); setPendingCategoryId('') }}
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value=''>Semua Jenis</MenuItem>
+                  <MenuItem value='pemasukan'>Pemasukan</MenuItem>
+                  <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Aset'
+                  value={pendingAsetId}
+                  onChange={e => setPendingAsetId(e.target.value)}
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value=''>Semua Aset</MenuItem>
+                  {asetOptions.map(a => (
+                    <MenuItem key={a.id} value={a.id}>{a.jenis} - {a.nama}</MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Kategori'
+                  value={pendingCategoryId}
+                  onChange={e => setPendingCategoryId(e.target.value)}
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value=''>Semua Kategori</MenuItem>
+                  {filteredKategoriOptions.map(k => (
+                    <MenuItem key={k.id} value={k.id}>{k.nama}</MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Cari'
+                  placeholder='Cari keuangan...'
+                  value={pendingSearch}
+                  onChange={e => setPendingSearch(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
+                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                  Cari
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Collapse>
+
         <Divider />
 
         {/* Toolbar Section */}
-        <CardContent className='flex justify-between flex-wrap items-center gap-4'>
-          <div className='flex items-center gap-4 flex-wrap'>
-            <div className='flex items-center gap-2'>
-              <Typography className='hidden sm:block'>Show</Typography>
-              <CustomTextField
-                select
-                value={pageSize}
-                onChange={e => {
-                  const newPageSize = Number(e.target.value)
+        <CardContent className='flex justify-between flex-wrap items-end gap-4'>
+          <div className='flex items-end gap-4 flex-wrap'>
+            <CustomTextField
+              select
+              value={pageSize}
+              onChange={e => {
+                const newPageSize = Number(e.target.value)
 
-                  setPageSize(newPageSize)
-                  setCurrentPage(0)
-                }}
-                className='is-[70px]'
-              >
-                <MenuItem value='10'>10</MenuItem>
-                <MenuItem value='25'>25</MenuItem>
-                <MenuItem value='50'>50</MenuItem>
-              </CustomTextField>
-            </div>
+                setPageSize(newPageSize)
+                setCurrentPage(0)
+              }}
+              className='is-[70px]'
+              label='Show'
+            >
+              <MenuItem value='10'>10</MenuItem>
+              <MenuItem value='25'>25</MenuItem>
+              <MenuItem value='50'>50</MenuItem>
+            </CustomTextField>
             <OpenDialogOnElementClick
               element={Button}
               elementProps={buttonProps}
@@ -691,12 +815,6 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
               </MenuItem>
             </Menu>
           </div>
-          <DebouncedInput
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder='Cari Keuangan'
-            className='sm:is-[250px]'
-          />
         </CardContent>
 
         <div className='overflow-x-auto'>

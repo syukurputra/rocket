@@ -13,28 +13,28 @@ export async function POST(req: NextRequest) {
   try {
     const token = extractTokenFromRequest(req) || getAccessTokenFromCookies(req)
     if (!token) {
-      return NextResponse.json({ message: 'Access token required' }, { status: 401 })
+      return NextResponse.json({ message: 'Token akses diperlukan' }, { status: 401 })
     }
 
     let payload: { userId: string }
     try {
       payload = verifyAccessToken(token) as { userId: string }
     } catch {
-      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 })
+      return NextResponse.json({ message: 'Token tidak valid atau sudah kadaluarsa' }, { status: 401 })
     }
 
     await prisma.$transaction([
       prisma.user.update({
         where: { id: payload.userId },
-        data: { tokenVersion: { increment: 1 } } // revoke semua refresh token
+        data: { tokenVersion: { increment: 1 } }
       }),
     ])
 
-    const res = NextResponse.json({ message: 'All tokens revoked successfully' }, { headers: { 'Cache-Control': 'no-store' } })
-    clearSessionCookies(res) // hapus access_token & refresh_token (httpOnly)
+    const res = NextResponse.json({ message: 'Semua token berhasil dicabut' }, { headers: { 'Cache-Control': 'no-store' } })
+    clearSessionCookies(res)
     return res
   } catch (error) {
     console.error('Revoke tokens error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

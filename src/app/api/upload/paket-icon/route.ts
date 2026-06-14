@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
@@ -11,7 +11,7 @@ async function handlePost(request: NextRequest, { }: AuthContext) {
     const oldFilePath = formData.get('oldFilePath') as string
 
     if (!file) {
-      return NextResponse.json({ message: 'No file uploaded' }, { status: 400 })
+      return NextResponse.json({ message: 'Tidak ada file yang diupload' }, { status: 400 })
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml']

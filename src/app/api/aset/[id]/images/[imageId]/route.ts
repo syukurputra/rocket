@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
@@ -58,12 +58,12 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     return NextResponse.json({
-      message: 'Image deleted successfully'
+      message: 'Gambar berhasil dihapus'
     })
   } catch (error) {
     console.error('Delete image error:', error)
 
-    return NextResponse.json({ message: 'Failed to delete image' }, { status: 500 })
+    return NextResponse.json({ message: 'Gagal menghapus gambar' }, { status: 500 })
   }
 }
 

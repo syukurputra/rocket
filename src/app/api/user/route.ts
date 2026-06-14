@@ -43,12 +43,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: users,
-      message: 'Data Penyewa berhasil diambil'
+      message: 'Data user berhasil diambil'
     })
   } catch (error) {
     console.error('Get users error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -59,7 +59,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const { username, email, password, roleId, verifikasi = false, status = true } = body
 
     if (!username || !email || !password) {
-      return NextResponse.json({ message: 'Username, email, and password are required' }, { status: 400 })
+      return NextResponse.json({ message: 'Username, email, dan password wajib diisi' }, { status: 400 })
     }
 
     // Hash password
@@ -99,10 +99,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     console.error('Create user error:', error)
 
     if (error.code === 'P2002') {
-      return NextResponse.json({ message: 'Username or email already exists' }, { status: 400 })
+      return NextResponse.json({ message: 'Username atau email sudah terdaftar' }, { status: 400 })
     }
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

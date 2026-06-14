@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -27,7 +27,7 @@ async function handleGet(request: NextRequest, _ctx: AuthContext) {
   } catch (error) {
     console.error('Get harga item aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -50,7 +50,7 @@ async function handlePost(request: NextRequest, _ctx: AuthContext) {
   } catch (error) {
     console.error('Create harga item aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

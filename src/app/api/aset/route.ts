@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -49,7 +49,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
       hasNext: page < totalPages,
       hasPrev: page > 1
     },
-    message: 'Data retrieved successfully'
+    message: 'Data berhasil diambil'
   })
 }
 

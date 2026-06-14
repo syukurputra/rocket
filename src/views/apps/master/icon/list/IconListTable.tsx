@@ -22,6 +22,11 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
+import CardHeader from '@mui/material/CardHeader'
+import Divider from '@mui/material/Divider'
+import Badge from '@mui/material/Badge'
+import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -81,33 +86,6 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const DebouncedInput = ({
-  value: initialValue,
-  onChange,
-  debounce = 500,
-  ...props
-}: {
-  value: string | number
-  onChange: (value: string | number) => void
-  debounce?: number
-} & Omit<TextFieldProps, 'onChange'>) => {
-  const [value, setValue] = useState(initialValue)
-
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
-
-    return () => clearTimeout(timeout)
-  }, [value])
-
-  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
 type IconClientWithAction = IconClient & { action?: string }
 
 // Column Definitions
@@ -134,6 +112,26 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   const [pageCountState, setPageCountState] = useState(0) // jumlah halaman dari API
 
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [pendingSearch, setPendingSearch] = useState('')
+
+  const activeFilterCount = [pendingSearch].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setSearchQuery(pendingSearch)
+    setGlobalFilter(pendingSearch)
+    setCurrentPage(0)
+    fetchIconData(0, pageSize, pendingSearch)
+  }
+
+  const handleResetFilter = () => {
+    setPendingSearch('')
+    setSearchQuery('')
+    setGlobalFilter('')
+    setCurrentPage(0)
+    fetchIconData(0, pageSize, '')
+  }
 
   const fetchIconData = async (pageNum: number = 0, limitNum: number = 10, search: string = '') => {
     try {
@@ -186,13 +184,10 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
   }
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setCurrentPage(0)
-      fetchIconData(0, pageSize, searchQuery)
-    }, 500)
-
-    return () => clearTimeout(timeoutId)
-  }, [searchQuery, pageSize])
+    setCurrentPage(0)
+    fetchIconData(0, pageSize, searchQuery)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageSize])
 
   useEffect(() => {
     if (initialData.length === 0) {
@@ -205,13 +200,6 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
       fetchIconData(currentPage, pageSize, searchQuery)
     }
   }, [currentPage])
-
-  const handleSearchChange = (value: string | number) => {
-    const searchValue = String(value)
-
-    setSearchQuery(searchValue)
-    setGlobalFilter(searchValue)
-  }
 
   const buttonProps: ButtonProps = {
     variant: 'contained',
@@ -413,41 +401,72 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
         </Box>
       )}
       <Card>
-        <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
-          <div className='flex flex-col sm:flex-row items-center justify-between gap-4 is-full sm:is-auto'>
-            <div className='flex items-center gap-2 is-full sm:is-auto'>
-              <Typography className='hidden sm:block'>Show</Typography>
-              <CustomTextField
-                select
-                value={pageSize}
-                onChange={e => {
-                  const newPageSize = Number(e.target.value)
-
-                  setPageSize(newPageSize)
-                  setCurrentPage(0)
-                }}
-                className='is-[70px] max-sm:is-full'
-              >
-                <MenuItem value='10'>10</MenuItem>
-                <MenuItem value='25'>25</MenuItem>
-                <MenuItem value='50'>50</MenuItem>
-              </CustomTextField>
+        <CardHeader
+          title='Master Icon'
+          action={
+            <div className='flex items-center gap-2'>
+              <Badge badgeContent={activeFilterCount || undefined} color='error'>
+                <Button
+                  variant={filterOpen ? 'contained' : 'outlined'}
+                  size='small'
+                  startIcon={<i className='tabler-filter' />}
+                  onClick={() => setFilterOpen(o => !o)}
+                >
+                  Filter
+                </Button>
+              </Badge>
+              {activeFilterCount > 0 && (
+                <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+              )}
             </div>
-            <OpenDialogOnElementClick
-              element={Button}
-              elementProps={buttonProps}
-              dialog={AddEditIcon}
-              dialogProps={{}}
-            />
-          </div>
-          <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
-            <DebouncedInput
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder='Cari Icon'
-              className='max-sm:is-full sm:is-[250px]'
-            />
-          </div>
+          }
+        />
+        <Collapse in={filterOpen}>
+          <Divider />
+          <CardContent>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Cari'
+                  placeholder='Cari icon...'
+                  value={pendingSearch}
+                  onChange={e => setPendingSearch(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }} className='flex justify-end'>
+                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                  Cari
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Collapse>
+        <Divider />
+        <CardContent className='flex items-end gap-4 flex-wrap'>
+          <CustomTextField
+            select
+            value={pageSize}
+            onChange={e => {
+              const newPageSize = Number(e.target.value)
+
+              setPageSize(newPageSize)
+              setCurrentPage(0)
+            }}
+            className='is-[70px]'
+            label='Show'
+          >
+            <MenuItem value='10'>10</MenuItem>
+            <MenuItem value='25'>25</MenuItem>
+            <MenuItem value='50'>50</MenuItem>
+          </CustomTextField>
+          <OpenDialogOnElementClick
+            element={Button}
+            elementProps={buttonProps}
+            dialog={AddEditIcon}
+            dialogProps={{}}
+          />
         </CardContent>
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>

@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -19,16 +19,16 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     // Validate parameters
     if (isNaN(year) || year < 2000 || year > 2100) {
-      return NextResponse.json({ message: 'Invalid year parameter' }, { status: 400 })
+      return NextResponse.json({ message: 'Parameter tahun tidak valid' }, { status: 400 })
     }
 
     if (isNaN(month) || month < 1 || month > 12) {
-      return NextResponse.json({ message: 'Invalid month parameter' }, { status: 400 })
+      return NextResponse.json({ message: 'Parameter bulan tidak valid' }, { status: 400 })
     }
 
     // Validate jenis parameter if provided
     if (jenisParam && !['pengeluaran', 'pemasukan'].includes(jenisParam.toLowerCase())) {
-      return NextResponse.json({ message: 'Invalid jenis parameter' }, { status: 400 })
+      return NextResponse.json({ message: 'Parameter jenis tidak valid' }, { status: 400 })
     }
 
     // Validate user has company
@@ -132,12 +132,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         totalPengeluaran,
         grandTotal
       },
-      message: 'Category report retrieved successfully'
+      message: 'Laporan kategori berhasil diambil'
     })
   } catch (error) {
     console.error('Get category report error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import bcrypt from 'bcryptjs'
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     const res = NextResponse.json(
       {
-        message: 'Registration successful',
+        message: 'Registrasi berhasil',
         user: { id: userInsert.id, username: userInsert.username, email: userInsert.email }
       },
       { status: 200 }
@@ -119,6 +119,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Registration error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

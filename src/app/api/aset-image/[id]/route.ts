@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { deleteFromS3, getS3KeyFromUrl } from '@/src/libs/s3'
@@ -17,13 +17,13 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     if (!image) {
-      return NextResponse.json({ message: 'Image not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Gambar tidak ditemukan' }, { status: 404 })
     }
 
     // Check ownership via Aset -> Company
     // The aset must belong to the user's company
     if (image.aset.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
     // Delete file from S3 Object Storage
@@ -50,10 +50,10 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
       where: { id }
     })
 
-    return NextResponse.json({ message: 'Image deleted successfully' })
+    return NextResponse.json({ message: 'Gambar berhasil dihapus' })
   } catch (error) {
     console.error('Delete image error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

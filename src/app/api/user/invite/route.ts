@@ -13,33 +13,28 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const body = await request.json()
     const { email, roleId } = body
 
-    // Validation
     if (!email || !roleId) {
-      return NextResponse.json({ message: 'Email and role are required' }, { status: 400 })
+      return NextResponse.json({ message: 'Email dan role wajib diisi' }, { status: 400 })
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!emailRegex.test(email)) {
-      return NextResponse.json({ message: 'Invalid email format' }, { status: 400 })
+      return NextResponse.json({ message: 'Format email tidak valid' }, { status: 400 })
     }
 
-    // Check if user's company has a paket
     if (!user.companyId) {
-      return NextResponse.json({ message: 'User not assigned to any company' }, { status: 400 })
+      return NextResponse.json({ message: 'User tidak terhubung dengan perusahaan' }, { status: 400 })
     }
 
-    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
 
     if (existingUser) {
-      return NextResponse.json({ message: 'Email already registered' }, { status: 400 })
+      return NextResponse.json({ message: 'Email sudah terdaftar' }, { status: 400 })
     }
 
-    // Get role and company info
     const [role, company] = await Promise.all([
       prisma.role.findUnique({
         where: { id: roleId },
@@ -52,32 +47,27 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     ])
 
     if (!role) {
-      return NextResponse.json({ message: 'Role not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
     if (!company) {
-      return NextResponse.json({ message: 'Company not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Perusahaan tidak ditemukan' }, { status: 404 })
     }
 
-    // Verify role belongs to user's company
     if (role.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Role does not belong to your company' }, { status: 403 })
+      return NextResponse.json({ message: 'Role tidak terkait dengan perusahaan Anda' }, { status: 403 })
     }
 
-    // Generate secure invitation token
     const invitationToken = crypto.randomBytes(32).toString('hex')
-
-    // Set expiry to 7 days from now
     const invitationExpiry = new Date()
 
     invitationExpiry.setDate(invitationExpiry.getDate() + 7)
 
-    // Create user with pending status
     const newUser = await prisma.user.create({
       data: {
         email,
-        username: `pending_${Date.now()}`, // Temporary username
-        password: crypto.randomBytes(32).toString('hex'), // Temporary password
+        username: `pending_${Date.now()}`,
+        password: crypto.randomBytes(32).toString('hex'),
         role: {
           connect: { id: roleId }
         },
@@ -85,7 +75,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
           connect: { id: user.companyId }
         },
         verifikasi: false,
-        status: false, // Inactive until invitation is accepted
+        status: false,
         invitationToken,
         invitationExpiry,
         invitedAt: new Date(),
@@ -95,24 +85,22 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     })
 
-    // Send invitation email
     try {
       await sendInvitationEmail(email, company.nama, role.nama, invitationToken)
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError)
 
-      // Delete the created user if email fails
       await prisma.user.delete({ where: { id: newUser.id } })
 
       return NextResponse.json(
-        { message: 'Failed to send invitation email. Please check email configuration.' },
+        { message: 'Gagal mengirim email undangan. Periksa konfigurasi email.' },
         { status: 500 }
       )
     }
 
     return NextResponse.json(
       {
-        message: 'Invitation sent successfully',
+        message: 'Undangan berhasil dikirim',
         data: {
           id: newUser.id,
           email: newUser.email
@@ -123,7 +111,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Invite user error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

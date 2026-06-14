@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 
@@ -30,14 +30,14 @@ export async function GET() {
 
     return NextResponse.json({
       data: pakets,
-      message: 'Pakets retrieved successfully'
+      message: 'Data paket berhasil diambil'
     })
   } catch (error) {
     console.error('Get public pakets error:', error)
 
     return NextResponse.json(
       {
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan server',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

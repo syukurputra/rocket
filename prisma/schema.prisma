@@ -20,6 +20,7 @@ model Company {
   paketId          String?
   paketStartDate   DateTime?
   paketEndDate     DateTime?
+  isTrial          Boolean   @default(false)
   aset             Aset[]
   categoryKeuangan CategoryKeuangan[]
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
@@ -94,6 +95,7 @@ model User {
   kelurahan        String?   @db.VarChar(100)
   latitude         Float?
   longitude        Float?
+  photoUrl         String?   @db.VarChar(500)
   password         String?   @db.VarChar(191)
   tokenVersion     Int       @default(0)
   createdAt        DateTime  @default(now())

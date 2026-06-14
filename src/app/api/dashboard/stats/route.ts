@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -57,14 +57,14 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         totalRuanganTidakHuni,
         penyewaSelesaiHuni
       },
-      message: 'Statistics retrieved successfully'
+      message: 'Statistik berhasil diambil'
     })
   } catch (error) {
     console.error('Get statistics error:', error)
 
     return NextResponse.json(
       {
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan server',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

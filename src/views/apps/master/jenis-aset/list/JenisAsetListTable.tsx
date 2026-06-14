@@ -20,7 +20,9 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
-import type { TextFieldProps } from '@mui/material/TextField'
+import Badge from '@mui/material/Badge'
+import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid2'
 
 import classnames from 'classnames'
 import {
@@ -47,29 +49,6 @@ type JenisAset = {
   updatedAt: string
 }
 
-const DebouncedInput = ({
-  value: initialValue,
-  onChange,
-  debounce = 500,
-  ...props
-}: {
-  value: string | number
-  onChange: (value: string | number) => void
-  debounce?: number
-} & Omit<TextFieldProps, 'onChange'>) => {
-  const [value, setValue] = useState(initialValue)
-
-  useEffect(() => { setValue(initialValue) }, [initialValue])
-  useEffect(() => {
-    const timeout = setTimeout(() => onChange(value), debounce)
-
-    return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
-
-  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
 const EMPTY_FORM = { id: '', nama: '', status: true }
 const columnHelper = createColumnHelper<JenisAset>()
 
@@ -82,6 +61,20 @@ const JenisAsetListTable = () => {
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item: JenisAset | null }>({ open: false, item: null })
   const [deleting, setDeleting] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
+
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [pendingSearch, setPendingSearch] = useState('')
+
+  const activeFilterCount = [pendingSearch].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setGlobalFilter(pendingSearch)
+  }
+
+  const handleResetFilter = () => {
+    setPendingSearch('')
+    setGlobalFilter('')
+  }
 
   const fetchData = async () => {
     try {
@@ -201,15 +194,50 @@ const JenisAsetListTable = () => {
 
   return (
     <Card>
-      <CardHeader title='Master Jenis Aset' />
+      <CardHeader
+        title='Master Jenis Aset'
+        action={
+          <div className='flex items-center gap-2'>
+            <Badge badgeContent={activeFilterCount || undefined} color='error'>
+              <Button
+                variant={filterOpen ? 'contained' : 'outlined'}
+                size='small'
+                startIcon={<i className='tabler-filter' />}
+                onClick={() => setFilterOpen(o => !o)}
+              >
+                Filter
+              </Button>
+            </Badge>
+            {activeFilterCount > 0 && (
+              <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+            )}
+          </div>
+        }
+      />
+      <Collapse in={filterOpen}>
+        <Divider />
+        <CardContent>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <CustomTextField
+                fullWidth
+                label='Cari'
+                placeholder='Cari jenis aset...'
+                value={pendingSearch}
+                onChange={e => setPendingSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12 }} className='flex justify-end'>
+              <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                Cari
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Collapse>
       <Divider />
-      <CardContent className='flex justify-between items-center flex-wrap gap-4'>
-        <DebouncedInput
-          value={globalFilter}
-          onChange={val => setGlobalFilter(String(val))}
-          placeholder='Cari jenis aset...'
-          className='sm:is-[250px]'
-        />
+      <CardContent className='flex justify-end items-end flex-wrap gap-4'>
         <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={handleOpenCreate}>
           Tambah
         </Button>

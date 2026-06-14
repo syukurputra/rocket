@@ -15,6 +15,11 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import type { TextFieldProps } from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import CardHeader from '@mui/material/CardHeader'
+import Divider from '@mui/material/Divider'
+import Badge from '@mui/material/Badge'
+import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -65,34 +70,6 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const DebouncedInput = ({
-  value: initialValue,
-  onChange,
-  debounce = 500,
-  ...props
-}: {
-  value: string | number
-  onChange: (value: string | number) => void
-  debounce?: number
-} & Omit<TextFieldProps, 'onChange'>) => {
-  const [value, setValue] = useState(initialValue)
-
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
-
-    return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
-
-  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
 type UserClientWithAction = UserClient & { action?: string }
 
 const columnHelper = createColumnHelper<UserClientWithAction>()
@@ -107,6 +84,20 @@ const UserListTable = () => {
   const [selectedUser, setSelectedUser] = useState<UserClient | null>(null)
 
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [pendingSearch, setPendingSearch] = useState('')
+
+  const activeFilterCount = [pendingSearch].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setGlobalFilter(pendingSearch)
+  }
+
+  const handleResetFilter = () => {
+    setPendingSearch('')
+    setGlobalFilter('')
+  }
 
   const fetchUserData = async () => {
     try {
@@ -318,21 +309,53 @@ const UserListTable = () => {
   return (
     <>
       <Card>
-        <CardContent className='flex justify-between flex-col items-start md:items-center md:flex-row gap-4'>
-          <div className='flex items-center gap-2'>
-            <Typography variant='h5'>User Management</Typography>
-          </div>
-          <div className='flex max-sm:flex-col max-sm:is-full sm:items-center gap-4'>
-            <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
-              placeholder='Search User'
-              className='max-sm:is-full sm:is-[250px]'
-            />
-            <Button variant='contained' startIcon={<i className='tabler-mail' />} onClick={handleInvite}>
-              Undang User
-            </Button>
-          </div>
+        <CardHeader
+          title='User Management'
+          action={
+            <div className='flex items-center gap-2'>
+              <Badge badgeContent={activeFilterCount || undefined} color='error'>
+                <Button
+                  variant={filterOpen ? 'contained' : 'outlined'}
+                  size='small'
+                  startIcon={<i className='tabler-filter' />}
+                  onClick={() => setFilterOpen(o => !o)}
+                >
+                  Filter
+                </Button>
+              </Badge>
+              {activeFilterCount > 0 && (
+                <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+              )}
+            </div>
+          }
+        />
+        <Collapse in={filterOpen}>
+          <Divider />
+          <CardContent>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Cari'
+                  placeholder='Cari user...'
+                  value={pendingSearch}
+                  onChange={e => setPendingSearch(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }} className='flex justify-end'>
+                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                  Cari
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Collapse>
+        <Divider />
+        <CardContent className='flex items-end justify-end gap-4 flex-wrap'>
+          <Button variant='contained' startIcon={<i className='tabler-mail' />} onClick={handleInvite}>
+            Undang User
+          </Button>
         </CardContent>
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>

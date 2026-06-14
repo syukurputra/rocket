@@ -44,6 +44,7 @@ const UserDropdown = () => {
     id: string
     username: string
     email: string
+    photoUrl?: string | null
     role?: { nama: string } | null
   } | null>(null)
 
@@ -165,21 +166,13 @@ const UserDropdown = () => {
 
   return (
     <>
-      <Badge
+      <Avatar
         ref={anchorRef}
-        overlap='circular'
-        badgeContent={<BadgeContentSpan onClick={handleDropdownOpen} />}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        className='mis-2'
-      >
-        <Avatar
-          ref={anchorRef}
-          alt={user?.username || 'User'}
-          src='/images/avatars/1.png'
-          onClick={handleDropdownOpen}
-          className='cursor-pointer bs-[38px] is-[38px]'
-        />
-      </Badge>
+        alt={user?.username || 'User'}
+        src={user?.photoUrl || undefined}
+        onClick={handleDropdownOpen}
+        className='cursor-pointer bs-[38px] is-[38px] mis-2'
+      />
       <Popper
         open={open}
         transition
@@ -199,7 +192,7 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={user?.username || 'User'} src={user?.photoUrl || undefined} />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
                         {user?.email || 'Loading...'}

@@ -1,12 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { Card, CardContent, Typography, Button } from '@mui/material'
+import { Card, CardContent, Typography, Button, CircularProgress } from '@mui/material'
 
 import CustomAvatar from '@core/components/mui/Avatar'
 
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
+
+const DEFAULT_PAKET_ID = 'cmkzpagu800015k6czrtvc7f4'
 
 interface PaketPricingCardProps {
   paket: MasterPaketClient
@@ -14,13 +18,33 @@ interface PaketPricingCardProps {
   isActive?: boolean
   billingCycle: 'monthly' | 'annually'
   buttonLabel?: string
+  isTrial?: boolean
+  onTrialActivated?: () => void
 }
 
-const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle, buttonLabel }: PaketPricingCardProps) => {
+const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle, buttonLabel, isTrial = false, onTrialActivated }: PaketPricingCardProps) => {
   const router = useRouter()
+  const [trialLoading, setTrialLoading] = useState(false)
+
+  const showTrialButton = !isTrial && paket.id !== DEFAULT_PAKET_ID
 
   const handleGetStarted = () => {
     router.push(`/paket/checkout/${paket.id}?cycle=${billingCycle}`)
+  }
+
+  const handleTrial = async () => {
+    setTrialLoading(true)
+    try {
+      await apiFetchClient('/api/paket/trial', {
+        method: 'POST',
+        body: JSON.stringify({ paketId: paket.id })
+      })
+      onTrialActivated?.()
+    } catch {
+      // silently fail — parent handles refresh
+    } finally {
+      setTrialLoading(false)
+    }
   }
   const formatPrice = (value: number | string): string =>
     Math.floor(Number(value))
@@ -125,13 +149,31 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
         </div>
 
         {/* Action Button */}
-        <Button
-          variant={isActive ? 'contained' : 'tonal'}
-          fullWidth
-          onClick={handleGetStarted}
-        >
-          {buttonLabel ?? (isActive ? 'Perpanjang Paket' : 'Ubah Paket')}
-        </Button>
+        {isActive && paket.id === DEFAULT_PAKET_ID ? null : showTrialButton ? (
+          <div className='flex flex-col gap-2'>
+            <Button
+              variant='contained'
+              color='success'
+              fullWidth
+              onClick={handleTrial}
+              disabled={trialLoading}
+              startIcon={trialLoading ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-rocket' />}
+            >
+              {trialLoading ? 'Mengaktifkan...' : 'Coba Gratis'}
+            </Button>
+            <Button variant='tonal' fullWidth onClick={handleGetStarted} size='small'>
+              Beli Sekarang
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant={isActive ? 'contained' : 'tonal'}
+            fullWidth
+            onClick={handleGetStarted}
+          >
+            {buttonLabel ?? (isActive ? 'Perpanjang Paket' : 'Ubah Paket')}
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

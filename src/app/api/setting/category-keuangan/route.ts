@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -39,7 +39,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: categories,
-      message: 'Categories retrieved successfully'
+      message: 'Data kategori berhasil diambil'
     })
   } catch (error) {
     console.error('Get categories error:', error)
@@ -58,7 +58,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json(
       {
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan server',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
@@ -128,14 +128,14 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     return NextResponse.json(
       {
         data: category,
-        message: 'Category created successfully'
+        message: 'Kategori berhasil dibuat'
       },
       { status: 201 }
     )
   } catch (error) {
     console.error('Create category error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

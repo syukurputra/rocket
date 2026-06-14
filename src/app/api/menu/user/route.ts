@@ -8,7 +8,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     if (!user.roleId) {
-      return NextResponse.json({ data: [], message: 'User has no role assigned' })
+      return NextResponse.json({ data: [], message: 'User tidak memiliki role' })
     }
 
     const roleMenus = await prisma.menuRole.findMany({
@@ -35,12 +35,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: menus,
-      message: 'User menus retrieved successfully'
+      message: 'Data menu user berhasil diambil'
     })
   } catch (error) {
     console.error('Get user menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

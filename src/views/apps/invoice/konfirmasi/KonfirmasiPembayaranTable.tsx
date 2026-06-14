@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
+import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -17,8 +18,10 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Tooltip from '@mui/material/Tooltip'
 import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid2'
 import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
+import Badge from '@mui/material/Badge'
 
 import classnames from 'classnames'
 import dayjs from 'dayjs'
@@ -65,7 +68,13 @@ const columnHelper = createColumnHelper<InvoiceWithCompany>()
 
 const KonfirmasiPembayaranTable = () => {
   const [data, setData] = useState<InvoiceWithCompany[]>([])
-  const [statusFilter, setStatusFilter] = useState('KONFIRMASI')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [companyFilter, setCompanyFilter] = useState('')
+  const [tanggalDari, setTanggalDari] = useState('')
+  const [tanggalSampai, setTanggalSampai] = useState('')
+  const [invoiceDari, setInvoiceDari] = useState('')
+  const [invoiceSampai, setInvoiceSampai] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
@@ -88,11 +97,52 @@ const KonfirmasiPembayaranTable = () => {
   const [processing, setProcessing] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
 
-  const fetchData = async (page = 0, limit = 10, status = 'KONFIRMASI') => {
+  // Pending states (apa yang user edit, belum diapply)
+  const [pendingStatus, setPendingStatus] = useState('')
+  const [pendingCompany, setPendingCompany] = useState('')
+  const [pendingInvoiceDari, setPendingInvoiceDari] = useState('')
+  const [pendingInvoiceSampai, setPendingInvoiceSampai] = useState('')
+  const [pendingTanggalDari, setPendingTanggalDari] = useState('')
+  const [pendingTanggalSampai, setPendingTanggalSampai] = useState('')
+
+  const activeFilterCount = [statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai].filter(Boolean).length
+
+  const handleApplyFilter = () => {
+    setStatusFilter(pendingStatus)
+    setCompanyFilter(pendingCompany)
+    setInvoiceDari(pendingInvoiceDari)
+    setInvoiceSampai(pendingInvoiceSampai)
+    setTanggalDari(pendingTanggalDari)
+    setTanggalSampai(pendingTanggalSampai)
+    setCurrentPage(0)
+  }
+
+  const handleResetFilter = () => {
+    setPendingStatus('')
+    setPendingCompany('')
+    setPendingInvoiceDari('')
+    setPendingInvoiceSampai('')
+    setPendingTanggalDari('')
+    setPendingTanggalSampai('')
+    setStatusFilter('')
+    setCompanyFilter('')
+    setInvoiceDari('')
+    setInvoiceSampai('')
+    setTanggalDari('')
+    setTanggalSampai('')
+    setCurrentPage(0)
+  }
+
+  const fetchData = async (page = 0, limit = 10, status = '', company = '', dari = '', sampai = '', invDari = '', invSampai = '') => {
     try {
       const params = new URLSearchParams({ page: String(page + 1), limit: String(limit) })
 
       if (status) params.append('status', status)
+      if (company) params.append('company', company)
+      if (dari) params.append('dari', dari)
+      if (sampai) params.append('sampai', sampai)
+      if (invDari) params.append('invDari', invDari)
+      if (invSampai) params.append('invSampai', invSampai)
 
       const result = await apiFetchClient<{
         data: InvoiceWithCompany[]
@@ -108,8 +158,8 @@ const KonfirmasiPembayaranTable = () => {
   }
 
   useEffect(() => {
-    fetchData(currentPage, pageSize, statusFilter)
-  }, [currentPage, pageSize, statusFilter])
+    fetchData(currentPage, pageSize, statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai)
+  }, [currentPage, pageSize, statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai])
 
   const formatRupiah = (num: number | string) => {
     const n = typeof num === 'string' ? parseFloat(num) : num
@@ -130,7 +180,7 @@ const KonfirmasiPembayaranTable = () => {
 
       showSnack('Invoice berhasil dikonfirmasi sebagai Lunas')
       setApproveDialog({ open: false, invoice: null })
-      fetchData(currentPage, pageSize, statusFilter)
+      fetchData(currentPage, pageSize, statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai)
     } catch {
       showSnack('Gagal mengkonfirmasi invoice', 'error')
     } finally {
@@ -158,7 +208,7 @@ const KonfirmasiPembayaranTable = () => {
       showSnack('Invoice dikembalikan ke status Menunggu Pembayaran')
       setRejectDialog({ open: false, invoice: null })
       setRejectReason('')
-      fetchData(currentPage, pageSize, statusFilter)
+      fetchData(currentPage, pageSize, statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai)
     } catch {
       showSnack('Gagal menolak konfirmasi', 'error')
     } finally {
@@ -247,25 +297,105 @@ const KonfirmasiPembayaranTable = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Konfirmasi Pembayaran' />
-        <Divider />
-        <CardContent className='flex justify-between flex-wrap items-center gap-4'>
-          <CustomTextField
-            select
-            value={statusFilter}
-            onChange={e => {
-              setStatusFilter(e.target.value)
-              setCurrentPage(0)
-            }}
-            className='is-[180px]'
-            label='Filter Status'
-          >
-            <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
-            <MenuItem value='PAID'>Lunas</MenuItem>
-            <MenuItem value='PENDING'>Menunggu</MenuItem>
-            <MenuItem value=''>Semua</MenuItem>
-          </CustomTextField>
-        </CardContent>
+        <CardHeader
+          title='Konfirmasi Pembayaran'
+          action={
+            <div className='flex items-center gap-2'>
+              <Badge badgeContent={activeFilterCount || undefined} color='error'>
+                <Button
+                  variant={filterOpen ? 'contained' : 'outlined'}
+                  size='small'
+                  startIcon={<i className='tabler-filter' />}
+                  onClick={() => setFilterOpen(prev => !prev)}
+                >
+                  Filter
+                </Button>
+              </Badge>
+              {activeFilterCount > 0 && (
+                <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
+              )}
+            </div>
+          }
+        />
+        <Collapse in={filterOpen}>
+          <Divider />
+          <CardContent>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  value={pendingStatus}
+                  onChange={e => setPendingStatus(e.target.value)}
+                  label='Status'
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value=''>Semua Status</MenuItem>
+                  <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
+                  <MenuItem value='PAID'>Lunas</MenuItem>
+                  <MenuItem value='PENDING'>Menunggu</MenuItem>
+                  <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
+                  <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  fullWidth
+                  value={pendingCompany}
+                  onChange={e => setPendingCompany(e.target.value)}
+                  label='Nama Perusahaan'
+                  placeholder='Cari perusahaan...'
+                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  value={pendingInvoiceDari}
+                  onChange={e => setPendingInvoiceDari(e.target.value)}
+                  label='Invoice Dari'
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  value={pendingInvoiceSampai}
+                  onChange={e => setPendingInvoiceSampai(e.target.value)}
+                  label='Invoice Sampai'
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  value={pendingTanggalDari}
+                  onChange={e => setPendingTanggalDari(e.target.value)}
+                  label='Bayar Dari'
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <CustomTextField
+                  type='date'
+                  fullWidth
+                  value={pendingTanggalSampai}
+                  onChange={e => setPendingTanggalSampai(e.target.value)}
+                  label='Bayar Sampai'
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }} className='flex justify-end'>
+                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
+                  Cari
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Collapse>
 
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>

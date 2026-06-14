@@ -11,7 +11,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const { menus } = body // Array of { menuId }
 
     if (!Array.isArray(menus)) {
-      return NextResponse.json({ message: 'Menus must be an array' }, { status: 400 })
+      return NextResponse.json({ message: 'Menus harus berupa array' }, { status: 400 })
     }
 
     // Verify role belongs to user's company
@@ -23,7 +23,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!role) {
-      return NextResponse.json({ message: 'Role not found or unauthorized' }, { status: 404 })
+      return NextResponse.json({ message: 'Role tidak ditemukan atau akses tidak diizinkan' }, { status: 404 })
     }
 
     // Delete existing role-menu assignments
@@ -44,12 +44,12 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     }
 
     return NextResponse.json({
-      message: 'Role menus updated successfully'
+      message: 'Menu role berhasil diperbarui'
     })
   } catch (error) {
     console.error('Update role menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

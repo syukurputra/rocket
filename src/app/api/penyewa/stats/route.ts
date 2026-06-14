@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -30,11 +30,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         totalPenyewa,
         totalNonAktif
       },
-      message: 'Statistics retrieved successfully'
+      message: 'Statistik berhasil diambil'
     })
   } catch (error) {
     console.error('Get penyewa stats error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

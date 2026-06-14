@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { uploadToS3 } from '@/src/libs/s3'
@@ -25,7 +25,7 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
     const files = formData.getAll('files') as File[]
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ message: 'No files uploaded' }, { status: 400 })
+      return NextResponse.json({ message: 'Tidak ada file yang diupload' }, { status: 400 })
     }
 
     // Validate max 3 images
@@ -35,7 +35,7 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
 
     if (existingImagesCount + files.length > 3) {
       return NextResponse.json(
-        { message: `Maximum 3 images allowed. You have ${existingImagesCount} images already.` },
+        { message: `Maksimal 3 gambar. Saat ini sudah ada ${existingImagesCount} gambar.` },
         { status: 400 }
       )
     }
@@ -83,12 +83,12 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
     }
 
     return NextResponse.json({
-      message: `${uploadedImages.length} image(s) uploaded successfully`,
+      message: `${uploadedImages.length} gambar berhasil diupload`,
       data: uploadedImages
     })
   } catch (error) {
     console.error('Upload error:', error)
-    return NextResponse.json({ message: 'Failed to upload images' }, { status: 500 })
+    return NextResponse.json({ message: 'Gagal mengupload gambar' }, { status: 500 })
   }
 }
 

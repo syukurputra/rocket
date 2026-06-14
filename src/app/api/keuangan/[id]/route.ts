@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -18,10 +18,10 @@ async function handleGet(_req: NextRequest, { params }: ParamCtx) {
 
     if (!keuangan) return NextResponse.json({ message: 'Keuangan tidak ditemukan' }, { status: 404 })
 
-    return NextResponse.json({ data: keuangan, message: 'Data retrieved successfully' })
+    return NextResponse.json({ data: keuangan, message: 'Data berhasil diambil' })
   } catch (error) {
     console.error('Get keuangan by ID error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -62,7 +62,7 @@ async function handlePut(req: NextRequest, { user, params }: ParamCtx) {
     return NextResponse.json({ data: updated, message: 'Keuangan berhasil diupdate' })
   } catch (error) {
     console.error('Update keuangan error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -77,7 +77,7 @@ async function handleDelete(_req: NextRequest, { params }: ParamCtx) {
     return NextResponse.json({ message: 'Keuangan berhasil dihapus' })
   } catch (error) {
     console.error('Delete keuangan error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

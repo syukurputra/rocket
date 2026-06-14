@@ -9,13 +9,15 @@ import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 import PaketPricingCard from '@/src/components/pricing/PaketPricingCard'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import { useAuth } from '@/src/hooks/useAuth'
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 
 const PaketPricingPlans = () => {
   const [data, setData] = useState<MasterPaketClient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually')
-  const { user } = useAuth()
+  const { user, refreshToken } = useAuth()
+  const { snack, showSnack, closeSnack } = useSnackbar()
 
   const fetchData = async () => {
     try {
@@ -134,11 +136,17 @@ const PaketPricingPlans = () => {
                 isPopular={index === getPopularIndex()}
                 isActive={paket.id === user?.company?.paketId}
                 billingCycle={billingCycle}
+                isTrial={user?.company?.isTrial ?? false}
+                onTrialActivated={async () => {
+                  await refreshToken()
+                  showSnack('Trial berhasil diaktifkan! Nikmati fitur lengkap selama 1 bulan.', 'success')
+                }}
               />
             </Grid>
           ))}
         </Grid>
       )}
+      <AppSnackbar snack={snack} onClose={closeSnack} />
     </Box>
   )
 }

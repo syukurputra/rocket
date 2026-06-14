@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -27,7 +27,7 @@ async function handlePatch(request: NextRequest, { user, params }: ParamCtx) {
     return NextResponse.json({ data: updated })
   } catch (error) {
     console.error('Update notifikasi error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -47,7 +47,7 @@ async function handleDelete(_request: NextRequest, { user, params }: ParamCtx) {
     return NextResponse.json({ message: 'Notifikasi dihapus' })
   } catch (error) {
     console.error('Delete notifikasi error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

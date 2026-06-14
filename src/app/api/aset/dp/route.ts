@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -26,13 +26,13 @@ async function handleGet(
 
     return NextResponse.json({
       data,
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
 
   } catch (error) {
     console.error('Get aset error:', error)
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Terjadi kesalahan server' },
       { status: 500 }
     )
   }

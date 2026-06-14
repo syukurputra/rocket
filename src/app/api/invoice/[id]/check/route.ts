@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -19,12 +19,12 @@ async function handlePost(request: NextRequest, { params, user }: AuthContext & 
     })
 
     if (!invoice) {
-      return NextResponse.json({ message: 'Invoice not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Invoice tidak ditemukan' }, { status: 404 })
     }
 
     // Ensure it belongs to the user's company
     if (invoice.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
     }
 
     if (!invoice.ipaymuSessionId) {

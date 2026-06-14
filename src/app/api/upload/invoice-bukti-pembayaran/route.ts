@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
@@ -11,7 +11,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const oldFilePath = formData.get('oldFilePath') as string
 
     if (!file) {
-      return NextResponse.json({ message: 'No file uploaded' }, { status: 400 })
+      return NextResponse.json({ message: 'Tidak ada file yang diupload' }, { status: 400 })
     }
 
     if (!invoiceId) {

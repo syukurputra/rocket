@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -27,7 +27,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
     console.log('GET /api/role/[id] - Role found:', role ? 'Yes' : 'No')
 
     if (!role) {
-      return NextResponse.json({ message: 'Role not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -37,7 +37,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
   } catch (error) {
     console.error('Get role error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -65,7 +65,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
   } catch (error) {
     console.error('Update role error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -84,7 +84,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
   } catch (error) {
     console.error('Delete role error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

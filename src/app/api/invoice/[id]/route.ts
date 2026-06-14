@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -45,7 +45,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
   } catch (error) {
     console.error('Get invoice error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -101,7 +101,7 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
   } catch (error) {
     console.error('Update invoice error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

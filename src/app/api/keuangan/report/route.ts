@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -13,7 +13,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     // Validate year
     if (isNaN(year) || year < 2000 || year > 2100) {
-      return NextResponse.json({ message: 'Invalid year parameter' }, { status: 400 })
+      return NextResponse.json({ message: 'Parameter tahun tidak valid' }, { status: 400 })
     }
 
     // Validate user has company
@@ -84,12 +84,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           total: yearlyTotal
         }
       },
-      message: 'Report retrieved successfully'
+      message: 'Laporan berhasil diambil'
     })
   } catch (error) {
     console.error('Get keuangan report error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

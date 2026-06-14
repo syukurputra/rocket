@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 
@@ -29,6 +29,6 @@ export async function POST() {
   } catch (error) {
     console.error('Seed kalender error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

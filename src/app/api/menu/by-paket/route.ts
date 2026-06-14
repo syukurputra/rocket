@@ -16,7 +16,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     })
 
     if (!company || !company.paketId) {
-      return NextResponse.json({ message: 'Company does not have an active paket' }, { status: 400 })
+      return NextResponse.json({ message: 'Perusahaan tidak memiliki paket aktif' }, { status: 400 })
     }
 
     // Get menus from paket_menu
@@ -49,12 +49,12 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({
       data: menus,
-      message: 'Menus retrieved successfully'
+      message: 'Data menu berhasil diambil'
     })
   } catch (error) {
     console.error('Get menus by paket error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

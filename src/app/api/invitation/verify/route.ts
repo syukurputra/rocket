@@ -10,10 +10,9 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token')
 
     if (!token) {
-      return NextResponse.json({ message: 'Token is required' }, { status: 400 })
+      return NextResponse.json({ message: 'Token wajib diisi' }, { status: 400 })
     }
 
-    // Find user with this invitation token
     const user = await prisma.user.findUnique({
       where: { invitationToken: token },
       select: {
@@ -35,17 +34,15 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ message: 'Invalid invitation token' }, { status: 404 })
+      return NextResponse.json({ message: 'Token undangan tidak valid' }, { status: 404 })
     }
 
-    // Check if already verified
     if (user.verifikasi) {
-      return NextResponse.json({ message: 'Invitation already accepted' }, { status: 400 })
+      return NextResponse.json({ message: 'Undangan sudah diterima' }, { status: 400 })
     }
 
-    // Check if expired
     if (user.invitationExpiry && new Date() > user.invitationExpiry) {
-      return NextResponse.json({ message: 'Invitation has expired' }, { status: 400 })
+      return NextResponse.json({ message: 'Undangan sudah kadaluarsa' }, { status: 400 })
     }
 
     return NextResponse.json({
@@ -54,11 +51,11 @@ export async function GET(request: NextRequest) {
         company: user.company?.nama || 'Unknown Company',
         role: user.role?.nama || 'Unknown Role'
       },
-      message: 'Token is valid'
+      message: 'Token valid'
     })
   } catch (error) {
     console.error('Verify invitation error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }

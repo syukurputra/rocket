@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -31,7 +31,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Get roles error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -42,14 +42,14 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
 
     if (!isSuperAdmin && !user.companyId) {
-      return NextResponse.json({ message: 'User not assigned to any company' }, { status: 400 })
+      return NextResponse.json({ message: 'User tidak terhubung dengan perusahaan' }, { status: 400 })
     }
 
     const body = await request.json()
     const { nama, deskripsi, status = true } = body
 
     if (!nama) {
-      return NextResponse.json({ message: 'Role name is required' }, { status: 400 })
+      return NextResponse.json({ message: 'Nama role wajib diisi' }, { status: 400 })
     }
 
     const role = await prisma.role.create({
@@ -71,7 +71,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Create role error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -36,12 +36,12 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
 
     return NextResponse.json({
       data: aset,
-      message: 'Data retrieved successfully'
+      message: 'Data berhasil diambil'
     })
   } catch (error) {
     console.error('Get aset by ID error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -101,7 +101,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   } catch (error) {
     console.error('Update aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -127,7 +127,7 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
 
     // Check ownership
     if (existingAset.companyId !== user.companyId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
     // Delete all aset images from S3
@@ -169,7 +169,7 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
   } catch (error) {
     console.error('Delete aset error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

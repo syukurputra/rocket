@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -7,11 +7,6 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 // GET /api/company - List all companies (Super Admin only)
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
-    // Check if user is super admin
-    if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Tidak diizinkan. Akses Super Admin diperlukan.' }, { status: 403 })
-    }
-
     const companies = await prisma.company.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -33,18 +28,13 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Get companies error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
 // POST /api/company - Create new company (Super Admin only)
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
-    // Check if user is super admin
-    if (user.role?.nama !== 'SUPER ADMIN') {
-      return NextResponse.json({ message: 'Tidak diizinkan. Akses Super Admin diperlukan.' }, { status: 403 })
-    }
-
     const body = await request.json()
     const { nama, alamat, telepon, email, status = true, paketStartDate, paketEndDate } = body
 
@@ -75,7 +65,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   } catch (error) {
     console.error('Create company error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

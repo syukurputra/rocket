@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -29,7 +29,7 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
     })
 
     if (!role) {
-      return NextResponse.json({ message: 'Role not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
     // Get menus from company's paket
@@ -38,7 +38,7 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
     if (paketMenus.length === 0) {
       return NextResponse.json({
         data: [],
-        message: 'No menus available in company paket'
+        message: 'Tidak ada menu yang tersedia untuk paket perusahaan'
       })
     }
 
@@ -59,12 +59,12 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
 
     return NextResponse.json({
       data: menusWithAssignment,
-      message: 'Menus retrieved successfully'
+      message: 'Data menu berhasil diambil'
     })
   } catch (error) {
     console.error('Get role menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 
@@ -75,7 +75,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     const { menus } = body
 
     if (!Array.isArray(menus)) {
-      return NextResponse.json({ message: 'Menus must be an array' }, { status: 400 })
+      return NextResponse.json({ message: 'Menus harus berupa array' }, { status: 400 })
     }
 
     if (!user.companyId) {
@@ -90,7 +90,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     })
 
     if (!role) {
-      return NextResponse.json({ message: 'Role not found' }, { status: 404 })
+      return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
     // Delete existing role-menu assignments for this role
@@ -111,12 +111,12 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
     }
 
     return NextResponse.json({
-      message: 'Menus assigned successfully'
+      message: 'Menu berhasil ditetapkan'
     })
   } catch (error) {
     console.error('Assign menus error:', error)
 
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
 

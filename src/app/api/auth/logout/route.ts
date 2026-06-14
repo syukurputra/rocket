@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const res = NextResponse.json(
-      { message: 'Logout successful' },
+      { message: 'Logout berhasil' },
       { headers: { 'Cache-Control': 'no-store' } }
     )
     clearSessionCookies(res) // hapus access_token & refresh_token (httpOnly)
@@ -30,6 +30,6 @@ export async function POST(req: NextRequest) {
     return res
   } catch (error) {
     console.error('Logout error:', error)
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
