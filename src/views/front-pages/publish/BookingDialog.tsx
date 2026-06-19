@@ -164,7 +164,7 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
           telepon,
           jenisHarga,
           mulaiSewa,
-          selesaiSewa: selesaiSewa.toISOString(),
+          selesaiSewa: selesaiSewa?.toISOString(),
           durasi,
           hargaSatuan,
           total,
