@@ -422,7 +422,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                     <Button
                       fullWidth
                       variant='contained'
-                      color='primary'
+                      color='success'
                       size='large'
                       startIcon={downloading ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-download' />}
                       disabled={downloading}
