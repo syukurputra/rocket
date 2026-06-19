@@ -1,0 +1,125 @@
+'use client'
+
+// React Imports
+import { useMemo, useState } from 'react'
+import type { SyntheticEvent } from 'react'
+
+// MUI Imports
+import Grid from '@mui/material/Grid2'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import Accordion from '@mui/material/Accordion'
+import Typography from '@mui/material/Typography'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+
+// Third-party Imports
+import classnames from 'classnames'
+
+// Type Imports
+import type { FaqType } from '@/src/types/pages/faqTypes'
+
+// Component Imports
+import CustomAvatar from '@core/components/mui/Avatar'
+import CustomTabList from '@core/components/mui/TabList'
+
+type Props = {
+  faqData?: FaqType[]
+  searchValue: string
+}
+
+const Faqs = ({ faqData, searchValue }: Props) => {
+  const [activeTab, setActiveTab] = useState(faqData?.[0]?.id ?? '')
+
+  const filteredData = useMemo(() => {
+    let result = faqData
+
+    if (searchValue) {
+      result =
+        faqData
+          ?.filter(category =>
+            category.questionsAnswers.some(item =>
+              item.question.toLowerCase().includes(searchValue.toLowerCase())
+            )
+          )
+          .map(category => ({
+            ...category,
+            questionsAnswers: category.questionsAnswers.filter(item =>
+              item.question.toLowerCase().includes(searchValue.toLowerCase())
+            )
+          })) ?? []
+    }
+
+    setActiveTab(result?.[0]?.id ?? '')
+
+    return result
+  }, [faqData, searchValue])
+
+  const handleChange = (_: SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue)
+  }
+
+  if (!filteredData || filteredData.length === 0) {
+    return (
+      <div className='flex justify-center items-center gap-2 p-6'>
+        <i className='tabler-alert-circle text-xl' />
+        <Typography>Tidak ada hasil yang ditemukan</Typography>
+      </div>
+    )
+  }
+
+  return (
+    <TabContext value={activeTab}>
+      <Grid container spacing={6}>
+        <Grid size={{ xs: 12, sm: 5, md: 4, xl: 3 }} className='flex flex-col items-center gap-4'>
+          <CustomTabList orientation='vertical' onChange={handleChange} className='is-full' pill='true'>
+            {filteredData.map((faq, index) => (
+              <Tab
+                key={index}
+                label={faq.title}
+                value={faq.id}
+                icon={<i className={classnames(faq.icon, '!mbe-0 mie-1.5')} />}
+                className='flex-row justify-start !min-is-full'
+              />
+            ))}
+          </CustomTabList>
+          <img
+            src='/images/illustrations/characters-with-objects/1.png'
+            className='max-md:hidden is-[230px]'
+            alt='bantusewa faq'
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 7, md: 8, xl: 9 }}>
+          {filteredData.map((faq, index) => (
+            <TabPanel key={index} value={faq.id} className='p-0'>
+              <div className='flex items-center gap-4 mbe-4'>
+                <CustomAvatar skin='light' color='primary' variant='rounded' size={50}>
+                  <i className={classnames(faq.icon, 'text-3xl')} />
+                </CustomAvatar>
+                <div>
+                  <Typography variant='h5'>{faq.title}</Typography>
+                  <Typography>{faq.subtitle}</Typography>
+                </div>
+              </div>
+              <div>
+                {faq.questionsAnswers.map((item, i) => (
+                  <Accordion key={i}>
+                    <AccordionSummary expandIcon={<i className='tabler-chevron-right' />}>
+                      <Typography>{item.question}</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography>{item.answer}</Typography>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </div>
+            </TabPanel>
+          ))}
+        </Grid>
+      </Grid>
+    </TabContext>
+  )
+}
+
+export default Faqs

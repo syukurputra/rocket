@@ -12,6 +12,7 @@ import type { ScheduledJob } from '../types/scheduler'
 import { wilayahSyncJob } from './wilayahSyncJob'
 import { menuRoleValidationJob } from './menuRoleValidationJob'
 import {
+  downgradeExpiredPaketJob,
   cleanupTempFilesJob,
   databaseBackupJob,
   dailyReportJob,
@@ -27,6 +28,7 @@ export const allJobs: ScheduledJob[] = [
   // Active jobs
   wilayahSyncJob,
   menuRoleValidationJob,
+  downgradeExpiredPaketJob,
 
   // Example jobs (disabled by default)
   cleanupTempFilesJob,

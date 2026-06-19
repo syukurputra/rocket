@@ -4,11 +4,12 @@ import Grid from '@mui/material/Grid2'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import Tooltip from '@mui/material/Tooltip'
 
 // Component Imports
 import MapPicker from '@/src/components/MapPicker'
+import CustomIconButton from '@core/components/mui/IconButton'
 
 interface InformationAsetProps {
   data: any
@@ -67,9 +68,56 @@ const InformationAset = ({ data }: InformationAsetProps) => {
               <div className='is-full bs-[300px] relative rounded overflow-hidden'>
                 <MapPicker latitude={data.latitude ?? -6.2088} longitude={data.longitude ?? 106.8456} />
               </div>
-              <Button variant='contained' className='mbs-5'>
-                Hubungi Sekarang
-              </Button>
+              <div className='flex flex-col items-center gap-3 mbs-5'>
+                <Typography variant='h6' className='font-medium'>Kontak Kami</Typography>
+                <div className='flex gap-4'>
+                  {data.nomorWaAktif && data.nomorWa && (
+                    <Tooltip title='WhatsApp'>
+                      <CustomIconButton
+                        size='large'
+                        variant='contained'
+                        href={`https://wa.me/${data.nomorWa.replace(/\D/g, '')}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        sx={{ bgcolor: 'white', color: '#25D366', boxShadow: 4, fontSize: '22px !important', p: '10px !important', '&:hover': { bgcolor: '#f5f5f5', color: '#25D366' } }}
+                      >
+                        <i className='tabler-brand-whatsapp' />
+                      </CustomIconButton>
+                    </Tooltip>
+                  )}
+                  {data.instagramAktif && data.instagram && (
+                    <Tooltip title='Instagram'>
+                      <CustomIconButton
+                        size='large'
+                        variant='contained'
+                        href={`https://instagram.com/${data.instagram.replace(/^@/, '')}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        sx={{ bgcolor: 'white', color: '#E1306C', boxShadow: 4, fontSize: '22px !important', p: '10px !important', '&:hover': { bgcolor: '#f5f5f5', color: '#E1306C' } }}
+                      >
+                        <i className='tabler-brand-instagram' />
+                      </CustomIconButton>
+                    </Tooltip>
+                  )}
+                  {data.facebookAktif && data.facebook && (
+                    <Tooltip title='Facebook'>
+                      <CustomIconButton
+                        size='large'
+                        variant='contained'
+                        href={`https://facebook.com/${data.facebook}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        sx={{ bgcolor: 'white', color: '#1877F2', boxShadow: 4, fontSize: '22px !important', p: '10px !important', '&:hover': { bgcolor: '#f5f5f5', color: '#1877F2' } }}
+                      >
+                        <i className='tabler-brand-facebook' />
+                      </CustomIconButton>
+                    </Tooltip>
+                  )}
+                  {!data.nomorWaAktif && !data.instagramAktif && !data.facebookAktif && (
+                    <Typography variant='caption' color='text.secondary'>Tidak ada kontak tersedia</Typography>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Grid>

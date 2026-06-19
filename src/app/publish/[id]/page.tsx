@@ -72,7 +72,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
         </Grid>
         {sanitizedData.ruangan.map(ruangan => (
           <Grid key={ruangan.id} size={{ xs: 12 }}>
-            <InformationRuangan data={ruangan as any} />
+            <InformationRuangan data={ruangan as any} asetNama={sanitizedData.nama} />
           </Grid>
         ))}
       </Grid>

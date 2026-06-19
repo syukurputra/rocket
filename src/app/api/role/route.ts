@@ -39,7 +39,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     // Super admin can create roles for any company
-    const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
+    const isSuperAdmin = user.role?.nama === 'Super Admin'
 
     if (!isSuperAdmin && !user.companyId) {
       return NextResponse.json({ message: 'User tidak terhubung dengan perusahaan' }, { status: 400 })

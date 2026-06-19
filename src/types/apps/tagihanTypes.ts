@@ -8,6 +8,7 @@ export type TagihanClient = {
   nominal: number
   metodeBayar?: string | null
   buktiPembayaran?: string | null
+  penyewaId?: string | null
 
   penyewa?: {
     id: string

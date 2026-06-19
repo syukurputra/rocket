@@ -12,6 +12,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 // Component Imports
 import Autocomplete from '@mui/material/Autocomplete'
@@ -43,6 +45,12 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [pembayaranOnline, setPembayaranOnline] = useState<boolean>(initialData?.pembayaranOnline ?? false)
   const [jenisAsetOptions, setJenisAsetOptions] = useState<{ id: string; nama: string }[]>([])
   const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi || '')
+  const [nomorWa, setNomorWa] = useState(initialData?.nomorWa || '')
+  const [nomorWaAktif, setNomorWaAktif] = useState<boolean>(initialData?.nomorWaAktif ?? false)
+  const [instagram, setInstagram] = useState(initialData?.instagram || '')
+  const [instagramAktif, setInstagramAktif] = useState<boolean>(initialData?.instagramAktif ?? false)
+  const [facebook, setFacebook] = useState(initialData?.facebook || '')
+  const [facebookAktif, setFacebookAktif] = useState<boolean>(initialData?.facebookAktif ?? false)
 
   const [alamat, setAlamat] = useState(initialData?.alamat || '')
 
@@ -91,6 +99,12 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       setJenis(initialData.status || 'aktif')
       setTipe(initialData.jenis || '')
       setDeskripsi(initialData.deskripsi || '')
+      setNomorWa(initialData.nomorWa || '')
+      setNomorWaAktif(initialData.nomorWaAktif ?? false)
+      setInstagram(initialData.instagram || '')
+      setInstagramAktif(initialData.instagramAktif ?? false)
+      setFacebook(initialData.facebook || '')
+      setFacebookAktif(initialData.facebookAktif ?? false)
       setAlamat(initialData.alamat || '')
       setKota(initialData.kota || '')
       setProvinsi(initialData.provinsi || '')
@@ -259,6 +273,12 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           bookingOnline,
           pembayaranOnline,
           deskripsi,
+          nomorWa,
+          nomorWaAktif,
+          instagram,
+          instagramAktif,
+          facebook,
+          facebookAktif,
           alamat,
           provinsi, // String name
           kota,
@@ -348,6 +368,57 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           value={deskripsi}
           onChange={e => setDeskripsi(e.target.value)}
         />
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <div className='flex flex-col gap-1'>
+          <CustomTextField
+            fullWidth
+            label='Nomor WhatsApp'
+            placeholder='Contoh: 628123456789'
+            value={nomorWa}
+            onChange={e => setNomorWa(e.target.value)}
+            disabled={!nomorWaAktif}
+            InputProps={{ startAdornment: <i className='tabler-brand-whatsapp text-xl mie-2 text-[#25D366]' /> }}
+          />
+          <FormControlLabel
+            control={<Switch checked={nomorWaAktif} onChange={e => setNomorWaAktif(e.target.checked)} size='small' />}
+            label={<Typography variant='caption'>{nomorWaAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
+          />
+        </div>
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <div className='flex flex-col gap-1'>
+          <CustomTextField
+            fullWidth
+            label='Instagram'
+            placeholder='Contoh: @bantusewa'
+            value={instagram}
+            onChange={e => setInstagram(e.target.value)}
+            disabled={!instagramAktif}
+            InputProps={{ startAdornment: <i className='tabler-brand-instagram text-xl mie-2 text-[#E1306C]' /> }}
+          />
+          <FormControlLabel
+            control={<Switch checked={instagramAktif} onChange={e => setInstagramAktif(e.target.checked)} size='small' />}
+            label={<Typography variant='caption'>{instagramAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
+          />
+        </div>
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <div className='flex flex-col gap-1'>
+          <CustomTextField
+            fullWidth
+            label='Facebook'
+            placeholder='Contoh: Bantu Sewa'
+            value={facebook}
+            onChange={e => setFacebook(e.target.value)}
+            disabled={!facebookAktif}
+            InputProps={{ startAdornment: <i className='tabler-brand-facebook text-xl mie-2 text-[#1877F2]' /> }}
+          />
+          <FormControlLabel
+            control={<Switch checked={facebookAktif} onChange={e => setFacebookAktif(e.target.checked)} size='small' />}
+            label={<Typography variant='caption'>{facebookAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
+          />
+        </div>
       </Grid>
       <Grid size={{ xs: 12 }}>
         <CustomTextField

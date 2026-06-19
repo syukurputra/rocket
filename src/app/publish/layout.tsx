@@ -17,7 +17,7 @@ import { getSystemMode } from '@core/utils/serverHelpers'
 
 export const metadata = {
   title: 'Bantu Sewa - Landing Page',
-  description: 'Platform manajemen properti sewa'
+  description: 'Platform manajemen sewa'
 }
 
 const Layout = async ({ children }: ChildrenType) => {

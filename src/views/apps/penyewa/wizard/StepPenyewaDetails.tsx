@@ -306,6 +306,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
     if (statusLower === 'sudah terbayar' || statusLower === 'lunas') return 'success'
     if (statusLower === 'belum terbayar') return 'error'
+    if (statusLower === 'booking') return 'warning'
 
     return 'default'
   }
@@ -336,6 +337,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
         >
           <MenuItem value='belum terbayar'>Belum Terbayar</MenuItem>
           <MenuItem value='sudah terbayar'>Sudah Terbayar</MenuItem>
+          <MenuItem value='booking'>Booking</MenuItem>
         </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

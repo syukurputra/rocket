@@ -103,8 +103,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }, [mulaiSewa, jumlahBulan, jumlahTahun, periodeSewa])
 
-  // Auto-calculate nominal based on periode sewa
+  // Auto-calculate nominal based on periode sewa (only when adding, not editing)
   useEffect(() => {
+    if (editingId) return
     if (!mulaiSewa || !selesaiSewa) return
 
     let calculatedNominal = 0
@@ -121,7 +122,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
 
     setNominal(calculatedNominal)
-  }, [mulaiSewa, selesaiSewa, jumlahBulan, jumlahTahun, periodeSewa, ruanganPricing])
+  }, [mulaiSewa, selesaiSewa, jumlahBulan, jumlahTahun, periodeSewa, ruanganPricing, editingId])
 
   const fetchPenyewaData = async () => {
     try {
@@ -489,12 +490,23 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
         )}
 
         <Grid size={{ xs: 12 }}>
-          <CustomTextField
-            fullWidth
-            label='Nominal (Otomatis)'
-            value={`Rp ${nominal.toLocaleString('id-ID')}`}
-            disabled
-          />
+          {editingId ? (
+            <CustomTextField
+              fullWidth
+              label='Nominal'
+              type='number'
+              value={nominal}
+              onChange={e => setNominal(Number(e.target.value) || 0)}
+              inputProps={{ min: 0 }}
+            />
+          ) : (
+            <CustomTextField
+              fullWidth
+              label='Nominal (Otomatis)'
+              value={`Rp ${nominal.toLocaleString('id-ID')}`}
+              disabled
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12 }}>
           <CustomTextField

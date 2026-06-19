@@ -8,7 +8,7 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
     // Check if user is super admin by role name
-    const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
+    const isSuperAdmin = user.role?.nama === 'Super Admin'
 
     const where = isSuperAdmin ? {} : { companyId: user.companyId! }
 

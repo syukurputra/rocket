@@ -12,14 +12,19 @@ import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
+import Button from '@mui/material/Button'
+
+import BookingDialog from './BookingDialog'
 
 interface InformationRuanganProps {
   data: any
+  asetNama?: string
 }
 
-const InformationRuangan = ({ data }: InformationRuanganProps) => {
+const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) => {
   const [openGallery, setOpenGallery] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
+  const [openBooking, setOpenBooking] = useState(false)
 
   const images = data.images && data.images.length > 0 ? data.images : []
 
@@ -93,6 +98,7 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
                 </Grid>
               </CardContent>
             )}
+
           </Grid>
 
           {/* Right Column: Image */}
@@ -130,10 +136,31 @@ const InformationRuangan = ({ data }: InformationRuanganProps) => {
                   style={{ objectFit: 'cover', maxHeight: 200 }}
                 />
               )}
+              {data.hargaItemAset && data.hargaItemAset.length > 0 && (
+                <Button
+                  variant='contained'
+                  fullWidth
+                  startIcon={<i className='tabler-calendar-check' />}
+                  onClick={() => setOpenBooking(true)}
+                  sx={{ mt: 1 }}
+                >
+                  Booking Sekarang
+                </Button>
+              )}
             </CardContent>
           </Grid>
         </Grid>
       </Card>
+
+      {/* Booking Dialog */}
+      {data.hargaItemAset && data.hargaItemAset.length > 0 && (
+        <BookingDialog
+          open={openBooking}
+          onClose={() => setOpenBooking(false)}
+          ruangan={{ id: data.id, nama: data.nama, hargaItemAset: data.hargaItemAset }}
+          asetNama={asetNama}
+        />
+      )}
 
       {/* Image Gallery Modal */}
       <Dialog open={openGallery} onClose={handleCloseGallery} maxWidth='md' fullWidth>

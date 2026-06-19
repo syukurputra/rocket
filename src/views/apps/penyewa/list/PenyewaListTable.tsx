@@ -238,11 +238,13 @@ const PenyewaListTable = ({ initialData = [] }: PenyewaListTableProps) => {
         cell: ({ row }) => {
           const status = row.original.status
 
-          switch (status) {
+          switch (status?.toLowerCase()) {
             case 'sudah terbayar':
-              return <Chip label='Sudah Bayar' color='success' size='small' variant='tonal' />
+              return <Chip label='Sudah Terbayar' color='success' size='small' variant='tonal' />
             case 'belum terbayar':
-              return <Chip label='Belum Bayar' color='warning' size='small' variant='tonal' />
+              return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
+            case 'booking':
+              return <Chip label='Booking' color='warning' size='small' variant='tonal' />
             default:
               return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
           }

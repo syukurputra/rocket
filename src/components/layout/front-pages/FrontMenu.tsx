@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 
 // Next Imports
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 // MUI Imports
 import Typography from '@mui/material/Typography'
@@ -70,8 +71,9 @@ const FrontMenu = (props: Props) => {
   const { isDrawerOpen, setIsDrawerOpen } = props
 
   // Hooks
-  // const pathname = usePathname()
+  const pathname = usePathname()
   const isBelowLgScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('lg'))
+  const isPublishPage = pathname?.startsWith('/publish')
 
   // const { intersections } = useIntersection()
 
@@ -84,22 +86,26 @@ const FrontMenu = (props: Props) => {
 
   return (
     <Wrapper isBelowLgScreen={isBelowLgScreen} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen}>
-      <Typography color='text.primary' component={Link} href='/landing#features'
-        className='font-medium plb-3 pli-1.5 hover:text-primary'>
-        Fitur Unggulan
-      </Typography>
-      <Typography color='text.primary' component={Link} href='/landing#pricing-plans'
-        className='font-medium plb-3 pli-1.5 hover:text-primary'>
-        Paket Harga
-      </Typography>
-      <Typography color='text.primary' component={Link} href='/landing#faq'
-        className='font-medium plb-3 pli-1.5 hover:text-primary'>
-        FAQ
-      </Typography>
-      <Typography color='text.primary' component={Link} href='/landing#contact-us'
-        className='font-medium plb-3 pli-1.5 hover:text-primary'>
-        Hubungi Kami
-      </Typography>
+      {!isPublishPage && (
+        <>
+          <Typography color='text.primary' component={Link} href='/landing#features'
+            className='font-medium plb-3 pli-1.5 hover:text-primary'>
+            Fitur Unggulan
+          </Typography>
+          <Typography color='text.primary' component={Link} href='/landing#pricing-plans'
+            className='font-medium plb-3 pli-1.5 hover:text-primary'>
+            Paket Harga
+          </Typography>
+          <Typography color='text.primary' component={Link} href='/landing#faq'
+            className='font-medium plb-3 pli-1.5 hover:text-primary'>
+            FAQ
+          </Typography>
+          <Typography color='text.primary' component={Link} href='/landing#contact-us'
+            className='font-medium plb-3 pli-1.5 hover:text-primary'>
+            Hubungi Kami
+          </Typography>
+        </>
+      )}
     </Wrapper>
   )
 }

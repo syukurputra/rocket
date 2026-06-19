@@ -37,7 +37,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
+    const isSuperAdmin = user.role?.nama === 'Super Admin'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
@@ -68,7 +68,7 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
+    const isSuperAdmin = user.role?.nama === 'Super Admin'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
@@ -142,7 +142,7 @@ async function handleDelete(request: NextRequest, { user, params }: AuthContext 
       return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
     }
 
-    const isSuperAdmin = user.role?.nama === 'SUPER ADMIN'
+    const isSuperAdmin = user.role?.nama === 'Super Admin'
 
     if (!isSuperAdmin && targetUser.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })

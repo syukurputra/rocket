@@ -205,7 +205,7 @@ const UserDropdown = () => {
                     <i className='tabler-user' />
                     <Typography color='text.primary'>Akun Saya</Typography>
                   </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)} disabled={logoutLoading}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e, '/faq')} disabled={logoutLoading}>
                     <i className='tabler-help-circle' />
                     <Typography color='text.primary'>FAQ</Typography>
                   </MenuItem>

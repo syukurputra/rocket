@@ -11,14 +11,19 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
+    const penyewaId = searchParams.get('penyewaId') || ''
 
     const whereClause: any = {}
 
     if (search) {
-      whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
+      whereClause.OR = [{ keterangan: { contains: search.trim(), mode: 'insensitive' } }]
     }
 
-    whereClause.createdById = user.id
+    if (penyewaId) {
+      whereClause.penyewaId = penyewaId
+    } else {
+      whereClause.createdById = user.id
+    }
 
     const [data, total] = await Promise.all([
       prisma.tagihan.findMany({

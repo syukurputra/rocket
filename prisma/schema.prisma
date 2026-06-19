@@ -157,6 +157,12 @@ model Aset {
   kelurahan     String?
   latitude      Float?
   longitude     Float?
+  nomorWa          String?
+  nomorWaAktif     Boolean         @default(false)
+  instagram        String?
+  instagramAktif   Boolean         @default(false)
+  facebook         String?
+  facebookAktif    Boolean         @default(false)
   status           String          @default("aktif")
   bookingOnline    Boolean         @default(false)
   pembayaranOnline Boolean         @default(false)
@@ -446,14 +452,16 @@ model Penyewa {
 }
 
 model Tagihan {
-  id              String   @id @default(cuid())
-  keterangan      String
-  status          String   @default("BELUM TERBAYAR")
-  metodeBayar     String?
-  mulaiSewa       DateTime @default(now())
-  selesaiSewa     DateTime @default(now())
-  nominal         Decimal  @default(0) @db.Decimal(15, 2)
-  buktiPembayaran String?
+  id               String   @id @default(cuid())
+  keterangan       String
+  status           String   @default("BELUM TERBAYAR")
+  metodeBayar      String?
+  mulaiSewa        DateTime @default(now())
+  selesaiSewa      DateTime @default(now())
+  nominal          Decimal  @default(0) @db.Decimal(15, 2)
+  buktiPembayaran  String?
+  ipaymuSessionId  String?
+  paymentUrl       String?  @db.Text
 
 
   createdAt   DateTime @default(now())
@@ -471,6 +479,7 @@ model Tagihan {
 
   @@map("tagihan")
 }
+
 
 model CategoryKeuangan {
   id          String      @id @default(cuid())

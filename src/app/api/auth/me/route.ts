@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
         id: true,
         username: true,
         email: true,
+        nomorTelepon: true,
         photoUrl: true,
         createdAt: true,
         updatedAt: true,
@@ -79,6 +80,7 @@ export async function GET(req: NextRequest) {
       id: user.id,
       username: user.username,
       email: user.email,
+      nomorTelepon: user.nomorTelepon,
       photoUrl: user.photoUrl,
       company: user.company,
       role: user.role

@@ -118,16 +118,16 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
     }
   }, [form.mulaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa])
 
-  // Auto-calculate nominal based on periode sewa
+  // Auto-calculate nominal based on periode sewa (only in create mode)
   useEffect(() => {
+    if (mode === 'edit') return
     if (!form.mulaiSewa || !form.selesaiSewa) return
 
     let calculatedNominal = 0
 
     if (periodeSewa === 'harian') {
-      // Calculate days between dates
       const diffTime = Math.abs(form.selesaiSewa.getTime() - form.mulaiSewa.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 for inclusive
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
 
       calculatedNominal = diffDays * ruanganPricing.hargaHarian
     } else if (periodeSewa === 'bulanan' && form.jumlahBulan) {
@@ -137,7 +137,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
     }
 
     setForm(prev => ({ ...prev, nominal: calculatedNominal }))
-  }, [form.mulaiSewa, form.selesaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa, ruanganPricing])
+  }, [form.mulaiSewa, form.selesaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa, ruanganPricing, mode])
 
   const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [key]: e.target.value }))
@@ -349,12 +349,23 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
 
               {/* Show nominal field */}
               <Grid size={{ xs: 12 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Nominal (Otomatis)'
-                  value={`Rp ${form.nominal.toLocaleString('id-ID')}`}
-                  disabled
-                />
+                {mode === 'edit' ? (
+                  <CustomTextField
+                    fullWidth
+                    label='Nominal'
+                    type='number'
+                    value={form.nominal}
+                    onChange={e => setForm(prev => ({ ...prev, nominal: Number(e.target.value) || 0 }))}
+                    inputProps={{ min: 0 }}
+                  />
+                ) : (
+                  <CustomTextField
+                    fullWidth
+                    label='Nominal (Otomatis)'
+                    value={`Rp ${form.nominal.toLocaleString('id-ID')}`}
+                    disabled
+                  />
+                )}
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <CustomTextField
