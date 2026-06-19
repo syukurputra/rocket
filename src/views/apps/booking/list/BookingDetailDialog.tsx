@@ -419,14 +419,11 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       <i className='tabler-circle-check text-white text-2xl' />
                       <Typography color='white' fontWeight={600}>Sudah Dibayar</Typography>
                     </Box>
-                    <Button
-                      fullWidth
-                      variant='contained'
-                      color='success'
-                      size='large'
-                      startIcon={downloading ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-download' />}
-                      disabled={downloading}
+                    <Box
+                      className='p-4 rounded flex items-center gap-3'
+                      sx={{ bgcolor: 'success.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
                       onClick={async () => {
+                        if (downloading) return
                         try {
                           setDownloading(true)
                           await downloadBuktiPembayaran(tagihan)
@@ -437,8 +434,14 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         }
                       }}
                     >
-                      {downloading ? 'Menyiapkan...' : 'Download Bukti Pembayaran'}
-                    </Button>
+                      {downloading
+                        ? <CircularProgress size={22} sx={{ color: 'white' }} />
+                        : <i className='tabler-download text-white text-2xl' />
+                      }
+                      <Typography color='white' fontWeight={600}>
+                        {downloading ? 'Menyiapkan...' : 'Download Bukti Pembayaran'}
+                      </Typography>
+                    </Box>
                   </>
                 )}
 
