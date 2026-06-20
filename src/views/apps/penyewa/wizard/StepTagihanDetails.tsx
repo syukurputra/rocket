@@ -68,6 +68,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   const [mulaiSewa, setMulaiSewa] = useState<Date | null>(new Date())
   const [selesaiSewa, setSelesaiSewa] = useState<Date | null>(new Date())
   const [nominal, setNominal] = useState(0)
+  const [jumlahHari, setJumlahHari] = useState(1)
   const [jumlahBulan, setJumlahBulan] = useState(1)
   const [jumlahTahun, setJumlahTahun] = useState(1)
 
@@ -110,11 +111,16 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }, [ruanganId, ruanganList])
 
-  // Auto-calculate end date for bulanan and tahunan
+  // Auto-calculate end date
   useEffect(() => {
     if (!mulaiSewa) return
 
-    if (periodeSewa === 'bulanan' && jumlahBulan) {
+    if (periodeSewa === 'harian' && jumlahHari) {
+      const endDate = new Date(mulaiSewa)
+
+      endDate.setDate(endDate.getDate() + jumlahHari - 1)
+      setSelesaiSewa(endDate)
+    } else if (periodeSewa === 'bulanan' && jumlahBulan) {
       const endDate = new Date(mulaiSewa)
 
       endDate.setMonth(endDate.getMonth() + jumlahBulan)
@@ -125,7 +131,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
       endDate.setFullYear(endDate.getFullYear() + jumlahTahun)
       setSelesaiSewa(endDate)
     }
-  }, [mulaiSewa, jumlahBulan, jumlahTahun, periodeSewa])
+  }, [mulaiSewa, jumlahHari, jumlahBulan, jumlahTahun, periodeSewa])
 
   // Auto-calculate nominal based on periode sewa (only when adding, not editing)
   useEffect(() => {
@@ -134,11 +140,8 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
 
     let calculatedNominal = 0
 
-    if (periodeSewa === 'harian') {
-      const diffTime = Math.abs(selesaiSewa.getTime() - mulaiSewa.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-
-      calculatedNominal = diffDays * ruanganPricing.hargaHarian
+    if (periodeSewa === 'harian' && jumlahHari) {
+      calculatedNominal = jumlahHari * ruanganPricing.hargaHarian
     } else if (periodeSewa === 'bulanan' && jumlahBulan) {
       calculatedNominal = jumlahBulan * ruanganPricing.hargaBulanan
     } else if (periodeSewa === 'tahunan' && jumlahTahun) {
@@ -242,6 +245,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     setMulaiSewa(new Date())
     setSelesaiSewa(new Date())
     setNominal(0)
+    setJumlahHari(1)
     setJumlahBulan(1)
     setJumlahTahun(1)
     setAsetId('')
@@ -451,7 +455,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
             fullWidth
             label='Periode Sewa'
             value={periodeSewa}
-            onChange={e => { setPeriodeSewa(e.target.value); setJumlahBulan(1); setJumlahTahun(1) }}
+            onChange={e => { setPeriodeSewa(e.target.value); setJumlahHari(1); setJumlahBulan(1); setJumlahTahun(1) }}
           >
             <MenuItem value='jam'>Jam</MenuItem>
             <MenuItem value='harian'>Harian</MenuItem>
@@ -464,21 +468,30 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
         {periodeSewa === 'harian' && (
           <>
             <Grid size={{ xs: 12, sm: 6 }}>
+              <CustomTextField
+                fullWidth
+                type='number'
+                label='Jumlah Hari'
+                value={jumlahHari}
+                onChange={e => setJumlahHari(parseInt(e.target.value) || 1)}
+                inputProps={{ min: 1 }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <AppReactDatepicker
                 selected={mulaiSewa}
                 onChange={(date: Date | null) => setMulaiSewa(date)}
                 placeholderText='DD-MM-YYYY'
                 dateFormat='dd-MM-yyyy'
-                customInput={<CustomTextField fullWidth label='Tanggal Mulai' required />}
+                customInput={<CustomTextField fullWidth label='Tanggal Mulai' />}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <AppReactDatepicker
-                selected={selesaiSewa}
-                onChange={(date: Date | null) => setSelesaiSewa(date)}
-                placeholderText='DD-MM-YYYY'
-                dateFormat='dd-MM-yyyy'
-                customInput={<CustomTextField fullWidth label='Tanggal Selesai' required />}
+            <Grid size={{ xs: 12 }}>
+              <CustomTextField
+                fullWidth
+                label='Tanggal Selesai (Otomatis)'
+                value={selesaiSewa ? selesaiSewa.toLocaleDateString('id-ID') : ''}
+                disabled
               />
             </Grid>
           </>
@@ -486,15 +499,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
 
         {periodeSewa === 'bulanan' && (
           <>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <AppReactDatepicker
-                selected={mulaiSewa}
-                onChange={(date: Date | null) => setMulaiSewa(date)}
-                placeholderText='DD-MM-YYYY'
-                dateFormat='dd-MM-yyyy'
-                customInput={<CustomTextField fullWidth label='Tanggal Mulai' required />}
-              />
-            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <CustomTextField
                 fullWidth
@@ -506,7 +510,16 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                 required
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <AppReactDatepicker
+                selected={mulaiSewa}
+                onChange={(date: Date | null) => setMulaiSewa(date)}
+                placeholderText='DD-MM-YYYY'
+                dateFormat='dd-MM-yyyy'
+                customInput={<CustomTextField fullWidth label='Tanggal Mulai' required />}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <CustomTextField
                 fullWidth
                 label='Tanggal Selesai (Otomatis)'
@@ -519,6 +532,17 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
 
         {periodeSewa === 'tahunan' && (
           <>
+          <Grid size={{ xs: 12, sm: 6 }}>
+              <CustomTextField
+                fullWidth
+                type='number'
+                label='Jumlah Tahun'
+                value={jumlahTahun}
+                onChange={e => setJumlahTahun(parseInt(e.target.value) || 1)}
+                inputProps={{ min: 1 }}
+                required
+              />
+            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <AppReactDatepicker
                 selected={mulaiSewa}
@@ -531,17 +555,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
             <Grid size={{ xs: 12, sm: 6 }}>
               <CustomTextField
                 fullWidth
-                type='number'
-                label='Jumlah Tahun'
-                value={jumlahTahun}
-                onChange={e => setJumlahTahun(parseInt(e.target.value) || 1)}
-                inputProps={{ min: 1 }}
-                required
-              />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <CustomTextField
-                fullWidth
                 label='Tanggal Selesai (Otomatis)'
                 value={selesaiSewa ? selesaiSewa.toLocaleDateString('id-ID') : ''}
                 disabled
@@ -550,7 +563,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
           </>
         )}
 
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           {editingId ? (
             <CustomTextField
               fullWidth
@@ -569,7 +582,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <CustomTextField
             fullWidth
             label='Keterangan'
