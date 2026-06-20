@@ -283,6 +283,8 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                   <TableRow>
                     <TableCell>Keterangan</TableCell>
                     <TableCell>Periode Sewa</TableCell>
+                    <TableCell>Mulai Sewa</TableCell>
+                    <TableCell>Selesai Sewa</TableCell>
                     <TableCell>Total</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Aksi</TableCell>
@@ -291,7 +293,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                 <TableBody>
                   {tagihan.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} align='center'>
+                      <TableCell colSpan={7} align='center'>
                         Belum ada data tagihan
                       </TableCell>
                     </TableRow>
@@ -299,10 +301,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                     tagihan.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{item.keterangan}</TableCell>
-                        <TableCell>
-                          {new Date(item.mulaiSewa).toLocaleDateString('id-ID')} -{' '}
-                          {new Date(item.selesaiSewa).toLocaleDateString('id-ID')}
-                        </TableCell>
+                        <TableCell>{item.periodeSewa ? item.periodeSewa.charAt(0).toUpperCase() + item.periodeSewa.slice(1) : '-'}</TableCell>
+                        <TableCell>{new Date(item.mulaiSewa).toLocaleDateString('id-ID')}</TableCell>
+                        <TableCell>{new Date(item.selesaiSewa).toLocaleDateString('id-ID')}</TableCell>
                         <TableCell>Rp {formatNumber(item.nominal)}</TableCell>
                         <TableCell>
                           <div className='flex flex-col gap-1'>
