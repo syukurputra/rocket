@@ -1,4 +1,4 @@
-﻿import type { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
@@ -10,42 +10,42 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ data: [] })
     }
 
-    const penyewaList = await prisma.penyewa.findMany({
+    const tagihanList = await prisma.tagihan.findMany({
       where: { companyId: user.companyId },
       include: {
-        aset: { select: { id: true, nama: true, jenis: true } },
+        penyewa: { select: { id: true, nama: true } },
+        aset: { select: { id: true, nama: true } },
         ruangan: { select: { id: true, nama: true } }
       },
       orderBy: { mulaiSewa: 'asc' }
     })
 
-    const events = penyewaList.map(p => {
+    const events = tagihanList.map(t => {
       const now = new Date()
-      const mulai = new Date(p.mulaiSewa)
-      const selesai = new Date(p.selesaiSewa)
+      const mulai = new Date(t.mulaiSewa)
+      const selesai = new Date(t.selesaiSewa)
 
-      // Warna berdasarkan status waktu
       let color: string
       if (selesai < now) {
-        color = 'warning' // sudah selesai
+        color = 'warning'
       } else if (mulai <= now && selesai >= now) {
-        color = 'success' // sedang berjalan
+        color = 'success'
       } else {
-        color = 'primary' // akan datang
+        color = 'primary'
       }
 
       return {
-        id: p.id,
-        title: `${p.nama} - ${p.ruangan?.nama ?? ''}`,
-        start: p.mulaiSewa,
-        end: p.selesaiSewa,
+        id: t.id,
+        title: `${t.penyewa?.nama ?? '-'} - ${t.ruangan?.nama ?? ''}`,
+        start: t.mulaiSewa,
+        end: t.selesaiSewa,
         allDay: true,
         extendedProps: {
           color,
-          aset: p.aset?.nama ?? '',
-          ruangan: p.ruangan?.nama ?? '',
-          status: p.status,
-          periodeSewa: p.periodeSewa
+          aset: t.aset?.nama ?? '',
+          ruangan: t.ruangan?.nama ?? '',
+          status: t.status,
+          periodeSewa: t.periodeSewa
         }
       }
     })
