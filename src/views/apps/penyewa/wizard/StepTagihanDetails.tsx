@@ -13,10 +13,10 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
 import Alert from '@mui/material/Alert'
 import MenuItem from '@mui/material/MenuItem'
+import Menu from '@mui/material/Menu'
 
 // Component Imports
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
@@ -59,6 +59,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   const [tagihan, setTagihan] = useState<TagihanClient[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; item: TagihanClient } | null>(null)
 
   // Form State
   const [keterangan, setKeterangan] = useState('')
@@ -464,42 +465,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className='flex gap-2'>
-
-                            <Tooltip title='Ubah'>
-                              <IconButton aria-label='Ubah' onClick={() => handleEdit(item)} sx={{ minWidth: 0, p: 1 }}>
-                                <i className='tabler-edit' />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title='Kirim Email'>
-                              <IconButton
-                                aria-label='Kirim Email'
-                                onClick={() => handleSendEmail(item.id)}
-                                sx={{ minWidth: 0, p: 1 }}
-                              >
-                                <i className='tabler-mail' />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title='Download Bukti'>
-                              <IconButton
-                                aria-label='Download Bukti'
-                                onClick={() => handleDownloadBukti(item)}
-                                sx={{ minWidth: 0, p: 1 }}
-                              >
-                                <i className='tabler-download' />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title='Hapus'>
-                              <IconButton
-                                aria-label='Hapus'
-                                color='error'
-                                onClick={() => handleDelete(item.id)}
-                                sx={{ minWidth: 0, p: 1 }}
-                              >
-                                <i className='tabler-trash' />
-                              </IconButton>
-                            </Tooltip>
-                          </div>
+                          <IconButton size='small' onClick={e => setMenuAnchor({ el: e.currentTarget, item })}>
+                            <i className='tabler-dots-vertical' />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))
@@ -507,6 +475,27 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                 </TableBody>
               </Table>
             </TableContainer>
+
+            <Menu
+              anchorEl={menuAnchor?.el}
+              open={Boolean(menuAnchor)}
+              onClose={() => setMenuAnchor(null)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <MenuItem onClick={() => { handleEdit(menuAnchor!.item); setMenuAnchor(null) }}>
+                <i className='tabler-edit mr-2' /> Ubah
+              </MenuItem>
+              <MenuItem onClick={() => { handleSendEmail(menuAnchor!.item.id); setMenuAnchor(null) }}>
+                <i className='tabler-mail mr-2' /> Kirim Email
+              </MenuItem>
+              <MenuItem onClick={() => { handleDownloadBukti(menuAnchor!.item); setMenuAnchor(null) }}>
+                <i className='tabler-download mr-2' /> Download Bukti
+              </MenuItem>
+              <MenuItem sx={{ color: 'error.main' }} onClick={() => { handleDelete(menuAnchor!.item.id); setMenuAnchor(null) }}>
+                <i className='tabler-trash mr-2' /> Hapus
+              </MenuItem>
+            </Menu>
           </Grid>
 
           <Grid size={{ xs: 12 }}>
