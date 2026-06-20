@@ -249,7 +249,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   }
 
   const handleSubmit = async () => {
-    if (!keterangan || !mulaiSewa || !selesaiSewa) {
+    if (!mulaiSewa || !selesaiSewa) {
       alert('Mohon lengkapi semua field yang diperlukan')
 
       return
@@ -576,7 +576,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
             placeholder='Contoh: Tagihan Januari 2026'
             value={keterangan}
             onChange={e => setKeterangan(e.target.value)}
-            required
           />
         </Grid>
 
