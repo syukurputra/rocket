@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -56,6 +57,7 @@ const addDuration = (date: Date, durasi: number, jenis: string): Date => {
 }
 
 const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps) => {
+  const router = useRouter()
   const [namaPemesan, setNamaPemesan] = useState('')
   const [email, setEmail] = useState('')
   const [telepon, setTelepon] = useState('')
@@ -219,7 +221,7 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
               Permintaan booking Anda telah diterima. Tim kami akan segera menghubungi Anda untuk konfirmasi.
             </Typography>
             <Chip label={`Nomor Booking: ${nomorBooking}`} color='primary' variant='tonal' />
-            <Button variant='contained' onClick={handleClose} sx={{ mt: 2 }}>
+            <Button variant='contained' onClick={() => { handleClose(); router.push('/booking') }} sx={{ mt: 2 }}>
               Tutup
             </Button>
           </div>
@@ -374,7 +376,7 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
 
                 <div className='flex flex-col gap-2 mbs-auto'>
                   <Typography variant='caption' color='text.secondary'>
-                    * Harga di atas merupakan estimasi. Konfirmasi final akan diberikan oleh tim kami.
+                    * Harga di atas tidak termasuk biaya layanan pembayaran.
                   </Typography>
                 </div>
               </div>
