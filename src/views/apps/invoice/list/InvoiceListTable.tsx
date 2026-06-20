@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 
-import Link from 'next/link'
+import InvoiceDetailDialog from './InvoiceDetailDialog'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -128,6 +128,9 @@ const InvoiceListTable = () => {
     setCurrentPage(0)
     fetchData(0, pageSize, '')
   }
+  const [detailInvoiceId, setDetailInvoiceId] = useState<string | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; invoice: InvoiceClient | null }>({
     open: false,
     invoice: null
@@ -204,11 +207,13 @@ const InvoiceListTable = () => {
         header: 'No. Invoice',
         cell: ({ row }) => (
           <div className='flex flex-col'>
-            <Link href={`/setting/invoice/preview/${row.original.id}`}>
-              <Typography color='primary.main' className='font-medium hover:underline cursor-pointer'>
-                {row.original.nomorInvoice}
-              </Typography>
-            </Link>
+            <Typography
+              color='primary.main'
+              className='font-medium hover:underline cursor-pointer'
+              onClick={() => { setDetailInvoiceId(row.original.id); setDetailOpen(true) }}
+            >
+              {row.original.nomorInvoice}
+            </Typography>
           </div>
         )
       }),
@@ -276,9 +281,8 @@ const InvoiceListTable = () => {
           <div className='flex items-center'>
             <Tooltip title='Lihat Detail'>
               <IconButton
-                component={Link}
-                href={`/setting/invoice/preview/${row.original.id}`}
                 aria-label='Preview'
+                onClick={() => { setDetailInvoiceId(row.original.id); setDetailOpen(true) }}
               >
                 <i className='tabler-eye text-textSecondary' />
               </IconButton>
@@ -499,6 +503,13 @@ const InvoiceListTable = () => {
       </Dialog>
 
       <AppSnackbar snack={snack} onClose={closeSnack} />
+
+      <InvoiceDetailDialog
+        open={detailOpen}
+        invoiceId={detailInvoiceId}
+        onClose={() => setDetailOpen(false)}
+        onUpdated={() => fetchData(currentPage, pageSize, statusFilter)}
+      />
     </Card>
   )
 }
