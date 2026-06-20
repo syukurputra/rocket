@@ -7,7 +7,6 @@ import dynamic from 'next/dynamic'
 import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import MenuItem from '@mui/material/MenuItem'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Autocomplete from '@mui/material/Autocomplete'
@@ -32,7 +31,6 @@ type Props = {
 type PenyewaData = {
   id?: string
   nama: string
-  status: string
   email: string
   nomorTelepon: string
   nomorKtp: string
@@ -50,7 +48,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
   // Form States
   const [nama, setNama] = useState(initialData?.nama || '')
-  const [status, setStatus] = useState(initialData?.status || 'belum terbayar')
   const [email, setEmail] = useState(initialData?.email || '')
   const [nomorTelepon, setNomorTelepon] = useState(initialData?.nomorTelepon || '')
   const [nomorKtp, setNomorKtp] = useState(initialData?.nomorKtp || '')
@@ -185,7 +182,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
   const resetForm = () => {
     setNama('')
-    setStatus('belum terbayar')
     setEmail('')
     setNomorTelepon('')
     setNomorKtp('')
@@ -208,7 +204,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
 
     onSave({
       nama,
-      status,
       email,
       nomorTelepon,
       nomorKtp,
@@ -220,16 +215,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
       latitude: lat,
       longitude: lng
     })
-  }
-
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase()
-
-    if (statusLower === 'sudah terbayar' || statusLower === 'lunas') return 'success'
-    if (statusLower === 'belum terbayar') return 'error'
-    if (statusLower === 'booking') return 'warning'
-
-    return 'default'
   }
 
   // Form View
@@ -247,19 +232,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
           value={nama}
           onChange={e => setNama(e.target.value)}
         />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <CustomTextField
-          select
-          fullWidth
-          label='Status'
-          value={status}
-          onChange={e => setStatus(e.target.value)}
-        >
-          <MenuItem value='belum terbayar'>Belum Terbayar</MenuItem>
-          <MenuItem value='sudah terbayar'>Sudah Terbayar</MenuItem>
-          <MenuItem value='booking'>Booking</MenuItem>
-        </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <CustomTextField
