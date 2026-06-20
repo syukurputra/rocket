@@ -481,13 +481,9 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
               {/* Status PAID */}
               {status === 'PAID' && (
                 <>
-                  <Box className='p-4 rounded flex items-center gap-3' sx={{ bgcolor: 'success.light' }}>
-                    <i className='tabler-circle-check text-white text-2xl' />
-                    <Typography color='white' fontWeight={600}>Sudah Dibayar</Typography>
-                  </Box>
                   <Box
-                    className='p-4 rounded flex items-center gap-3'
-                    sx={{ bgcolor: 'success.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
+                    className='p-2 rounded flex items-center gap-3'
+                    sx={{ bgcolor: 'primary.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
                     onClick={async () => {
                       if (downloading) return
                       try {
@@ -505,7 +501,7 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                       : <i className='tabler-download text-white text-2xl' />
                     }
                     <Typography color='white' fontWeight={600}>
-                      {downloading ? 'Menyiapkan...' : 'Download Bukti Pembayaran'}
+                      {downloading ? 'Menyiapkan...' : 'Download Bukti'}
                     </Typography>
                   </Box>
                 </>
@@ -521,6 +517,7 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                   disabled={checking}
                   startIcon={checking ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-refresh' />}
                   onClick={handleCheckTransaction}
+                  sx={{ justifyContent: 'flex-start' }}
                 >
                   {checking ? 'Mengecek...' : 'Check Transaksi'}
                 </Button>
@@ -533,9 +530,11 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                 className='capitalize'
                 startIcon={<i className='tabler-printer' />}
                 onClick={() => window.print()}
+                sx={{ justifyContent: 'flex-start' }}
               >
                 Print
               </Button>
+
               <Button
                 fullWidth
                 color='secondary'
@@ -543,8 +542,9 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                 className='capitalize'
                 startIcon={<i className='tabler-arrow-left' />}
                 onClick={() => router.push('/setting/invoice')}
+                sx={{ justifyContent: 'flex-start' }}
               >
-                Kembali ke Daftar
+                Kembali
               </Button>
             </CardContent>
           </Card>

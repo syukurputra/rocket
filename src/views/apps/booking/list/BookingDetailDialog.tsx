@@ -440,10 +440,6 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                 {/* Status Lunas */}
                 {isLunas && (
                   <>
-                    <Box className='p-2 rounded flex items-center gap-3' sx={{ bgcolor: 'success.light' }}>
-                      <i className='tabler-circle-check text-white text-2xl' />
-                      <Typography color='white' fontWeight={600}>Sudah Dibayar</Typography>
-                    </Box>
                     <Box
                       className='p-2 rounded flex items-center gap-3'
                       sx={{ bgcolor: 'primary.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
@@ -517,6 +513,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       startIcon={paying ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
                       onClick={handleBayar}
                       disabled={paying || checking}
+                      sx={{ justifyContent: 'flex-start' }}
                     >
                       {paying ? 'Memproses...' : 'Bayar Sekarang'}
                     </Button>
@@ -528,6 +525,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       startIcon={checking ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-refresh' />}
                       onClick={handleCheckTransaction}
                       disabled={paying || checking || !tagihan?.ipaymuSessionId}
+                      sx={{ justifyContent: 'flex-start' }}
                     >
                       {checking ? 'Mengecek...' : 'Check Transaksi'}
                     </Button>
@@ -538,6 +536,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       size='large'
                       startIcon={<i className='tabler-x' />}
                       onClick={() => setConfirmCancel(true)}
+                      sx={{ justifyContent: 'flex-start' }}
                     >
                       Batalkan Booking
                     </Button>
@@ -557,7 +556,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                   </div>
                 </div>
 
-                <Button fullWidth variant='tonal' color='secondary' onClick={onClose} startIcon={<i className='tabler-arrow-left' />}>
+                <Button fullWidth variant='tonal' color='secondary' onClick={onClose} startIcon={<i className='tabler-arrow-left' />} sx={{ justifyContent: 'flex-start' }}>
                   Kembali
                 </Button>
               </div>
