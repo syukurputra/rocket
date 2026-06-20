@@ -35,17 +35,17 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       }
     })
 
-    // Get penyewa yang selesai huni dalam 1 bulan ke depan
+    // Get tagihan yang selesai dalam 1 bulan ke depan
     const oneMonthFromNow = new Date()
 
     oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
-    const penyewaSelesaiHuni = await prisma.penyewa.count({
+    const penyewaSelesaiHuni = await prisma.tagihan.count({
       where: {
         companyId: user.companyId,
         selesaiSewa: {
-          gte: new Date(), // dari hari ini
-          lte: oneMonthFromNow // sampai 1 bulan ke depan
+          gte: new Date(),
+          lte: oneMonthFromNow
         }
       }
     })
