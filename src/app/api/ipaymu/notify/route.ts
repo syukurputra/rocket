@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
                 avatarIcon: 'tabler-circle-check',
                 avatarColor: 'success',
                 type: 'tagihan',
-                url: '/booking',
+                url: `/penyewa/edit/${tagihan.penyewaId}`,
                 refId: tagihanId,
                 userId: u.id
               }))
