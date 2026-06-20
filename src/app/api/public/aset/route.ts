@@ -63,6 +63,8 @@ export async function GET(req: NextRequest) {
     const sanitizedData = data.map(item => ({
       ...item,
       nominal: Number(item.nominal),
+      latitude: item.latitude ?? null,
+      longitude: item.longitude ?? null,
       ruangan: item.ruangan.map(r => ({ ...r }))
     }))
 

@@ -57,6 +57,8 @@ type PublishedAset = {
   alamat: string
   kota: string
   provinsi: string
+  latitude: number | null
+  longitude: number | null
   nominal: number
   images: AsetImage[]
   ruangan: Ruangan[]
@@ -280,9 +282,24 @@ const PublishedAsetList = (props: Props) => {
                     <div className='flex flex-col gap-1'>
                       <div className='flex items-center gap-1'>
                         <i className='tabler-map-pin text-xl text-textSecondary' />
-                        <Typography variant='body2' color='text.secondary' className='line-clamp-1'>
-                          {item.kota}, {item.provinsi}
-                        </Typography>
+                        {item.latitude && item.longitude ? (
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                            className='line-clamp-1 cursor-pointer hover:text-primary hover:underline'
+                            component='a'
+                            href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {item.kota}, {item.provinsi}
+                          </Typography>
+                        ) : (
+                          <Typography variant='body2' color='text.secondary' className='line-clamp-1'>
+                            {item.kota}, {item.provinsi}
+                          </Typography>
+                        )}
                       </div>
                     </div>
 
