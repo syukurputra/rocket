@@ -16,6 +16,8 @@ export type TagihanClient = {
   penyewa?: {
     id: string
     nama: string
+    nomorTelepon?: string | null
+    email?: string | null
   }
   aset?: { id: string; nama: string } | null
   ruangan?: { id: string; nama: string } | null

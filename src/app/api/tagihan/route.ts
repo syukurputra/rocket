@@ -32,7 +32,9 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           penyewa: {
             select: {
               id: true,
-              nama: true
+              nama: true,
+              nomorTelepon: true,
+              email: true
             }
           },
           aset: { select: { id: true, nama: true } },
