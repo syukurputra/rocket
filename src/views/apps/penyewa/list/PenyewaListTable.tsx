@@ -47,8 +47,6 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import dayjs from 'dayjs'
-
 import type { PenyewaClient } from '@/src/types/apps/penyewaTypes'
 
 // Component Imports
@@ -195,43 +193,9 @@ const PenyewaListTable = ({ initialData = [] }: PenyewaListTableProps) => {
 
   const columns = useMemo<ColumnDef<PenyewaClientWithAction, any>[]>(
     () => [
-      columnHelper.accessor('asetId', {
-        header: 'Aset',
-        cell: ({ row }) => {
-          const aset = (row.original as any).aset
-
-          return <Typography>{aset ? `${aset.jenis} - ${aset.nama}` : 'Aset tidak ditemukan'}</Typography>
-        }
-      }),
-      columnHelper.accessor('ruanganId', {
-        header: 'Nama Item Sewa',
-        cell: ({ row }) => {
-          const ruangan = (row.original as any).ruangan
-
-          return <Typography>{ruangan ? `${ruangan.nama}` : 'Penyewa tidak ditemukan'}</Typography>
-        }
-      }),
       columnHelper.accessor('nama', {
         header: 'Nama Penyewa',
         cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
-      }),
-      columnHelper.accessor('periodeSewa', {
-        header: 'Periode Sewa',
-        cell: ({ row }) => {
-          const periodeSewa = row.original.periodeSewa
-
-          if (!periodeSewa) return <Typography>-</Typography>
-
-          return <Typography className='capitalize'>{periodeSewa}</Typography>
-        }
-      }),
-      columnHelper.accessor('mulaiSewa', {
-        header: 'Tanggal Mulai Sewa',
-        cell: ({ row }) => <Typography>{dayjs(row.original.mulaiSewa).format('DD-MM-YYYY')}</Typography>
-      }),
-      columnHelper.accessor('selesaiSewa', {
-        header: 'Tanggal Selesai Sewa',
-        cell: ({ row }) => <Typography>{dayjs(row.original.selesaiSewa).format('DD-MM-YYYY')}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',

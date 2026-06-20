@@ -10,9 +10,13 @@ export type TagihanClient = {
   metodeBayar?: string | null
   buktiPembayaran?: string | null
   penyewaId?: string | null
+  asetId?: string | null
+  ruanganId?: string | null
 
   penyewa?: {
     id: string
     nama: string
   }
+  aset?: { id: string; nama: string } | null
+  ruangan?: { id: string; nama: string } | null
 }

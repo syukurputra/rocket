@@ -55,7 +55,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, status, nominal, metodeBayar, buktiPembayaran } = body
+    const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, status, nominal, metodeBayar, buktiPembayaran, asetId, ruanganId } = body
 
     const existingTagihan = await prisma.tagihan.findUnique({
       where: { id },
@@ -105,6 +105,8 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(nominal !== undefined && { nominal }),
         ...(metodeBayar !== undefined && { metodeBayar }),
         ...(buktiPembayaran !== undefined && { buktiPembayaran }),
+        ...(asetId !== undefined && { asetId: asetId || null }),
+        ...(ruanganId !== undefined && { ruanganId: ruanganId || null }),
         updatedById: user.id
       },
       include: {

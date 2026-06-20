@@ -12,18 +12,6 @@ export type PenyewaClient = {
   latitude?: number | null
   longitude?: number | null
   status: string
-  asetId: string
-  ruanganId: string
-  aset?: {
-    id: string
-    nama: string
-    jenis: string
-  }
-  ruangan?: {
-    id: string
-    nama: string
-    status: string
-  }
   createdBy?: {
     id: string
     username: string

@@ -178,13 +178,13 @@ type TagihanBooking = {
   metodeBayar?: string | null
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
+  aset?: { id: string; nama: string } | null
+  ruangan?: { id: string; nama: string } | null
   penyewa?: {
     id: string
     nama: string
     nomorTelepon?: string
     email?: string
-    aset?: { id: string; nama: string }
-    ruangan?: { id: string; nama: string }
   }
 }
 
@@ -296,7 +296,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
               <div>
                 <Typography variant='h5'>Detail Booking</Typography>
                 <Typography variant='caption' color='text.secondary'>
-                  {tagihan.penyewa?.aset?.nama} — {tagihan.penyewa?.ruangan?.nama}
+                  {tagihan.aset?.nama} — {tagihan.ruangan?.nama}
                 </Typography>
               </div>
             </div>

@@ -176,7 +176,7 @@ model Aset {
   createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
   updatedBy     User            @relation("UpdatedBy", fields: [updatedById], references: [id])
   keuangan      Keuangan[]
-  penyewa       Penyewa[]
+  tagihan       Tagihan[]
   ruangan       Ruangan[]
   images        AsetImage[]
   fasilitasAset FasilitasAset[]
@@ -225,7 +225,7 @@ model Ruangan {
   updatedById      String
   companyId        String
   asetId           String
-  penyewa          Penyewa[]
+  tagihan          Tagihan[]
   aset             Aset               @relation(fields: [asetId], references: [id])
   company          Company            @relation(fields: [companyId], references: [id])
   createdBy        User               @relation("RuanganCreatedBy", fields: [createdById], references: [id])
@@ -435,12 +435,8 @@ model Penyewa {
   createdById  String
   updatedById  String
   companyId    String
-  asetId       String
-  ruanganId    String
-  aset         Aset      @relation(fields: [asetId], references: [id])
   company      Company   @relation(fields: [companyId], references: [id])
   createdBy    User      @relation("PenyewaCreatedBy", fields: [createdById], references: [id])
-  ruangan      Ruangan   @relation(fields: [ruanganId], references: [id])
   updatedBy    User      @relation("PenyewaUpdatedBy", fields: [updatedById], references: [id])
   tagihan      Tagihan[]
 
@@ -468,10 +464,14 @@ model Tagihan {
   updatedById String
   companyId   String
   penyewaId   String
+  asetId      String?
+  ruanganId   String?
   company     Company  @relation(fields: [companyId], references: [id])
   createdBy   User     @relation("TagihanCreatedBy", fields: [createdById], references: [id])
-  penyewa     Penyewa @relation(fields: [penyewaId], references: [id])
+  penyewa     Penyewa  @relation(fields: [penyewaId], references: [id])
   updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
+  aset        Aset?    @relation(fields: [asetId], references: [id])
+  ruangan     Ruangan? @relation(fields: [ruanganId], references: [id])
 
   @@index([companyId])
 

@@ -35,6 +35,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               nama: true
             }
           },
+          aset: { select: { id: true, nama: true } },
+          ruangan: { select: { id: true, nama: true } },
           createdBy: {
             select: {
               id: true,
@@ -79,7 +81,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, penyewaId, nominal } = body
+    const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, penyewaId, nominal, asetId, ruanganId } = body
 
     if (!keterangan || !mulaiSewa || !selesaiSewa || !penyewaId) {
       return NextResponse.json({ message: 'keterangan, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
@@ -118,6 +120,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         selesaiSewa: selesaiSewaDate,
         nominal: nominal || 0,
         penyewaId: penyewaId,
+        asetId: asetId || null,
+        ruanganId: ruanganId || null,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId
@@ -144,6 +148,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         }
       }
     })
+
+    if (ruanganId) {
+      await prisma.ruangan.update({ where: { id: ruanganId }, data: { status: 'Huni' } })
+    }
 
     return NextResponse.json(
       {

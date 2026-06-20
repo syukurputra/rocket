@@ -40,7 +40,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               username: true
             }
           },
-          images: true
+          images: true,
+          hargaItemAset: { select: { jenisHarga: true, harga: true } }
         },
         skip: (page - 1) * limit,
         take: limit,

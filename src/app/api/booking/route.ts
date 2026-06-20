@@ -19,8 +19,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     if (search) {
       whereClause.OR = [
         { keterangan: { contains: search.trim(), mode: 'insensitive' } },
-        { penyewa: { aset: { nama: { contains: search.trim(), mode: 'insensitive' } } } },
-        { penyewa: { ruangan: { nama: { contains: search.trim(), mode: 'insensitive' } } } }
+        { aset: { nama: { contains: search.trim(), mode: 'insensitive' } } },
+        { ruangan: { nama: { contains: search.trim(), mode: 'insensitive' } } }
       ]
     }
 
@@ -34,11 +34,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               nama: true,
               nomorTelepon: true,
               email: true,
-              status: true,
-              aset: { select: { id: true, nama: true } },
-              ruangan: { select: { id: true, nama: true } }
+              status: true
             }
-          }
+          },
+          aset: { select: { id: true, nama: true } },
+          ruangan: { select: { id: true, nama: true } }
         },
         skip: (page - 1) * limit,
         take: limit,

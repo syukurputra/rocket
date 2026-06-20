@@ -7,14 +7,12 @@ import dynamic from 'next/dynamic'
 import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import MenuItem from '@mui/material/MenuItem'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Autocomplete from '@mui/material/Autocomplete'
 
 import DirectionalIcon from '@components/DirectionalIcon'
 import CustomTextField from '@core/components/mui/TextField'
-import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 
 // Utils
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
@@ -30,24 +28,10 @@ type Props = {
   initialData?: any
 }
 
-type AsetOption = {
-  id: string
-  nama: string
-  jenis: string
-}
-
-type RuanganOption = {
-  id: string
-  nama: string
-  status: string
-}
-
 type PenyewaData = {
   id?: string
   nama: string
   status: string
-  asetId: string
-  ruanganId: string
   email: string
   nomorTelepon: string
   nomorKtp: string
@@ -66,8 +50,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
   // Form States
   const [nama, setNama] = useState(initialData?.nama || '')
   const [status, setStatus] = useState(initialData?.status || 'belum terbayar')
-  const [asetId, setAsetId] = useState(initialData?.asetId || '')
-  const [ruanganId, setRuanganId] = useState(initialData?.ruanganId || '')
   const [email, setEmail] = useState(initialData?.email || '')
   const [nomorTelepon, setNomorTelepon] = useState(initialData?.nomorTelepon || '')
   const [nomorKtp, setNomorKtp] = useState(initialData?.nomorKtp || '')
@@ -98,44 +80,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
   const [selectedProvinsiId, setSelectedProvinsiId] = useState<string>('')
   const [selectedKotaId, setSelectedKotaId] = useState<string>('')
   const [selectedKecamatanId, setSelectedKecamatanId] = useState<string>('')
-
-  // Data Options
-  const [asetList, setAsetList] = useState<AsetOption[]>([])
-  const [ruanganList, setRuanganList] = useState<RuanganOption[]>([])
-
-  useEffect(() => {
-    fetchAsets()
-  }, [])
-
-  useEffect(() => {
-    if (asetId) {
-      fetchRuangan(asetId)
-    } else {
-      setRuanganList([])
-    }
-  }, [asetId])
-
-  const fetchAsets = async () => {
-    try {
-      const res = await apiFetchClient<{ data: AsetOption[] }>('/api/aset')
-
-      if (res.data) setAsetList(res.data)
-    } catch (error) {
-      console.error('Error fetching asets:', error)
-    }
-  }
-
-  const fetchRuangan = async (id: string) => {
-    try {
-      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/aset-item?asetId=${id}`)
-
-      if (res.data) {
-        setRuanganList(res.data)
-      }
-    } catch (error) {
-      console.error('Error fetching ruangan:', error)
-    }
-  }
 
   // --- Address Master Data Fetching Logic ---
 
@@ -241,8 +185,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
   const resetForm = () => {
     setNama('')
     setStatus('belum terbayar')
-    setAsetId('')
-    setRuanganId('')
     setEmail('')
     setNomorTelepon('')
     setNomorKtp('')
@@ -257,9 +199,8 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
   }
 
   const handleSubmit = () => {
-    // Basic Validation
-    if (!nama || !asetId || !ruanganId) {
-      alert('Mohon lengkapi data wajib (Nama, Aset, Ruangan)')
+    if (!nama) {
+      alert('Mohon lengkapi nama penyewa')
 
       return
     }
@@ -267,8 +208,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
     onSave({
       nama,
       status,
-      asetId,
-      ruanganId,
       email,
       nomorTelepon,
       nomorKtp,
@@ -319,40 +258,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
           <MenuItem value='belum terbayar'>Belum Terbayar</MenuItem>
           <MenuItem value='sudah terbayar'>Sudah Terbayar</MenuItem>
           <MenuItem value='booking'>Booking</MenuItem>
-        </CustomTextField>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <CustomTextField
-          select
-          fullWidth
-          label='Nama Aset'
-          value={asetId}
-          onChange={e => {
-            setAsetId(e.target.value)
-            setRuanganId('')
-          }}
-        >
-          {asetList.map(aset => (
-            <MenuItem key={aset.id} value={aset.id}>
-              {aset.nama}
-            </MenuItem>
-          ))}
-        </CustomTextField>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <CustomTextField
-          select
-          fullWidth
-          label='Nama Item Aset'
-          value={ruanganId}
-          onChange={e => setRuanganId(e.target.value)}
-          disabled={!asetId}
-        >
-          {ruanganList.map(ruangan => (
-            <MenuItem key={ruangan.id} value={ruangan.id}>
-              {ruangan.nama}
-            </MenuItem>
-          ))}
         </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

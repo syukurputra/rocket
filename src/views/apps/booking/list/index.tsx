@@ -68,14 +68,14 @@ type TagihanBooking = {
   metodeBayar?: string | null
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
+  aset?: { id: string; nama: string } | null
+  ruangan?: { id: string; nama: string } | null
   penyewa?: {
     id: string
     nama: string
     nomorTelepon?: string
     email?: string
     status: string
-    aset?: { id: string; nama: string }
-    ruangan?: { id: string; nama: string }
   }
 }
 
@@ -155,22 +155,22 @@ const BookingList = () => {
       columnHelper.accessor('penyewa', {
         id: 'aset',
         header: 'Aset',
-        cell: ({ row }) => <Typography>{row.original.penyewa?.aset?.nama || '-'}</Typography>
+        cell: ({ row }) => <Typography>{row.original.aset?.nama || '-'}</Typography>
       }),
-      columnHelper.accessor('penyewa', {
+      columnHelper.accessor('ruangan', {
         id: 'ruangan',
         header: 'Nama Item Sewa',
-        cell: ({ row }) => <Typography>{row.original.penyewa?.ruangan?.nama || '-'}</Typography>
+        cell: ({ row }) => <Typography>{row.original.ruangan?.nama || '-'}</Typography>
       }),
       columnHelper.accessor('keterangan', {
         header: 'Keterangan',
         cell: ({ row }) => <Typography variant='body2'>{row.original.keterangan}</Typography>
       }),
-      columnHelper.accessor('penyewa', {
+      columnHelper.accessor('periodeSewa', {
         id: 'periodeSewa',
         header: 'Periode Sewa',
         cell: ({ row }) => (
-          <Typography className='capitalize'>{row.original.penyewa?.periodeSewa || '-'}</Typography>
+          <Typography className='capitalize'>{row.original.periodeSewa || '-'}</Typography>
         )
       }),
       columnHelper.accessor('mulaiSewa', {

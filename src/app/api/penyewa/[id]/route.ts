@@ -13,20 +13,6 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
     const penyewa= await prisma.penyewa.findUnique({
       where: { id },
       include: {
-        aset: {
-          select: {
-            id: true,
-            nama: true,
-            jenis: true
-          }
-        },
-        ruangan: {
-          select: {
-            id: true,
-            nama: true,
-            status: true
-          }
-        },
         createdBy: {
           select: {
             id: true,
@@ -61,7 +47,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, email, nomorTelepon, nomorKtp, status, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
+    const { nama, email, nomorTelepon, nomorKtp, status, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
 
     const existingPenyewa = await prisma.penyewa.findUnique({
       where: { id }
@@ -86,8 +72,6 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(latitude !== undefined && { latitude: latitude || null }),
         ...(longitude !== undefined && { longitude: longitude || null }),
         ...(status && { status }),
-        ...(asetId && { asetId }),
-        ...(ruanganId && { ruanganId }),
         updatedById: user.id
       },
       include: {

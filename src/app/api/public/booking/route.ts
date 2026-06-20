@@ -62,8 +62,6 @@ export async function POST(req: NextRequest) {
             email: email || null,
             nomorTelepon: telepon,
             status: 'booking',
-            asetId: ruangan.asetId,
-            ruanganId,
             companyId: ruangan.companyId,
             createdById: companyUser.id,
             updatedById: companyUser.id
@@ -78,8 +76,6 @@ export async function POST(req: NextRequest) {
           email: email || null,
           nomorTelepon: telepon,
           status: 'booking',
-          asetId: ruangan.asetId,
-          ruanganId,
           companyId: ruangan.companyId,
           createdById: companyUser.id,
           updatedById: companyUser.id
@@ -101,6 +97,8 @@ export async function POST(req: NextRequest) {
         selesaiSewa: selesaiSewaDate,
         nominal: Number(total),
         penyewaId: penyewa.id,
+        asetId: ruangan.asetId,
+        ruanganId,
         companyId: ruangan.companyId,
         createdById: companyUser.id,
         updatedById: companyUser.id
