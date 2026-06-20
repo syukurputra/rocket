@@ -44,6 +44,21 @@ export async function POST(req: NextRequest) {
     const selesaiSewaDate = new Date(selesaiSewa)
     const periodeSewa = JENIS_PERIODE[jenisHarga] || jenisHarga
 
+    // Cek konflik tanggal pada ruangan yang sama dengan status LUNAS
+    const konflik = await prisma.tagihan.findFirst({
+      where: {
+        ruanganId,
+        status: 'LUNAS',
+        AND: [
+          { mulaiSewa: { lte: selesaiSewaDate } },
+          { selesaiSewa: { gte: mulaiSewaDate } }
+        ]
+      }
+    })
+    if (konflik) {
+      return NextResponse.json({ message: 'Tanggal yang dipilih tidak tersedia' }, { status: 409 })
+    }
+
     let penyewa
 
     if (userId) {

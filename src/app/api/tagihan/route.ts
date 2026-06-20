@@ -114,6 +114,23 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
     }
 
+    // Cek konflik tanggal pada ruangan yang sama dengan status LUNAS
+    if (ruanganId) {
+      const konflik = await prisma.tagihan.findFirst({
+        where: {
+          ruanganId,
+          status: 'LUNAS',
+          AND: [
+            { mulaiSewa: { lte: selesaiSewaDate } },
+            { selesaiSewa: { gte: mulaiSewaDate } }
+          ]
+        }
+      })
+      if (konflik) {
+        return NextResponse.json({ message: 'Tanggal yang dipilih tidak tersedia' }, { status: 409 })
+      }
+    }
+
     const newTagihan = await prisma.tagihan.create({
       data: {
         keterangan: keterangan || '',

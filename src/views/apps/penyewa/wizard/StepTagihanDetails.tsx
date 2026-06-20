@@ -440,9 +440,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
 
       fetchTagihan()
       setView('table')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving tagihan:', error)
-      showSnackbar('Gagal menyimpan tagihan', 'error')
+      showSnackbar(error?.message || 'Gagal menyimpan tagihan', 'error')
     }
   }
 
