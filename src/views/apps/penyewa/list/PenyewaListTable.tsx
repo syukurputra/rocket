@@ -197,23 +197,6 @@ const PenyewaListTable = ({ initialData = [] }: PenyewaListTableProps) => {
         header: 'Nama Penyewa',
         cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
       }),
-      columnHelper.accessor('status', {
-        header: 'Status',
-        cell: ({ row }) => {
-          const status = row.original.status
-
-          switch (status?.toLowerCase()) {
-            case 'sudah terbayar':
-              return <Chip label='Sudah Terbayar' color='success' size='small' variant='tonal' />
-            case 'belum terbayar':
-              return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
-            case 'booking':
-              return <Chip label='Booking' color='warning' size='small' variant='tonal' />
-            default:
-              return <Chip label={status || 'Unknown'} color='default' size='small' variant='tonal' />
-          }
-        }
-      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
