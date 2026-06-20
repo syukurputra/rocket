@@ -426,7 +426,8 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Keterangan</TableCell>
+                    <TableCell>Nama Aset</TableCell>
+                    <TableCell>Nama Item Aset</TableCell>
                     <TableCell>Periode Sewa</TableCell>
                     <TableCell>Mulai Sewa</TableCell>
                     <TableCell>Selesai Sewa</TableCell>
@@ -438,14 +439,15 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                 <TableBody>
                   {tagihan.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align='center'>
+                      <TableCell colSpan={8} align='center'>
                         Belum ada data tagihan
                       </TableCell>
                     </TableRow>
                   ) : (
                     tagihan.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{item.keterangan}</TableCell>
+                        <TableCell>{(item as any).aset?.nama || '-'}</TableCell>
+                        <TableCell>{(item as any).ruangan?.nama || '-'}</TableCell>
                         <TableCell>{item.periodeSewa ? item.periodeSewa.charAt(0).toUpperCase() + item.periodeSewa.slice(1) : '-'}</TableCell>
                         <TableCell>{new Date(item.mulaiSewa).toLocaleDateString('id-ID')}</TableCell>
                         <TableCell>{new Date(item.selesaiSewa).toLocaleDateString('id-ID')}</TableCell>
