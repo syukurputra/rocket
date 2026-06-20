@@ -11,6 +11,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
     const asetId = searchParams.get('asetId')
+    const aktifOnly = searchParams.get('aktifOnly') === 'true'
 
     const whereClause: any = {}
 
@@ -20,6 +21,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     if (asetId) {
       whereClause.asetId = asetId
+    }
+
+    if (aktifOnly) {
+      whereClause.status = 'aktif'
     }
 
     whereClause.createdById = user.id

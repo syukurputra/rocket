@@ -13,6 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         images: true,
         ruangan: {
+          where: { status: 'aktif' },
           include: {
             images: true
           }

@@ -340,8 +340,8 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
           value={status}
           onChange={e => setStatus(e.target.value)}
         >
-          <MenuItem value='tersedia'>Tersedia</MenuItem>
-          <MenuItem value='tidak tersedia'>Tidak Tersedia</MenuItem>
+          <MenuItem value='aktif'>Aktif</MenuItem>
+          <MenuItem value='non aktif'>Non Aktif</MenuItem>
         </CustomTextField>
       </Grid>
       <Grid size={{ xs: 12 }}>

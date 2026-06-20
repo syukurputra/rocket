@@ -160,7 +160,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
 
   const fetchRuangan = async (id: string) => {
     try {
-      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/aset-item?asetId=${id}&limit=100`)
+      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/aset-item?asetId=${id}&limit=100&aktifOnly=true`)
 
       if (res.data) setRuanganList(res.data)
     } catch (error) {
