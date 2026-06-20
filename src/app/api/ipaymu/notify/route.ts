@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEmail'
 import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
+import { sendBookingPaymentOwnerEmail } from '@/src/mails/bookingPaymentOwnerEmail'
 
 // iPaymu mengirim status dalam berbagai format — normalize ke lowercase
 const parseIpaymuStatus = (raw: string): 'berhasil' | 'gagal' | 'expired' | 'pending' | 'unknown' => {
@@ -112,7 +113,9 @@ export async function POST(request: NextRequest) {
 
         const nomorBooking = `BK-${tagihanId.slice(-8).toUpperCase()}`
 
-        // Email konfirmasi ke penyewa
+        const nominalFmt = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))
+
+        // Email konfirmasi ke penyewa (yang booking)
         if (tagihan.penyewa?.email) {
           sendPaymentConfirmationEmail(
             tagihan.penyewa.email,
@@ -122,20 +125,55 @@ export async function POST(request: NextRequest) {
             tagihan.selesaiSewa.toISOString(),
             Number(tagihan.nominal),
             'ipaymu'
-          ).catch(err => console.error('[iPaymu Notify] Email konfirmasi error:', err))
+          ).catch(err => console.error('[iPaymu Notify] Email penyewa error:', err))
         }
 
-        // Notifikasi ke semua Super Admin company
+        // Notifikasi ke penyewa (jika punya akun user — penyewa.id = userId saat booking login)
+        if (tagihan.penyewaId) {
+          prisma.user.findUnique({ where: { id: tagihan.penyewaId }, select: { id: true } })
+            .then(userPenyewa => {
+              if (!userPenyewa) return
+              return prisma.notifikasi.create({
+                data: {
+                  title: 'Pembayaran Booking Berhasil',
+                  subtitle: `${nomorBooking} — ${tagihan.aset?.nama} ${tagihan.ruangan?.nama} | ${nominalFmt}`,
+                  avatarIcon: 'tabler-circle-check',
+                  avatarColor: 'success',
+                  type: 'tagihan',
+                  url: '/booking',
+                  refId: tagihanId,
+                  userId: userPenyewa.id
+                }
+              })
+            }).catch(err => console.error('[iPaymu Notify] Notifikasi penyewa error:', err))
+        }
+
+        // Email + notifikasi ke semua Super Admin company (pemilik sewaan)
         if (tagihan.companyId) {
-          const nominalFmt = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))
           prisma.user.findMany({
             where: {
               companyId: tagihan.companyId,
               role: { nama: { equals: 'Super Admin', mode: 'insensitive' } }
             },
-            select: { id: true }
+            select: { id: true, email: true }
           }).then(superAdmins => {
             if (!superAdmins.length) return
+            // Kirim email ke setiap Super Admin
+            superAdmins.forEach(admin => {
+              if (admin.email) {
+                sendBookingPaymentOwnerEmail(admin.email, {
+                  nomorBooking,
+                  namaPemesan: tagihan.penyewa?.nama || '-',
+                  namaAset: tagihan.aset?.nama || '-',
+                  namaRuangan: tagihan.ruangan?.nama || '-',
+                  periodeSewa: tagihan.periodeSewa || '-',
+                  mulaiSewa: tagihan.mulaiSewa.toISOString(),
+                  selesaiSewa: tagihan.selesaiSewa.toISOString(),
+                  total: Number(tagihan.nominal)
+                }).catch(err => console.error('[iPaymu Notify] Email owner error:', err))
+              }
+            })
+            // Buat notifikasi untuk setiap Super Admin
             return prisma.notifikasi.createMany({
               data: superAdmins.map(u => ({
                 title: 'Pembayaran Booking Berhasil',
@@ -148,7 +186,7 @@ export async function POST(request: NextRequest) {
                 userId: u.id
               }))
             })
-          }).catch(err => console.error('[iPaymu Notify] Notifikasi error:', err))
+          }).catch(err => console.error('[iPaymu Notify] Super admin notif error:', err))
         }
       } else if (ipaymuStatus === 'expired' || ipaymuStatus === 'gagal') {
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" payment ${ipaymuStatus} — tidak diubah`)

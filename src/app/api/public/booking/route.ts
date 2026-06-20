@@ -122,6 +122,22 @@ export async function POST(req: NextRequest) {
       }).catch(err => console.error('[Booking] Email error:', err))
     }
 
+    // Notifikasi ke penyewa (jika login)
+    if (userId) {
+      prisma.notifikasi.create({
+        data: {
+          title: 'Booking Berhasil Dibuat',
+          subtitle: `${nomorBooking} — ${ruangan.aset.nama} ${ruangan.nama} | Menunggu Pembayaran`,
+          avatarIcon: 'tabler-calendar-check',
+          avatarColor: 'primary',
+          type: 'tagihan',
+          url: '/booking',
+          refId: tagihan.id,
+          userId
+        }
+      }).catch(err => console.error('[Booking] Notifikasi penyewa error:', err))
+    }
+
     // Notifikasi ke semua Super Admin company
     prisma.user.findMany({
       where: {
@@ -136,14 +152,14 @@ export async function POST(req: NextRequest) {
           title: 'Booking Baru Masuk',
           subtitle: `${namaPemesan} — ${ruangan.aset.nama} ${ruangan.nama} | ${nomorBooking}`,
           avatarIcon: 'tabler-calendar-plus',
-          avatarColor: 'primary',
+          avatarColor: 'warning',
           type: 'tagihan',
           url: '/booking',
           refId: tagihan.id,
           userId: u.id
         }))
       })
-    }).catch(err => console.error('[Booking] Notifikasi error:', err))
+    }).catch(err => console.error('[Booking] Notifikasi super admin error:', err))
 
     return NextResponse.json({
       data: { penyewa, tagihan, nomorBooking },
