@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
         OR: [
           { nama: { contains: search, mode: 'insensitive' as const } },
           { alamat: { contains: search, mode: 'insensitive' as const } },
-          { deskripsi: { contains: search, mode: 'insensitive' as const } }
+          { deskripsi: { contains: search, mode: 'insensitive' as const } },
+          { kelurahan: { contains: search, mode: 'insensitive' as const } },
+          { kecamatan: { contains: search, mode: 'insensitive' as const } },
+          { kota: { contains: search, mode: 'insensitive' as const } },
+          { provinsi: { contains: search, mode: 'insensitive' as const } }
         ]
       }),
       ...(jenis && { jenis: { equals: jenis, mode: 'insensitive' as const } })
