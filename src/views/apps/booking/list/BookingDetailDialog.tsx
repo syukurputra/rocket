@@ -83,18 +83,10 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
   y += 7
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...grayText)
-  doc.text('Tanggal Mulai', labelX, y)
+  doc.text('Tanggal Pembayaran', labelX, y)
   doc.setTextColor(...darkText)
   doc.setFont('helvetica', 'bold')
   doc.text(mulai, valueX, y)
-
-  y += 7
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...grayText)
-  doc.text('Tanggal Selesai', labelX, y)
-  doc.setTextColor(...darkText)
-  doc.setFont('helvetica', 'bold')
-  doc.text(selesai, valueX, y)
 
   y += 10
   doc.setDrawColor(...borderColor)
