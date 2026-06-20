@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEmail'
+import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
 
 // iPaymu mengirim status dalam berbagai format — normalize ke lowercase
 const parseIpaymuStatus = (raw: string): 'berhasil' | 'gagal' | 'expired' | 'pending' | 'unknown' => {
@@ -83,6 +84,8 @@ export async function POST(request: NextRequest) {
         where: { id: tagihanId },
         include: {
           penyewa: { select: { id: true, nama: true, email: true } },
+          aset: { select: { nama: true } },
+          ruangan: { select: { nama: true } },
           createdBy: { select: { id: true } }
         }
       })
@@ -106,6 +109,37 @@ export async function POST(request: NextRequest) {
         })
 
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" → LUNAS ✓`)
+
+        const nomorBooking = `BK-${tagihanId.slice(-8).toUpperCase()}`
+
+        // Email konfirmasi ke penyewa
+        if (tagihan.penyewa?.email) {
+          sendPaymentConfirmationEmail(
+            tagihan.penyewa.email,
+            tagihan.penyewa.nama,
+            tagihan.keterangan || `${tagihan.aset?.nama} — ${tagihan.ruangan?.nama}`,
+            tagihan.mulaiSewa.toISOString(),
+            tagihan.selesaiSewa.toISOString(),
+            Number(tagihan.nominal),
+            'ipaymu'
+          ).catch(err => console.error('[iPaymu Notify] Email konfirmasi error:', err))
+        }
+
+        // Notifikasi ke company user
+        if (tagihan.createdBy?.id) {
+          prisma.notifikasi.create({
+            data: {
+              title: 'Pembayaran Booking Berhasil',
+              subtitle: `${tagihan.penyewa?.nama || '-'} — ${nomorBooking} | ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))}`,
+              avatarIcon: 'tabler-circle-check',
+              avatarColor: 'success',
+              type: 'tagihan',
+              url: '/booking',
+              refId: tagihanId,
+              userId: tagihan.createdBy.id
+            }
+          }).catch(err => console.error('[iPaymu Notify] Notifikasi error:', err))
+        }
       } else if (ipaymuStatus === 'expired' || ipaymuStatus === 'gagal') {
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" payment ${ipaymuStatus} — tidak diubah`)
       } else {

@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
+import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -105,8 +106,38 @@ export async function POST(req: NextRequest) {
       }
     })
 
+    const nomorBooking = `BK-${tagihan.id.slice(-8).toUpperCase()}`
+
+    // Email ke penyewa
+    if (email) {
+      sendBookingCreatedEmail(email, {
+        nomorBooking,
+        namaPemesan,
+        namaAset: ruangan.aset.nama,
+        namaRuangan: ruangan.nama,
+        periodeSewa,
+        mulaiSewa: mulaiSewaDate.toISOString(),
+        selesaiSewa: selesaiSewaDate.toISOString(),
+        total: Number(total)
+      }).catch(err => console.error('[Booking] Email error:', err))
+    }
+
+    // Notifikasi untuk company user
+    prisma.notifikasi.create({
+      data: {
+        title: 'Booking Baru Masuk',
+        subtitle: `${namaPemesan} — ${ruangan.aset.nama} ${ruangan.nama} | ${nomorBooking}`,
+        avatarIcon: 'tabler-calendar-plus',
+        avatarColor: 'primary',
+        type: 'tagihan',
+        url: '/booking',
+        refId: tagihan.id,
+        userId: companyUser.id
+      }
+    }).catch(err => console.error('[Booking] Notifikasi error:', err))
+
     return NextResponse.json({
-      data: { penyewa, tagihan, nomorBooking: `BK-${tagihan.id.slice(-8).toUpperCase()}` },
+      data: { penyewa, tagihan, nomorBooking },
       message: 'Booking berhasil dibuat'
     }, { status: 201 })
   } catch (error) {
