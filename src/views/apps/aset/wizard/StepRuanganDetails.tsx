@@ -217,8 +217,8 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase()
 
-    if (statusLower === 'huni') return 'success'
-    if (statusLower === 'tidak dihuni' || statusLower === 'kosong') return 'error'
+    if (statusLower === 'aktif') return 'success'
+    if (statusLower === 'non aktif') return 'warning'
 
     return 'default'
   }
