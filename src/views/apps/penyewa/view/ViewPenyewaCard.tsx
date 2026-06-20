@@ -21,7 +21,6 @@ import Button from '@mui/material/Button'
 // Third-party Imports
 import type { PenyewaClient } from '@/src/types/apps/penyewaTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import dayjs from 'dayjs'
 
 type PenyewaClientWithAction = PenyewaClient & { action?: string }
 
@@ -130,70 +129,6 @@ const ViewPenyewaCard = ({ penyewaId, initialData }: ViewPenyewaCardProps) => {
               variant='outlined'
               disabled
               value={penyewaData.nama}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Status'
-              name='status'
-              variant='outlined'
-              disabled
-              value={penyewaData.status}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Nama Aset'
-              name='namaAset'
-              variant='outlined'
-              disabled
-              value={penyewaData.aset?.nama}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Nama Ruangan'
-              name='namaRuangan'
-              variant='outlined'
-              disabled
-              value={penyewaData.ruangan?.nama}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Periode Sewa'
-              name='periodeSewa'
-              variant='outlined'
-              disabled
-              value={
-                penyewaData.periodeSewa
-                  ? penyewaData.periodeSewa.charAt(0).toUpperCase() + penyewaData.periodeSewa.slice(1)
-                  : '-'
-              }
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Mulai Sewa'
-              name='mulaiSewa'
-              variant='outlined'
-              disabled
-              value={dayjs(penyewaData.mulaiSewa).format('DD-MM-YYYY')}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomTextField
-              fullWidth
-              label='Selesai Sewa'
-              name='selesaiSewa'
-              variant='outlined'
-              disabled
-              value={dayjs(penyewaData.selesaiSewa).format('DD-MM-YYYY')}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
