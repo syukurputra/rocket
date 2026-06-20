@@ -55,7 +55,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { keterangan, mulaiSewa, selesaiSewa, status, nominal, metodeBayar, buktiPembayaran } = body
+    const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, status, nominal, metodeBayar, buktiPembayaran } = body
 
     const existingTagihan = await prisma.tagihan.findUnique({
       where: { id },
@@ -98,6 +98,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       where: { id },
       data: {
         ...(keterangan && { keterangan }),
+        ...(periodeSewa !== undefined && { periodeSewa: periodeSewa || null }),
         ...(mulaiSewa && { mulaiSewa: mulaiSewaDate }),
         ...(selesaiSewa && { selesaiSewa: selesaiSewaDate }),
         ...(status && { status }),
@@ -129,18 +130,11 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       }
     })
 
-    // If status changed to LUNAS, update Penyewadata
+    // If status changed to LUNAS, update Penyewa status
     if (status && status.toUpperCase() === 'LUNAS' && updatedTagihan.penyewaId) {
-      console.log('Updating penyewaith dates:', {
-        mulaiSewa: updatedTagihan.mulaiSewa,
-        selesaiSewa: updatedTagihan.selesaiSewa
-      })
-
       await prisma.penyewa.update({
         where: { id: updatedTagihan.penyewaId },
         data: {
-          mulaiSewa: updatedTagihan.mulaiSewa,
-          selesaiSewa: updatedTagihan.selesaiSewa,
           status: 'sudah terbayar',
           updatedById: user.id
         }

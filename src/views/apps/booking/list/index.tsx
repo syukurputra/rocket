@@ -62,6 +62,7 @@ type TagihanBooking = {
   keterangan: string
   nominal: number
   status: string
+  periodeSewa?: string | null
   mulaiSewa: string
   selesaiSewa: string
   metodeBayar?: string | null
@@ -72,9 +73,6 @@ type TagihanBooking = {
     nama: string
     nomorTelepon?: string
     email?: string
-    mulaiSewa: string
-    selesaiSewa: string
-    periodeSewa?: string
     status: string
     aset?: { id: string; nama: string }
     ruangan?: { id: string; nama: string }

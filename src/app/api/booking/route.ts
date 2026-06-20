@@ -34,9 +34,6 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               nama: true,
               nomorTelepon: true,
               email: true,
-              mulaiSewa: true,
-              selesaiSewa: true,
-              periodeSewa: true,
               status: true,
               aset: { select: { id: true, nama: true } },
               ruangan: { select: { id: true, nama: true } }

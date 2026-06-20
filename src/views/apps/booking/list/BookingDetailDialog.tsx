@@ -41,8 +41,8 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
 
   const mulai = new Date(tagihan.mulaiSewa).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
   const selesai = new Date(tagihan.selesaiSewa).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
-  const periodeSewa = tagihan.penyewa?.periodeSewa
-    ? tagihan.penyewa.periodeSewa.charAt(0).toUpperCase() + tagihan.penyewa.periodeSewa.slice(1)
+  const periodeSewa = tagihan.periodeSewa
+    ? tagihan.periodeSewa.charAt(0).toUpperCase() + tagihan.periodeSewa.slice(1)
     : 'Harian'
 
   // ── Header card (gray bg, like dialog) ────────────────────────────────────
@@ -164,7 +164,7 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
   doc.text(`Dicetak: ${printDate}`, margin, footerY)
   doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
 
-  doc.save('Bukti Booking.pdf')
+  doc.save('Bukti Bayar Booking.pdf')
 }
 
 type TagihanBooking = {
@@ -172,6 +172,7 @@ type TagihanBooking = {
   keterangan: string
   nominal: number
   status: string
+  periodeSewa?: string | null
   mulaiSewa: string
   selesaiSewa: string
   metodeBayar?: string | null
@@ -182,7 +183,6 @@ type TagihanBooking = {
     nama: string
     nomorTelepon?: string
     email?: string
-    periodeSewa?: string
     aset?: { id: string; nama: string }
     ruangan?: { id: string; nama: string }
   }
@@ -373,9 +373,9 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         <tr>
                           <td style={{ padding: '12px 16px' }}>
                             <Typography fontWeight={500}>{tagihan.keterangan}</Typography>
-                            {tagihan.penyewa?.periodeSewa && (
+                            {tagihan.periodeSewa && (
                               <Chip
-                                label={tagihan.penyewa.periodeSewa}
+                                label={tagihan.periodeSewa}
                                 size='small'
                                 variant='tonal'
                                 sx={{ mt: 0.5, textTransform: 'capitalize' }}

@@ -48,9 +48,6 @@ type PenyewaData = {
   status: string
   asetId: string
   ruanganId: string
-  periodeSewa: string
-  mulaiSewa: Date | null
-  selesaiSewa: Date | null
   email: string
   nomorTelepon: string
   nomorKtp: string
@@ -71,16 +68,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
   const [status, setStatus] = useState(initialData?.status || 'belum terbayar')
   const [asetId, setAsetId] = useState(initialData?.asetId || '')
   const [ruanganId, setRuanganId] = useState(initialData?.ruanganId || '')
-  const [periodeSewa, setPeriodeSewa] = useState(initialData?.periodeSewa || 'bulanan')
-
-  const [mulaiSewa, setMulaiSewa] = useState<Date | null>(
-    initialData?.mulaiSewa ? new Date(initialData.mulaiSewa) : new Date()
-  )
-
-  const [selesaiSewa, setSelesaiSewa] = useState<Date | null>(
-    initialData?.selesaiSewa ? new Date(initialData.selesaiSewa) : null
-  )
-
   const [email, setEmail] = useState(initialData?.email || '')
   const [nomorTelepon, setNomorTelepon] = useState(initialData?.nomorTelepon || '')
   const [nomorKtp, setNomorKtp] = useState(initialData?.nomorKtp || '')
@@ -256,9 +243,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
     setStatus('belum terbayar')
     setAsetId('')
     setRuanganId('')
-    setPeriodeSewa('bulanan')
-    setMulaiSewa(new Date())
-    setSelesaiSewa(null)
     setEmail('')
     setNomorTelepon('')
     setNomorKtp('')
@@ -285,9 +269,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
       status,
       asetId,
       ruanganId,
-      periodeSewa,
-      mulaiSewa,
-      selesaiSewa,
       email,
       nomorTelepon,
       nomorKtp,
@@ -373,38 +354,6 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
             </MenuItem>
           ))}
         </CustomTextField>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <CustomTextField
-          select
-          fullWidth
-          label='Periode Sewa'
-          value={periodeSewa}
-          onChange={e => setPeriodeSewa(e.target.value)}
-        >
-          <MenuItem value='jam'>Jam</MenuItem>
-          <MenuItem value='harian'>Harian</MenuItem>
-          <MenuItem value='bulanan'>Bulanan</MenuItem>
-          <MenuItem value='tahunan'>Tahunan</MenuItem>
-        </CustomTextField>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <AppReactDatepicker
-          selected={mulaiSewa}
-          onChange={(date: Date | null) => setMulaiSewa(date)}
-          placeholderText='DD-MM-YYYY'
-          dateFormat='dd-MM-yyyy'
-          customInput={<CustomTextField fullWidth label='Mulai Sewa' />}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <AppReactDatepicker
-          selected={selesaiSewa}
-          onChange={(date: Date | null) => setSelesaiSewa(date)}
-          placeholderText='DD-MM-YYYY'
-          dateFormat='dd-MM-yyyy'
-          customInput={<CustomTextField fullWidth label='Selesai Sewa' />}
-        />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <CustomTextField

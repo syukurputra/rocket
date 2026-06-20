@@ -68,8 +68,8 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   const [jumlahBulan, setJumlahBulan] = useState(1)
   const [jumlahTahun, setJumlahTahun] = useState(1)
 
-  // Penyewa data
-  const [periodeSewa, setPeriodeSewa] = useState<string>('')
+  // Periode sewa (input di form tagihan)
+  const [periodeSewa, setPeriodeSewa] = useState<string>('bulanan')
 
   const [ruanganPricing, setRuanganPricing] = useState({
     hargaHarian: 0,
@@ -128,16 +128,12 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     try {
       const response = await apiFetchClient<any>(`/api/penyewa/${penyewaId}`)
 
-      if (response.data) {
-        setPeriodeSewa(response.data.periodeSewa || '')
-
-        if (response.data.ruangan) {
-          setRuanganPricing({
-            hargaHarian: Number(response.data.ruangan.hargaHarian) || 0,
-            hargaBulanan: Number(response.data.ruangan.hargaBulanan) || 0,
-            hargaTahunan: Number(response.data.ruangan.hargaTahunan) || 0
-          })
-        }
+      if (response.data?.ruangan) {
+        setRuanganPricing({
+          hargaHarian: Number(response.data.ruangan.hargaHarian) || 0,
+          hargaBulanan: Number(response.data.ruangan.hargaBulanan) || 0,
+          hargaTahunan: Number(response.data.ruangan.hargaTahunan) || 0
+        })
       }
     } catch (error) {
       console.error('Failed to fetch penyewa details:', error)
@@ -172,6 +168,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     setStatus(item.status || 'BELUM TERBAYAR')
     setMetodeBayar(item.metodeBayar || '')
     setBuktiPembayaran(item.buktiPembayaran || '')
+    setPeriodeSewa(item.periodeSewa || 'bulanan')
     setMulaiSewa(item.mulaiSewa ? new Date(item.mulaiSewa) : new Date())
     setSelesaiSewa(item.selesaiSewa ? new Date(item.selesaiSewa) : new Date())
     setNominal(Number(item.nominal) || 0)
@@ -208,6 +205,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     setStatus('BELUM TERBAYAR')
     setMetodeBayar('')
     setBuktiPembayaran('')
+    setPeriodeSewa('bulanan')
     setMulaiSewa(new Date())
     setSelesaiSewa(new Date())
     setNominal(0)
@@ -227,6 +225,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
       status,
       metodeBayar,
       buktiPembayaran,
+      periodeSewa,
       mulaiSewa: mulaiSewa.toISOString(),
       selesaiSewa: selesaiSewa.toISOString(),
       nominal
@@ -391,6 +390,22 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
           <Typography>Silakan lengkapi detail tagihan.</Typography>
         </Grid>
 
+        {/* Periode Sewa */}
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <CustomTextField
+            select
+            fullWidth
+            label='Periode Sewa'
+            value={periodeSewa}
+            onChange={e => { setPeriodeSewa(e.target.value); setJumlahBulan(1); setJumlahTahun(1) }}
+          >
+            <MenuItem value='jam'>Jam</MenuItem>
+            <MenuItem value='harian'>Harian</MenuItem>
+            <MenuItem value='bulanan'>Bulanan</MenuItem>
+            <MenuItem value='tahunan'>Tahunan</MenuItem>
+          </CustomTextField>
+        </Grid>
+
         {/* Conditional fields based on periode sewa */}
         {periodeSewa === 'harian' && (
           <>
@@ -479,14 +494,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
               />
             </Grid>
           </>
-        )}
-
-        {!periodeSewa && (
-          <Grid size={{ xs: 12 }}>
-            <Alert severity='warning'>
-              Periode sewa belum diset untuk penyewa ini. Silakan set periode sewa terlebih dahulu di form penyewa.
-            </Alert>
-          </Grid>
         )}
 
         <Grid size={{ xs: 12 }}>

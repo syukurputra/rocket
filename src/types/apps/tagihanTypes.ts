@@ -3,6 +3,7 @@ export type TagihanClient = {
   judul?: string
   keterangan: string
   status: string
+  periodeSewa?: string | null
   mulaiSewa: Date | string
   selesaiSewa: Date | string
   nominal: number

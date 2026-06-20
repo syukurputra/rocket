@@ -61,27 +61,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, email, nomorTelepon, nomorKtp, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
-
-    let mulaiSewaDate = new Date()
-
-    if (mulaiSewa) {
-      mulaiSewaDate = new Date(mulaiSewa)
-
-      if (isNaN(mulaiSewaDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
-      }
-    }
-
-    let selesaiSewaDate = new Date()
-
-    if (selesaiSewa) {
-      selesaiSewaDate = new Date(selesaiSewa)
-
-      if (isNaN(selesaiSewaDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
-      }
-    }
+    const { nama, email, nomorTelepon, nomorKtp, status, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
 
     const existingPenyewa = await prisma.penyewa.findUnique({
       where: { id }
@@ -106,9 +86,6 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(latitude !== undefined && { latitude: latitude || null }),
         ...(longitude !== undefined && { longitude: longitude || null }),
         ...(status && { status }),
-        ...(periodeSewa !== undefined && { periodeSewa: periodeSewa || null }),
-        ...(mulaiSewa && { mulaiSewa: mulaiSewaDate }),
-        ...(selesaiSewa && { selesaiSewa: selesaiSewaDate }),
         ...(asetId && { asetId }),
         ...(ruanganId && { ruanganId }),
         updatedById: user.id

@@ -12,9 +12,6 @@ export type PenyewaClient = {
   latitude?: number | null
   longitude?: number | null
   status: string
-  periodeSewa?: string
-  mulaiSewa: string | Date
-  selesaiSewa: string | Date
   asetId: string
   ruanganId: string
   aset?: {

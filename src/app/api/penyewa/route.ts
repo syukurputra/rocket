@@ -80,30 +80,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, email, nomorTelepon, nomorKtp, status, periodeSewa, mulaiSewa, selesaiSewa, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
+    const { nama, email, nomorTelepon, nomorKtp, status, asetId, ruanganId, alamat, provinsi, kota, kecamatan, kelurahan, latitude, longitude } = body
 
-    if (!nama || !status || !mulaiSewa || !selesaiSewa || !asetId || !ruanganId) {
-      return NextResponse.json({ message: 'nama, status, mulai sewa, aset dan ruangan harus diisi' }, { status: 400 })
-    }
-
-    let mulaiSewaDate = new Date()
-
-    if (mulaiSewa) {
-      mulaiSewaDate = new Date(mulaiSewa)
-
-      if (isNaN(mulaiSewaDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal mulai sewa tidak valid' }, { status: 400 })
-      }
-    }
-
-    let selesaiSewaDate = new Date()
-
-    if (selesaiSewa) {
-      selesaiSewaDate = new Date(selesaiSewa)
-
-      if (isNaN(selesaiSewaDate.getTime())) {
-        return NextResponse.json({ message: 'Format tanggal selesai sewa tidak valid' }, { status: 400 })
-      }
+    if (!nama || !status || !asetId || !ruanganId) {
+      return NextResponse.json({ message: 'nama, status, aset dan ruangan harus diisi' }, { status: 400 })
     }
 
     // Validate that user has a companyId
@@ -125,9 +105,6 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         latitude: latitude || null,
         longitude: longitude || null,
         status: status,
-        periodeSewa: periodeSewa || null,
-        mulaiSewa: mulaiSewaDate,
-        selesaiSewa: selesaiSewaDate,
         asetId: asetId,
         ruanganId: ruanganId,
         createdById: user.id,

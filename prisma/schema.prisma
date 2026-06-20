@@ -430,9 +430,6 @@ model Penyewa {
   latitude     Float?
   longitude    Float?
   status       String    @default("KOSONG")
-  periodeSewa  String?   @db.VarChar(20)
-  mulaiSewa    DateTime  @default(now())
-  selesaiSewa  DateTime  @default(now())
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   createdById  String
@@ -456,6 +453,7 @@ model Tagihan {
   keterangan       String
   status           String   @default("BELUM TERBAYAR")
   metodeBayar      String?
+  periodeSewa      String?  @db.VarChar(20)
   mulaiSewa        DateTime @default(now())
   selesaiSewa      DateTime @default(now())
   nominal          Decimal  @default(0) @db.Decimal(15, 2)
