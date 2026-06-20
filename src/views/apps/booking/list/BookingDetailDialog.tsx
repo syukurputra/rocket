@@ -164,7 +164,7 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
   doc.text(`Dicetak: ${printDate}`, margin, footerY)
   doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
 
-  doc.save(`bukti-booking-${tagihan.id}.pdf`)
+  doc.save('Bukti Booking.pdf')
 }
 
 type TagihanBooking = {
