@@ -17,13 +17,9 @@ const HomeHeader = (props: Props) => {
   const { searchValue, setSearchValue } = props
 
   return (
-    <Card className='relative flex justify-center'>
-      <img
-        src='/images/illustrations/characters/1.png'
-        className='max-md:hidden absolute max-is-[120px] top-8 start-12'
-      />
-      <div className='flex flex-col items-center gap-4 max-md:pli-5 plb-12 md:is-1/2'>
-        <Typography variant='h4' className='text-center md:is-3/4'>
+    <Card className='flex justify-center'>
+      <div className='flex flex-col items-center gap-4 pli-5 plb-10 is-full max-is-[560px]'>
+        <Typography variant='h4' className='text-center'>
           Temukan Aset Sewa Terbaik.{' '}
           <span className='text-primary'>Semua dalam satu tempat.</span>
         </Typography>
@@ -31,12 +27,12 @@ const HomeHeader = (props: Props) => {
           Jelajahi berbagai pilihan aset sewa yang tersedia. Temukan properti, kendaraan, peralatan, atau barang
           sewaan lainnya yang sesuai dengan kebutuhan Anda.
         </Typography>
-        <div className='flex items-center gap-4 max-sm:is-full'>
+        <div className='flex items-center gap-3 is-full'>
           <CustomTextField
             placeholder='Cari aset sewa...'
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
-            className='sm:is-[350px] max-sm:flex-1'
+            className='flex-1'
           />
           <CustomIconButton variant='contained' color='primary'>
             <i className='tabler-search' />
