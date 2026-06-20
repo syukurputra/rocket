@@ -122,18 +122,27 @@ export async function POST(req: NextRequest) {
       }).catch(err => console.error('[Booking] Email error:', err))
     }
 
-    // Notifikasi untuk company user
-    prisma.notifikasi.create({
-      data: {
-        title: 'Booking Baru Masuk',
-        subtitle: `${namaPemesan} — ${ruangan.aset.nama} ${ruangan.nama} | ${nomorBooking}`,
-        avatarIcon: 'tabler-calendar-plus',
-        avatarColor: 'primary',
-        type: 'tagihan',
-        url: '/booking',
-        refId: tagihan.id,
-        userId: companyUser.id
-      }
+    // Notifikasi ke semua Super Admin company
+    prisma.user.findMany({
+      where: {
+        companyId: ruangan.companyId,
+        role: { nama: { equals: 'Super Admin', mode: 'insensitive' } }
+      },
+      select: { id: true }
+    }).then(superAdmins => {
+      if (!superAdmins.length) return
+      return prisma.notifikasi.createMany({
+        data: superAdmins.map(u => ({
+          title: 'Booking Baru Masuk',
+          subtitle: `${namaPemesan} — ${ruangan.aset.nama} ${ruangan.nama} | ${nomorBooking}`,
+          avatarIcon: 'tabler-calendar-plus',
+          avatarColor: 'primary',
+          type: 'tagihan',
+          url: '/booking',
+          refId: tagihan.id,
+          userId: u.id
+        }))
+      })
     }).catch(err => console.error('[Booking] Notifikasi error:', err))
 
     return NextResponse.json({

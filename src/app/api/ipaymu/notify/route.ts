@@ -125,19 +125,29 @@ export async function POST(request: NextRequest) {
           ).catch(err => console.error('[iPaymu Notify] Email konfirmasi error:', err))
         }
 
-        // Notifikasi ke company user
-        if (tagihan.createdBy?.id) {
-          prisma.notifikasi.create({
-            data: {
-              title: 'Pembayaran Booking Berhasil',
-              subtitle: `${tagihan.penyewa?.nama || '-'} — ${nomorBooking} | ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))}`,
-              avatarIcon: 'tabler-circle-check',
-              avatarColor: 'success',
-              type: 'tagihan',
-              url: '/booking',
-              refId: tagihanId,
-              userId: tagihan.createdBy.id
-            }
+        // Notifikasi ke semua Super Admin company
+        if (tagihan.companyId) {
+          const nominalFmt = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))
+          prisma.user.findMany({
+            where: {
+              companyId: tagihan.companyId,
+              role: { nama: { equals: 'Super Admin', mode: 'insensitive' } }
+            },
+            select: { id: true }
+          }).then(superAdmins => {
+            if (!superAdmins.length) return
+            return prisma.notifikasi.createMany({
+              data: superAdmins.map(u => ({
+                title: 'Pembayaran Booking Berhasil',
+                subtitle: `${tagihan.penyewa?.nama || '-'} — ${nomorBooking} | ${nominalFmt}`,
+                avatarIcon: 'tabler-circle-check',
+                avatarColor: 'success',
+                type: 'tagihan',
+                url: '/booking',
+                refId: tagihanId,
+                userId: u.id
+              }))
+            })
           }).catch(err => console.error('[iPaymu Notify] Notifikasi error:', err))
         }
       } else if (ipaymuStatus === 'expired' || ipaymuStatus === 'gagal') {
