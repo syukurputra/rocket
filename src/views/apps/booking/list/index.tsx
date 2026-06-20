@@ -195,7 +195,7 @@ const BookingList = () => {
           const s = row.original.status?.toLowerCase()
 
           if (s === 'lunas') return <Chip label='Lunas' color='success' size='small' variant='tonal' />
-          if (s === 'dibatalkan') return <Chip label='Dibatalkan' color='default' size='small' variant='tonal' />
+          if (s === 'dibatalkan') return <Chip label='Dibatalkan' color='warning' size='small' variant='tonal' />
 
           return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
         }
