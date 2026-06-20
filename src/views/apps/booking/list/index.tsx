@@ -66,6 +66,7 @@ type TagihanBooking = {
   selesaiSewa: string
   metodeBayar?: string | null
   buktiPembayaran?: string | null
+  ipaymuSessionId?: string | null
   penyewa?: {
     id: string
     nama: string

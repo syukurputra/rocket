@@ -25,6 +25,161 @@ import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 import tableStyles from '@core/styles/table.module.css'
 
+const downloadInvoicePdf = async (invoice: InvoiceClient, formatRupiah: (n: number | string) => string) => {
+  const { jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+  const primaryColor: [number, number, number] = [99, 89, 233]
+  const successColor: [number, number, number] = [40, 167, 69]
+  const grayColor: [number, number, number] = [108, 117, 125]
+  const lightGray: [number, number, number] = [248, 249, 250]
+  const darkText: [number, number, number] = [33, 37, 41]
+
+  const pageW = doc.internal.pageSize.getWidth()
+  const margin = 20
+
+  // Header
+  doc.setFillColor(...primaryColor)
+  doc.rect(0, 0, pageW, 35, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Bantu Sewa', margin, 15)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Platform Manajemen Properti', margin, 22)
+
+  // Badge LUNAS
+  doc.setFillColor(...successColor)
+  doc.roundedRect(pageW - margin - 30, 10, 30, 12, 3, 3, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.text('LUNAS', pageW - margin - 15, 18, { align: 'center' })
+
+  // Judul & nomor invoice
+  doc.setTextColor(...darkText)
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Bukti Pembayaran Invoice', margin, 50)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...grayColor)
+  doc.text(invoice.nomorInvoice, margin, 57)
+
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(0.5)
+  doc.line(margin, 60, pageW - margin, 60)
+
+  // Info tanggal
+  let y = 68
+  doc.setFillColor(...lightGray)
+  doc.roundedRect(margin, y, pageW - margin * 2, 24, 2, 2, 'F')
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...grayColor)
+  doc.text('TANGGAL INVOICE', margin + 4, y + 7)
+  doc.text('TANGGAL BAYAR', pageW / 2, y + 7)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...darkText)
+  doc.setFontSize(9)
+
+  const dayjs = (await import('dayjs')).default
+
+  doc.text(dayjs(invoice.tanggalInvoice).format('DD MMMM YYYY'), margin + 4, y + 16)
+  doc.text(invoice.tanggalBayar ? dayjs(invoice.tanggalBayar).format('DD MMMM YYYY') : '-', pageW / 2, y + 16)
+
+  // Ditagihkan kepada
+  y += 34
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9)
+  doc.setTextColor(...grayColor)
+  doc.text('DITAGIHKAN KEPADA', margin, y)
+  y += 6
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...darkText)
+  doc.text((invoice as any).company?.nama || '-', margin, y)
+  y += 5
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...grayColor)
+  if ((invoice as any).company?.alamat) { doc.text((invoice as any).company.alamat, margin, y); y += 5 }
+  if ((invoice as any).company?.email) { doc.text((invoice as any).company.email, margin, y); y += 5 }
+
+  // Tabel
+  y += 6
+  autoTable(doc, {
+    startY: y,
+    margin: { left: margin, right: margin },
+    head: [['PAKET', 'SIKLUS', 'QTY', 'HARGA']],
+    body: [[
+      (invoice as any).paket?.nama || '-',
+      invoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan',
+      '1',
+      formatRupiah(invoice.subtotal)
+    ]],
+    headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 9, textColor: darkText },
+    columnStyles: { 3: { halign: 'right' } },
+    theme: 'striped',
+    alternateRowStyles: { fillColor: lightGray }
+  })
+
+  y = (doc as any).lastAutoTable.finalY + 6
+
+  // Subtotal, pajak, total
+  const summaryX = pageW / 2
+
+  doc.setFillColor(...lightGray)
+  doc.rect(summaryX, y, pageW / 2 - margin, 36, 'F')
+
+  const rows = [
+    { label: 'Subtotal', val: formatRupiah(invoice.subtotal) },
+    { label: 'PPN (11%)', val: formatRupiah(invoice.pajak) }
+  ]
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...grayColor)
+  rows.forEach(r => {
+    doc.text(r.label, summaryX + 4, y + 8)
+    doc.text(r.val, pageW - margin - 2, y + 8, { align: 'right' })
+    y += 10
+  })
+
+  doc.setDrawColor(...grayColor)
+  doc.setLineWidth(0.3)
+  doc.line(summaryX + 2, y + 2, pageW - margin - 2, y + 2)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...darkText)
+  doc.text('TOTAL', summaryX + 4, y + 10)
+  doc.setTextColor(...primaryColor)
+  doc.setFontSize(11)
+  doc.text(formatRupiah(invoice.total), pageW - margin - 2, y + 10, { align: 'right' })
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 20
+
+  doc.setDrawColor(...grayColor)
+  doc.setLineWidth(0.3)
+  doc.line(margin, footerY - 4, pageW - margin, footerY - 4)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...grayColor)
+
+  const printDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  doc.text(`Dicetak: ${printDate}`, margin, footerY)
+  doc.text('Bantu Sewa — Platform Manajemen Properti', pageW - margin, footerY, { align: 'right' })
+
+  doc.save(`invoice-${invoice.nomorInvoice}.pdf`)
+}
+
 const statusColors: Record<InvoiceStatus, 'warning' | 'success' | 'error' | 'default' | 'info'> = {
   PENDING: 'warning',
   KONFIRMASI: 'info',
@@ -51,6 +206,7 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
   const [invoice, setInvoice] = useState<InvoiceClient | null>(null)
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
   const router = useRouter()
 
@@ -313,23 +469,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                     </div>
                   </div>
                 </Grid>
-
-                {/* Note */}
-                {invoice.catatan && (
-                  <>
-                    <Grid size={{ xs: 12 }}>
-                      <Divider className='border-dashed' />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                      <Typography>
-                        <Typography component='span' className='font-medium' color='text.primary'>
-                          Catatan:{' '}
-                        </Typography>
-                        {invoice.catatan}
-                      </Typography>
-                    </Grid>
-                  </>
-                )}
               </Grid>
             </CardContent>
           </Card>
@@ -339,17 +478,54 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
         <Grid size={{ xs: 12, md: 3 }} className='no-print'>
           <Card>
             <CardContent className='flex flex-col gap-4'>
-              <Button
-                fullWidth
-                color='primary'
-                variant='contained'
-                className='capitalize'
-                disabled={checking || status === 'PAID'}
-                startIcon={checking ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-refresh' />}
-                onClick={handleCheckTransaction}
-              >
-                {checking ? 'Mengecek...' : 'Check Transaksi'}
-              </Button>
+              {/* Status PAID */}
+              {status === 'PAID' && (
+                <>
+                  <Box className='p-4 rounded flex items-center gap-3' sx={{ bgcolor: 'success.light' }}>
+                    <i className='tabler-circle-check text-white text-2xl' />
+                    <Typography color='white' fontWeight={600}>Sudah Dibayar</Typography>
+                  </Box>
+                  <Box
+                    className='p-4 rounded flex items-center gap-3'
+                    sx={{ bgcolor: 'success.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
+                    onClick={async () => {
+                      if (downloading) return
+                      try {
+                        setDownloading(true)
+                        await downloadInvoicePdf(invoice, formatRupiah)
+                      } catch {
+                        showSnack('Gagal mengunduh bukti pembayaran', 'error')
+                      } finally {
+                        setDownloading(false)
+                      }
+                    }}
+                  >
+                    {downloading
+                      ? <CircularProgress size={22} sx={{ color: 'white' }} />
+                      : <i className='tabler-download text-white text-2xl' />
+                    }
+                    <Typography color='white' fontWeight={600}>
+                      {downloading ? 'Menyiapkan...' : 'Download Bukti Pembayaran'}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+
+              {/* Check Transaksi — hanya jika belum PAID */}
+              {status !== 'PAID' && (
+                <Button
+                  fullWidth
+                  color='primary'
+                  variant='contained'
+                  className='capitalize'
+                  disabled={checking}
+                  startIcon={checking ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-refresh' />}
+                  onClick={handleCheckTransaction}
+                >
+                  {checking ? 'Mengecek...' : 'Check Transaksi'}
+                </Button>
+              )}
+
               <Button
                 fullWidth
                 color='secondary'
@@ -372,8 +548,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
               </Button>
             </CardContent>
           </Card>
-
-
         </Grid>
       </Grid>
 

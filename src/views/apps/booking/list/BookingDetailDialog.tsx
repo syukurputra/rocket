@@ -45,7 +45,7 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
 
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
-  doc.text('Platform Manajemen Properti', margin, 22)
+  doc.text('Platform Manajemen Sewa', margin, 22)
 
   // Badge LUNAS
   doc.setFillColor(...successColor)
@@ -181,6 +181,7 @@ type TagihanBooking = {
   selesaiSewa: string
   metodeBayar?: string | null
   buktiPembayaran?: string | null
+  ipaymuSessionId?: string | null
   penyewa?: {
     id: string
     nama: string
@@ -210,6 +211,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
   const [cancelling, setCancelling] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [checking, setChecking] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   const isLunas = tagihan?.status === 'LUNAS'
@@ -236,6 +238,29 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
     } catch (err) {
       showSnack(err instanceof Error ? err.message : 'Gagal membuat link pembayaran', 'error')
       setPaying(false)
+    }
+  }
+
+  const handleCheckTransaction = async () => {
+    try {
+      setChecking(true)
+
+      const result = await apiFetchClient<{ data: { status: string }; message: string }>(
+        `/api/tagihan/${tagihan?.id}/check`,
+        { method: 'POST' },
+        { redirectOn401: '/login' }
+      )
+
+      if (result.data?.status === 'LUNAS') {
+        showSnack(result.message || 'Pembayaran berhasil!', 'success')
+        setTimeout(() => { onPaid(); onClose() }, 1200)
+      } else {
+        showSnack(result.message || 'Transaksi belum selesai', 'warning')
+      }
+    } catch (err) {
+      showSnack(err instanceof Error ? err.message : 'Gagal mengecek transaksi', 'error')
+    } finally {
+      setChecking(false)
     }
   }
 
@@ -302,7 +327,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                           Bantu Sewa
                         </Typography>
                         <Typography variant='body2' color='text.secondary'>
-                          Platform Manajemen Properti
+                          Platform Manajemen Sewa
                         </Typography>
                       </div>
                       <div className='flex flex-col items-end gap-1'>
@@ -415,13 +440,13 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                 {/* Status Lunas */}
                 {isLunas && (
                   <>
-                    <Box className='p-4 rounded flex items-center gap-3' sx={{ bgcolor: 'success.light' }}>
+                    <Box className='p-2 rounded flex items-center gap-3' sx={{ bgcolor: 'success.light' }}>
                       <i className='tabler-circle-check text-white text-2xl' />
                       <Typography color='white' fontWeight={600}>Sudah Dibayar</Typography>
                     </Box>
                     <Box
-                      className='p-4 rounded flex items-center gap-3'
-                      sx={{ bgcolor: 'success.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
+                      className='p-2 rounded flex items-center gap-3'
+                      sx={{ bgcolor: 'primary.light', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}
                       onClick={async () => {
                         if (downloading) return
                         try {
@@ -439,7 +464,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         : <i className='tabler-download text-white text-2xl' />
                       }
                       <Typography color='white' fontWeight={600}>
-                        {downloading ? 'Menyiapkan...' : 'Download Bukti Pembayaran'}
+                        {downloading ? 'Menyiapkan...' : 'Download Bukti'}
                       </Typography>
                     </Box>
                   </>
@@ -481,7 +506,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                   </Box>
                 )}
 
-                {/* Bayar & Batal — tampil berdampingan jika belum lunas/dibatalkan */}
+                {/* Bayar, Check & Batal — jika belum lunas/dibatalkan */}
                 {!isLunas && !isCancelled && !confirmCancel && (
                   <>
                     <Button
@@ -491,9 +516,20 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       size='large'
                       startIcon={paying ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
                       onClick={handleBayar}
-                      disabled={paying}
+                      disabled={paying || checking}
                     >
                       {paying ? 'Memproses...' : 'Bayar Sekarang'}
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant='contained'
+                      color='primary'
+                      size='large'
+                      startIcon={checking ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-refresh' />}
+                      onClick={handleCheckTransaction}
+                      disabled={paying || checking || !tagihan?.ipaymuSessionId}
+                    >
+                      {checking ? 'Mengecek...' : 'Check Transaksi'}
                     </Button>
                     <Button
                       fullWidth
