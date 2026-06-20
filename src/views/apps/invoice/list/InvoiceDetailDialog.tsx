@@ -75,14 +75,14 @@ const downloadInvoicePdf = async (invoice: InvoiceClient) => {
   doc.setTextColor(...grayText)
   doc.text('Platform Manajemen Sewa', margin + 5, 34)
 
-  // Right: Lunas badge only
+  // Right: Lunas badge centered in header card
   const rightX = pageW - margin - 5
   doc.setFillColor(...successColor)
-  doc.roundedRect(rightX - 22, 21, 22, 7, 2, 2, 'F')
+  doc.roundedRect(rightX - 22, 27, 22, 7, 2, 2, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
   doc.setTextColor(255, 255, 255)
-  doc.text('Lunas', rightX - 11, 26, { align: 'center' })
+  doc.text('Lunas', rightX - 11, 32, { align: 'center' })
 
   // Info Transaksi
   let y = 56
