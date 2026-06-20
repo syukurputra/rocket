@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
+import { createIpaymuPayment } from '@/src/libs/ipaymu'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -108,6 +109,35 @@ export async function POST(req: NextRequest) {
 
     const nomorBooking = `BK-${tagihan.id.slice(-8).toUpperCase()}`
 
+    // Generate iPaymu payment URL
+    let paymentUrl: string | null = null
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bantusewa.com'
+      const referenceId = `BKG-${tagihan.id}`
+      const ipaymuResult = await createIpaymuPayment({
+        transactionId: referenceId,
+        amount: Number(total),
+        buyerName: namaPemesan,
+        buyerEmail: email || 'customer@example.com',
+        buyerPhone: telepon,
+        product: [keterangan],
+        qty: ['1'],
+        price: [String(Number(total))],
+        description: [keterangan],
+        returnUrl: `${baseUrl}/booking`,
+        cancelUrl: `${baseUrl}/booking`,
+        notifyUrl: `${baseUrl}/api/ipaymu/notify`
+      })
+      paymentUrl = ipaymuResult.Data.Url
+      // Simpan ke tagihan
+      await prisma.tagihan.update({
+        where: { id: tagihan.id },
+        data: { paymentUrl, ipaymuSessionId: ipaymuResult.Data.SessionID }
+      })
+    } catch (err) {
+      console.error('[Booking] iPaymu payment URL error:', err)
+    }
+
     // Email ke penyewa
     if (email) {
       sendBookingCreatedEmail(email, {
@@ -118,7 +148,8 @@ export async function POST(req: NextRequest) {
         periodeSewa,
         mulaiSewa: mulaiSewaDate.toISOString(),
         selesaiSewa: selesaiSewaDate.toISOString(),
-        total: Number(total)
+        total: Number(total),
+        paymentUrl: paymentUrl || undefined
       }).catch(err => console.error('[Booking] Email error:', err))
     }
 

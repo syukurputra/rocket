@@ -15,10 +15,11 @@ type BookingCreatedParams = {
   mulaiSewa: string
   selesaiSewa: string
   total: number
+  paymentUrl?: string
 }
 
 export async function sendBookingCreatedEmail(to: string, params: BookingCreatedParams) {
-  const { nomorBooking, namaPemesan, namaAset, namaRuangan, periodeSewa, mulaiSewa, selesaiSewa, total } = params
+  const { nomorBooking, namaPemesan, namaAset, namaRuangan, periodeSewa, mulaiSewa, selesaiSewa, total, paymentUrl } = params
 
   const html = `<!DOCTYPE html>
 <html lang="id">
@@ -31,12 +32,7 @@ export async function sendBookingCreatedEmail(to: string, params: BookingCreated
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#6359e9 0%,#4f46e5 100%);padding:40px 30px;text-align:center;">
-            <div style="background:rgba(255,255,255,.2);width:72px;height:72px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h1 style="margin:0;color:#fff;font-size:26px;font-weight:600;">Booking Berhasil Dibuat</h1>
+            <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:1px;">INFORMASI SEWA PEMESANAN</h1>
             <p style="margin:8px 0 0;color:rgba(255,255,255,.85);font-size:15px;">Nomor Booking: <strong>${nomorBooking}</strong></p>
           </td>
         </tr>
@@ -91,16 +87,18 @@ export async function sendBookingCreatedEmail(to: string, params: BookingCreated
               </table>
             </div>
 
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:16px;margin-bottom:20px;">
+            ${paymentUrl ? `
+            <div style="text-align:center;margin-top:8px;">
+              <a href="${paymentUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#6359e9 0%,#4f46e5 100%);color:#fff;text-decoration:none;font-size:16px;font-weight:700;padding:14px 48px;border-radius:8px;letter-spacing:.5px;">Bayar Sekarang</a>
+              <p style="margin:12px 0 0;color:#9ca3af;font-size:12px;">Klik tombol di atas untuk menyelesaikan pembayaran</p>
+            </div>
+            ` : `
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:16px;">
               <p style="margin:0;color:#1e40af;font-size:14px;line-height:1.6;">
-                <strong>📋 Langkah selanjutnya:</strong><br/>
-                Tim kami akan segera menghubungi Anda untuk konfirmasi dan instruksi pembayaran. Harap simpan nomor booking <strong>${nomorBooking}</strong> sebagai referensi.
+                Tim kami akan segera menghubungi Anda untuk konfirmasi dan instruksi pembayaran.
               </p>
             </div>
-
-            <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.6;">
-              Jika Anda memiliki pertanyaan, silakan hubungi kami.
-            </p>
+            `}
           </td>
         </tr>
 
