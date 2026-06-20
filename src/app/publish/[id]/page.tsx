@@ -32,6 +32,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
         }
       },
       ruangan: {
+        where: { status: 'aktif' },
         include: {
           images: true,
           fasilitasRuangan: {
