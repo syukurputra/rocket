@@ -369,7 +369,7 @@ const StepPenyewaDetails = ({ activeStep, handleNext, handlePrev, steps, onSave,
         >
           {ruanganList.map(ruangan => (
             <MenuItem key={ruangan.id} value={ruangan.id}>
-              {ruangan.nama} - {ruangan.status}
+              {ruangan.nama}
             </MenuItem>
           ))}
         </CustomTextField>
