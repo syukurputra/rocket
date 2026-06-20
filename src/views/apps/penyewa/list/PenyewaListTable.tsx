@@ -195,7 +195,19 @@ const PenyewaListTable = ({ initialData = [] }: PenyewaListTableProps) => {
     () => [
       columnHelper.accessor('nama', {
         header: 'Nama Penyewa',
-        cell: ({ row }) => <Typography>{`${row.original.nama}`}</Typography>
+        cell: ({ row }) => <Typography>{row.original.nama}</Typography>
+      }),
+      columnHelper.accessor('email', {
+        header: 'Email',
+        cell: ({ row }) => <Typography>{row.original.email || '-'}</Typography>
+      }),
+      columnHelper.accessor('nomorTelepon', {
+        header: 'Nomor Telepon',
+        cell: ({ row }) => <Typography>{row.original.nomorTelepon || '-'}</Typography>
+      }),
+      columnHelper.accessor('nomorKtp', {
+        header: 'Nomor KTP',
+        cell: ({ row }) => <Typography>{row.original.nomorKtp || '-'}</Typography>
       }),
       columnHelper.accessor('action', {
         header: 'Action',
