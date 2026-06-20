@@ -17,17 +17,17 @@ const HomeHeader = (props: Props) => {
   const { searchValue, setSearchValue } = props
 
   return (
-    <Card className='flex justify-center'>
-      <div className='flex flex-col items-center gap-4 pli-5 plb-10 is-full max-is-[560px]'>
+    <Card>
+      <div className='flex flex-col items-center gap-4 pli-8 plb-10'>
         <Typography variant='h4' className='text-center'>
           Temukan Aset Sewa Terbaik.{' '}
           <span className='text-primary'>Semua dalam satu tempat.</span>
         </Typography>
-        <Typography className='text-center'>
+        <Typography className='text-center max-is-[600px]'>
           Jelajahi berbagai pilihan aset sewa yang tersedia. Temukan properti, kendaraan, peralatan, atau barang
           sewaan lainnya yang sesuai dengan kebutuhan Anda.
         </Typography>
-        <div className='flex items-center gap-3 is-full'>
+        <div className='flex items-center gap-3 is-full max-is-[640px]'>
           <CustomTextField
             placeholder='Cari aset sewa...'
             value={searchValue}
