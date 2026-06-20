@@ -83,8 +83,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const body = await request.json()
     const { keterangan, periodeSewa, mulaiSewa, selesaiSewa, penyewaId, nominal, asetId, ruanganId } = body
 
-    if (!keterangan || !mulaiSewa || !selesaiSewa || !penyewaId) {
-      return NextResponse.json({ message: 'keterangan, mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
+    if (!mulaiSewa || !selesaiSewa || !penyewaId) {
+      return NextResponse.json({ message: 'mulai sewa dan selesai sewa harus diisi' }, { status: 400 })
     }
 
     let mulaiSewaDate = new Date()
@@ -114,7 +114,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     const newTagihan = await prisma.tagihan.create({
       data: {
-        keterangan: keterangan,
+        keterangan: keterangan || '',
         periodeSewa: periodeSewa || null,
         mulaiSewa: mulaiSewaDate,
         selesaiSewa: selesaiSewaDate,
