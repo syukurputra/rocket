@@ -528,18 +528,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                 color='secondary'
                 variant='tonal'
                 className='capitalize'
-                startIcon={<i className='tabler-printer' />}
-                onClick={() => window.print()}
-                sx={{ justifyContent: 'flex-start' }}
-              >
-                Print
-              </Button>
-
-              <Button
-                fullWidth
-                color='secondary'
-                variant='tonal'
-                className='capitalize'
                 startIcon={<i className='tabler-arrow-left' />}
                 onClick={() => router.push('/setting/invoice')}
                 sx={{ justifyContent: 'flex-start' }}
