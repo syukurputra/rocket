@@ -319,16 +319,15 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     y += 6
 
     // Tabel ITEM | JUMLAH
-    const namaAset = (item as any).aset?.nama || ''
-    const namaRuangan = (item as any).ruangan?.nama || ''
-    const itemLabel = [namaAset, namaRuangan].filter(Boolean).join(' — ') || item.keterangan || '-'
+    const namaRuangan = (item as any).ruangan?.nama || item.keterangan || '-'
+    const itemContent = `${namaRuangan}\n${periodeSewa}\n${mulai} - ${selesai}`
 
     autoTable(doc, {
       startY: y,
       margin: { left: margin, right: margin },
       head: [['ITEM', 'JUMLAH']],
       body: [[
-        { content: `${itemLabel}\n${periodeSewa}`, styles: { fontSize: 10, textColor: darkText } },
+        { content: itemContent, styles: { fontSize: 10, textColor: darkText } },
         { content: formatRp(Number(item.nominal)), styles: { halign: 'right', fontSize: 10, textColor: primaryColor, fontStyle: 'bold' } }
       ]],
       headStyles: { fillColor: lightGray, textColor: grayText, fontSize: 8, fontStyle: 'bold', lineColor: borderColor, lineWidth: 0.3 },
