@@ -75,32 +75,52 @@ const downloadInvoicePdf = async (invoice: InvoiceClient) => {
   doc.setTextColor(...grayText)
   doc.text('Platform Manajemen Sewa', margin + 5, 34)
 
-  // Right: nomor invoice + status + tanggal
+  // Right: Lunas badge only
   const rightX = pageW - margin - 5
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(...darkText)
-  doc.text(invoice.nomorInvoice, rightX - 32, 23, { align: 'right' })
-
-  // Status badge "Lunas"
   doc.setFillColor(...successColor)
-  doc.roundedRect(rightX - 22, 18, 22, 7, 2, 2, 'F')
+  doc.roundedRect(rightX - 22, 21, 22, 7, 2, 2, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
   doc.setTextColor(255, 255, 255)
-  doc.text('Lunas', rightX - 11, 23, { align: 'center' })
+  doc.text('Lunas', rightX - 11, 26, { align: 'center' })
 
+  // Info Transaksi
+  let y = 56
+  const labelX = margin
+  const valueX = margin + 42
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
+  doc.setFontSize(9)
   doc.setTextColor(...grayText)
-  doc.text(dayjs(invoice.tanggalInvoice).format('DD MMMM YYYY'), rightX, 30, { align: 'right' })
+  doc.text('ID Invoice', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(invoice.nomorInvoice, valueX, y)
+
+  y += 7
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...grayText)
+  doc.text('Tanggal Invoice', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(dayjs(invoice.tanggalInvoice).format('DD MMMM YYYY'), valueX, y)
+
   if (invoice.tanggalBayar) {
+    y += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...grayText)
+    doc.text('Tanggal Bayar', labelX, y)
+    doc.setFont('helvetica', 'bold')
     doc.setTextColor(...successColor)
-    doc.text(`Dibayar: ${dayjs(invoice.tanggalBayar).format('DD MMMM YYYY')}`, rightX, 38, { align: 'right' })
+    doc.text(dayjs(invoice.tanggalBayar).format('DD MMMM YYYY'), valueX, y)
   }
 
+  y += 10
+  doc.setDrawColor(...borderColor)
+  doc.setLineWidth(0.3)
+  doc.line(margin, y, pageW - margin, y)
+  y += 8
+
   // ── DITAGIHKAN KEPADA ──────────────────────────────────────────────────────
-  let y = 56
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...grayText)
@@ -187,7 +207,7 @@ const downloadInvoicePdf = async (invoice: InvoiceClient) => {
   doc.text(`Dicetak: ${printDate}`, margin, footerY)
   doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
 
-  doc.save(`invoice-${invoice.nomorInvoice}.pdf`)
+  doc.save(`Bukti Bayar Paket.pdf`)
 }
 
 interface Props {

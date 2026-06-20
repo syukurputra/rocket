@@ -59,27 +59,50 @@ const downloadBuktiPembayaran = async (tagihan: TagihanBooking) => {
   doc.setTextColor(...grayText)
   doc.text('Platform Manajemen Sewa', margin + 5, 34)
 
-  // Right: label + badge + tanggal
+  // Right: Lunas badge only
   const rightX = pageW - margin - 5
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(...darkText)
-  doc.text('Tagihan Booking', rightX - 26, 23, { align: 'right' })
-
   doc.setFillColor(...successColor)
-  doc.roundedRect(rightX - 22, 18, 22, 7, 2, 2, 'F')
+  doc.roundedRect(rightX - 22, 21, 22, 7, 2, 2, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
   doc.setTextColor(255, 255, 255)
-  doc.text('Lunas', rightX - 11, 23, { align: 'center' })
+  doc.text('Lunas', rightX - 11, 26, { align: 'center' })
 
+  // ── Info Transaksi ─────────────────────────────────────────────────────────
+  let y = 56
+  const labelX = margin
+  const valueX = margin + 42
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
+  doc.setFontSize(9)
   doc.setTextColor(...grayText)
-  doc.text(`${mulai} s/d ${selesai}`, rightX, 33, { align: 'right' })
+  doc.text('ID Pemesanan', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(tagihan.id.slice(-10).toUpperCase(), valueX, y)
+
+  y += 7
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...grayText)
+  doc.text('Tanggal Mulai', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(mulai, valueX, y)
+
+  y += 7
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...grayText)
+  doc.text('Tanggal Selesai', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(selesai, valueX, y)
+
+  y += 10
+  doc.setDrawColor(...borderColor)
+  doc.setLineWidth(0.3)
+  doc.line(margin, y, pageW - margin, y)
+  y += 8
 
   // ── PEMESAN ────────────────────────────────────────────────────────────────
-  let y = 56
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...grayText)
