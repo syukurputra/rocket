@@ -286,11 +286,6 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     doc.setTextColor(255, 255, 255)
     doc.text('Lunas', rightX - 11, 23, { align: 'center' })
 
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(...grayText)
-    doc.text(`${mulai} s/d ${selesai}`, rightX, 33, { align: 'right' })
-
     // PEMESAN section
     let y = 56
     doc.setFont('helvetica', 'bold')
