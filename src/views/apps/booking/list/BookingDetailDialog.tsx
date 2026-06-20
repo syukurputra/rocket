@@ -519,7 +519,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       fullWidth
                       variant='contained'
                       color='success'
-                      size='large'
+                      size='medium'
                       startIcon={paying ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
                       onClick={handleBayar}
                       disabled={paying || checking}
@@ -531,7 +531,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       fullWidth
                       variant='contained'
                       color='primary'
-                      size='large'
+                      size='medium'
                       startIcon={checking ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-refresh' />}
                       onClick={handleCheckTransaction}
                       disabled={paying || checking || !tagihan?.ipaymuSessionId}
@@ -543,7 +543,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                       fullWidth
                       variant='tonal'
                       color='error'
-                      size='large'
+                      size='medium'
                       startIcon={<i className='tabler-x' />}
                       onClick={() => setConfirmCancel(true)}
                       sx={{ justifyContent: 'flex-start' }}

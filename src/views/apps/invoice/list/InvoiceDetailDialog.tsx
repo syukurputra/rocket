@@ -446,7 +446,7 @@ const InvoiceDetailDialog = ({ open, invoiceId, onClose, onUpdated }: Props) => 
                       fullWidth
                       variant='contained'
                       color='primary'
-                      size='large'
+                      size='medium'
                       disabled={checking}
                       startIcon={checking ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-refresh' />}
                       onClick={handleCheckTransaction}
