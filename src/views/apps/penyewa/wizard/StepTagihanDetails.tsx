@@ -234,7 +234,111 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }
 
+  const handleDownloadBukti = async (item: TagihanClient) => {
+    const { jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
 
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+    const primaryColor: [number, number, number] = [99, 89, 233]
+    const successColor: [number, number, number] = [40, 167, 69]
+    const grayText: [number, number, number] = [108, 117, 125]
+    const lightGray: [number, number, number] = [245, 245, 248]
+    const darkText: [number, number, number] = [33, 37, 41]
+    const borderColor: [number, number, number] = [220, 220, 228]
+
+    const pageW = doc.internal.pageSize.getWidth()
+    const margin = 20
+    const contentW = pageW - margin * 2
+    const isLunas = item.status === 'LUNAS'
+
+    const formatRp = (val: number) =>
+      new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
+
+    const mulai = new Date(item.mulaiSewa).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+    const selesai = new Date(item.selesaiSewa).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+    const periodeLabel = item.periodeSewa ? item.periodeSewa.charAt(0).toUpperCase() + item.periodeSewa.slice(1) : '-'
+
+    // Header card
+    doc.setFillColor(...lightGray)
+    doc.roundedRect(margin, 15, contentW, 30, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(...darkText)
+    doc.text('Bantu Sewa', margin + 5, 27)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...grayText)
+    doc.text('Platform Manajemen Sewa', margin + 5, 34)
+
+    const rightX = pageW - margin - 5
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(...darkText)
+    doc.text('Bukti Tagihan', rightX - 26, 23, { align: 'right' })
+
+    if (isLunas) {
+      doc.setFillColor(...successColor)
+      doc.roundedRect(rightX - 22, 18, 22, 7, 2, 2, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(7)
+      doc.setTextColor(255, 255, 255)
+      doc.text('Lunas', rightX - 11, 23, { align: 'center' })
+    }
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...grayText)
+    doc.text(`${mulai} s/d ${selesai}`, rightX, 33, { align: 'right' })
+
+    // Tabel item
+    let y = 56
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [['ITEM', 'PERIODE', 'JUMLAH']],
+      body: [[
+        { content: item.keterangan || '-', styles: { fontSize: 10, textColor: darkText } },
+        { content: periodeLabel, styles: { fontSize: 10, textColor: darkText } },
+        { content: formatRp(Number(item.nominal)), styles: { halign: 'right', fontSize: 10, textColor: primaryColor, fontStyle: 'bold' } }
+      ]],
+      headStyles: { fillColor: lightGray, textColor: grayText, fontSize: 8, fontStyle: 'bold', lineColor: borderColor, lineWidth: 0.3 },
+      bodyStyles: { fontSize: 10, textColor: darkText, minCellHeight: 14 },
+      columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 35 }, 2: { cellWidth: 45, halign: 'right' } },
+      theme: 'plain',
+      tableLineColor: borderColor,
+      tableLineWidth: 0.3
+    })
+
+    y = (doc as any).lastAutoTable.finalY + 6
+    const totalLabelX = pageW - margin - 60
+    const totalValX = pageW - margin
+    doc.setDrawColor(...borderColor)
+    doc.setLineWidth(0.4)
+    doc.line(totalLabelX, y, totalValX, y)
+    y += 7
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor(...darkText)
+    doc.text('Total', totalLabelX, y)
+    doc.setTextColor(...primaryColor)
+    doc.setFontSize(13)
+    doc.text(formatRp(Number(item.nominal)), totalValX, y, { align: 'right' })
+
+    // Footer
+    const footerY = doc.internal.pageSize.getHeight() - 15
+    doc.setDrawColor(...borderColor)
+    doc.setLineWidth(0.3)
+    doc.line(margin, footerY - 4, pageW - margin, footerY - 4)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(...grayText)
+    const printDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+    doc.text(`Dicetak: ${printDate}`, margin, footerY)
+    doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
+
+    doc.save(`Bukti-Tagihan-${item.id?.slice(-8).toUpperCase() || 'tagihan'}.pdf`)
+  }
 
   const resetForm = () => {
     setKeterangan('')
@@ -374,6 +478,15 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                                 <i className='tabler-mail' />
                               </IconButton>
                             </Tooltip>
+                            <Tooltip title='Download Bukti'>
+                              <IconButton
+                                aria-label='Download Bukti'
+                                onClick={() => handleDownloadBukti(item)}
+                                sx={{ minWidth: 0, p: 1 }}
+                              >
+                                <i className='tabler-download' />
+                              </IconButton>
+                            </Tooltip>
                             <Tooltip title='Hapus'>
                               <IconButton
                                 aria-label='Hapus'
@@ -486,7 +599,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
                 customInput={<CustomTextField fullWidth label='Tanggal Mulai' />}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <CustomTextField
                 fullWidth
                 label='Tanggal Selesai (Otomatis)'
