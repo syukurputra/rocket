@@ -594,17 +594,6 @@ const KonfirmasiPembayaranTable = () => {
                   </Box>
                 </>
               )}
-
-              {/* Catatan */}
-              {detailDialog.invoice.catatan && (
-                <>
-                  <Divider />
-                  <Box>
-                    <Typography variant='subtitle2' className='mb-1'>Catatan</Typography>
-                    <Typography variant='body2' color='text.secondary'>{detailDialog.invoice.catatan}</Typography>
-                  </Box>
-                </>
-              )}
             </Box>
           )}
         </DialogContent>

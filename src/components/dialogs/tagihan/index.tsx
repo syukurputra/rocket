@@ -292,7 +292,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
                       required
                     />
                   </Grid>
-                  <Grid size={{ xs: 12 }}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <CustomTextField
                       fullWidth
                       label='Tanggal Selesai (Otomatis)'
@@ -326,7 +326,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
                       required
                     />
                   </Grid>
-                  <Grid size={{ xs: 12 }}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <CustomTextField
                       fullWidth
                       label='Tanggal Selesai (Otomatis)'

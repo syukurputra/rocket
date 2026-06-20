@@ -49,7 +49,7 @@ const downloadInvoicePdf = async (invoice: InvoiceClient, formatRupiah: (n: numb
   doc.text('Bantu Sewa', margin, 15)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
-  doc.text('Platform Manajemen Properti', margin, 22)
+  doc.text('Platform Manajemen Sewa', margin, 22)
 
   // Badge LUNAS
   doc.setFillColor(...successColor)
@@ -175,7 +175,7 @@ const downloadInvoicePdf = async (invoice: InvoiceClient, formatRupiah: (n: numb
   const printDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   doc.text(`Dicetak: ${printDate}`, margin, footerY)
-  doc.text('Bantu Sewa — Platform Manajemen Properti', pageW - margin, footerY, { align: 'right' })
+  doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
 
   doc.save(`invoice-${invoice.nomorInvoice}.pdf`)
 }
