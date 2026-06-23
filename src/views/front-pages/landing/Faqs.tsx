@@ -56,6 +56,24 @@ const FaqsData: FaqsDataTypes[] = [
     question: 'Bagaimana cara menghubungi tim support Bantu Sewa?',
     answer:
       'Anda dapat menghubungi tim kami melalui WhatsApp di +62 856-4334-4041 atau email ke notif@bantusewa.com. Tim kami siap membantu Anda pada hari kerja pukul 08.00–17.00 WIB.'
+  },
+  {
+    id: 'panel6',
+    question: 'Apa saja syarat pengajuan refund?',
+    answer:
+      'Refund dapat diajukan dalam kondisi berikut: (1) Pembayaran berhasil diproses namun paket tidak aktif dalam 1x24 jam, (2) Terjadi double payment untuk paket yang sama, (3) Terdapat kesalahan teknis dari pihak Bantu Sewa yang menyebabkan layanan tidak berfungsi selama lebih dari 7 hari berturut-turut.'
+  },
+  {
+    id: 'panel7',
+    question: 'Bagaimana proses pengajuan refund?',
+    answer:
+      'Untuk mengajukan refund, hubungi tim support kami melalui WhatsApp +62 856-4334-4041 atau email notif@bantusewa.com dengan menyertakan: nomor invoice, bukti pembayaran, dan alasan pengajuan refund. Tim kami akan memproses permintaan dalam 3–5 hari kerja dan dana akan dikembalikan ke metode pembayaran asal dalam 7–14 hari kerja.'
+  },
+  {
+    id: 'panel8',
+    question: 'Kapan refund tidak bisa dilakukan?',
+    answer:
+      'Refund tidak dapat diproses dalam kondisi berikut: paket sudah aktif dan digunakan selama lebih dari 7 hari, pengajuan dilakukan setelah lebih dari 30 hari sejak tanggal pembayaran, atau pelanggaran Syarat & Ketentuan yang menyebabkan akun dinonaktifkan.'
   }
 ]
 
