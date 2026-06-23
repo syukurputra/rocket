@@ -3,9 +3,6 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   basePath: process.env.BASEPATH,
   output: 'standalone',
-  experimental: {
-    instrumentationHook: true
-  },
   images: {
     remotePatterns: [
       {
