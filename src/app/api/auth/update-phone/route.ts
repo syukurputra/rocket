@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
 export async function POST(request: NextRequest) {
   try {
-    const { nomorTelepon } = await request.json()
+    const { nomorTelepon, name } = await request.json()
 
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization')
@@ -44,18 +44,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update user's phone number
+    // Update user's phone number and name
     const updatedUser = await prisma.user.update({
       where: { id: decoded.userId },
-      data: { nomorTelepon }
+      data: { nomorTelepon, ...(name ? { name } : {}) }
     })
 
     return NextResponse.json(
       {
-        message: 'Nomor telepon berhasil disimpan',
+        message: 'Data berhasil disimpan',
         user: {
           id: updatedUser.id,
           username: updatedUser.username,
+          name: updatedUser.name,
           email: updatedUser.email,
           nomorTelepon: updatedUser.nomorTelepon
         }

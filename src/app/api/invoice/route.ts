@@ -160,7 +160,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       const ipaymuResult = await createIpaymuPayment({
         transactionId: nomorInvoice,
         amount: total,
-        buyerName: user.username || 'Customer',
+        buyerName: user.name || user.username || 'Customer',
         buyerEmail: user.email || 'customer@example.com',
         buyerPhone: '081234567890', // Hardcoded as fallback since user phone might not be in auth context
         product: [`Langganan ${paket.nama} - ${billingCycle}`],

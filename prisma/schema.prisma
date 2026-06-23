@@ -85,6 +85,7 @@ model Menu {
 model User {
   id               String    @id @default(cuid()) @db.VarChar(100)
   username         String    @unique @db.VarChar(50)
+  name             String?   @db.VarChar(100)
   email            String    @unique @db.VarChar(191)
   nomorTelepon     String?   @db.VarChar(20)
   nomorKtp         String?   @db.VarChar(50)

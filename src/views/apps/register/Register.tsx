@@ -60,14 +60,14 @@ const MaskImg = styled('img')({
 })
 
 const useRegister = () => {
-  const register = async (username: string, email: string, password: string, nomorTelepon: string) => {
+  const register = async (username: string, name: string, email: string, password: string, nomorTelepon: string) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, email, password, nomorTelepon })
+        body: JSON.stringify({ username, name, email, password, nomorTelepon })
       })
 
       const data = await response.json()
@@ -93,6 +93,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [username, setUsername] = useState('')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [nomorTelepon, setNomorTelepon] = useState('')
@@ -169,7 +170,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     }
 
     try {
-      const result = await register(username, email, password, nomorTelepon)
+      const result = await register(username, name || username, email, password, nomorTelepon)
 
       if (!result.success) {
         setError(result.message || 'Register gagal')
@@ -258,6 +259,13 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 required
+              />
+              <CustomTextField
+                fullWidth
+                label='Nama Lengkap'
+                placeholder='Masukkan nama lengkap'
+                value={name}
+                onChange={e => setName(e.target.value)}
               />
               <CustomTextField
                 fullWidth

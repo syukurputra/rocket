@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=GoogleUserInfoFailed', request.url))
     }
 
-    const { email } = userData
+    const { email, name: googleName } = userData
 
     // Check user in DB
     let user = await prisma.user.findUnique({
@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
         data: {
           email,
           username,
+          name: googleName || username,
           password: null, // Passwordless
           verifikasi: true, // Email from Google is verified
           status: true,

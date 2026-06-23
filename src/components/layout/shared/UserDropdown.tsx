@@ -43,6 +43,7 @@ const UserDropdown = () => {
   const [user, setUser] = useState<{
     id: string
     username: string
+    name?: string | null
     email: string
     photoUrl?: string | null
     role?: { nama: string } | null
@@ -195,9 +196,9 @@ const UserDropdown = () => {
                     <Avatar alt={user?.username || 'User'} src={user?.photoUrl || undefined} />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        {user?.email || 'Loading...'}
+                        {user?.name || user?.username || 'Loading...'}
                       </Typography>
-                      <Typography variant='caption'>{user?.role?.nama || 'Loading...'}</Typography>
+                      <Typography variant='caption' color='text.secondary'>{user?.email || ''}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />

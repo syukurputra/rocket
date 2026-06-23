@@ -58,7 +58,7 @@ export default function AuthSuccessPage() {
     router.replace('/home')
   }
 
-  const handlePhoneSubmit = async (phoneNumber: string) => {
+  const handlePhoneSubmit = async (phoneNumber: string, name: string) => {
     if (!accessToken) return
 
     try {
@@ -68,7 +68,7 @@ export default function AuthSuccessPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`
         },
-        body: JSON.stringify({ nomorTelepon: phoneNumber })
+        body: JSON.stringify({ nomorTelepon: phoneNumber, name })
       })
 
       if (response.ok) {

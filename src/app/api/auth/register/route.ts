@@ -8,7 +8,7 @@ import { verifyEmailConnection } from '@/src/mails/verifyEmailConnection'
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password, nomorTelepon } = await request.json()
+    const { username, name, email, password, nomorTelepon } = await request.json()
 
     // Validate phone number format (Indonesian)
     if (!nomorTelepon) {
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     const userInsert = await prisma.user.create({
       data: {
         username: username,
+        name: name || username,
         email: email,
         nomorTelepon: nomorTelepon,
         password: passwordEnc,

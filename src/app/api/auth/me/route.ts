@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         username: true,
+        name: true,
         email: true,
         nomorTelepon: true,
         photoUrl: true,
@@ -79,6 +80,7 @@ export async function GET(req: NextRequest) {
     const userData = {
       id: user.id,
       username: user.username,
+      name: user.name,
       email: user.email,
       nomorTelepon: user.nomorTelepon,
       photoUrl: user.photoUrl,
