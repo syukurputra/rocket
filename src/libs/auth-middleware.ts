@@ -13,6 +13,7 @@ import {
 export type AuthenticatedUser = {
   id: string
   username: string
+  name?: string | null
   email: string
   tokenVersion: number
   companyId: string | null
