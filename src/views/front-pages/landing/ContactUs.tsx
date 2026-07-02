@@ -117,6 +117,23 @@ const ContactUs = () => {
               </CardContent>
             </Card>
           </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Card className='text-center h-full'>
+              <CardContent className='flex flex-col items-center gap-4 pbs-8 pbe-8'>
+                <CustomAvatar variant='rounded' size={56} skin='light' color='warning'>
+                  <i className='tabler-map-pin text-2xl' />
+                </CustomAvatar>
+                <div className='flex flex-col gap-1'>
+                  <Typography variant='h6' color='text.primary' className='font-semibold'>
+                    Alamat
+                  </Typography>
+                  <Typography color='text.secondary'>
+                    Aryana Karawaci Cluster Flora Blok E6-08, Kab. Tangerang
+                  </Typography>
+                </div>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
       </div>
     </section>
