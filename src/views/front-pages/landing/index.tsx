@@ -13,9 +13,7 @@ import CustomerReviews from '@/src/views/front-pages/landing/CustomerReviews'
 import OurTeam from '@/src/views/front-pages/landing/OurTeam'
 import Pricing from '@/src/views/front-pages/landing/Pricing'
 import ProductStat from '@/src/views/front-pages/landing/ProductStat'
-import Faqs from '@/src/views/front-pages/landing/Faqs'
 import GetStarted from '@/src/views/front-pages/landing/GetStarted'
-import ContactUs from '@/src/views/front-pages/landing/ContactUs'
 import { useSettings } from '@core/hooks/useSettings'
 
 const LandingPageWrapper = ({ mode }: { mode: SystemMode }) => {
@@ -38,9 +36,7 @@ const LandingPageWrapper = ({ mode }: { mode: SystemMode }) => {
       {/* <OurTeam /> */}
       <Pricing />
       {/* <ProductStat /> */}
-      <Faqs />
       {/* <GetStarted mode={mode} /> */}
-      <ContactUs />
     </div>
   )
 }

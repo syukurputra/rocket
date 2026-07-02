@@ -1,5 +1,8 @@
-import type { FaqType } from '@/src/types/pages/faqTypes'
+﻿import type { FaqType } from '@/src/types/pages/faqTypes'
 import FAQ from '@/src/views/pages/faq'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const faqData: FaqType[] = [
   {
@@ -247,7 +250,7 @@ const faqData: FaqType[] = [
         question: 'Kapan refund tidak bisa dilakukan?',
         answer:
           'Refund tidak dapat diproses dalam kondisi berikut: paket sudah aktif dan digunakan selama lebih dari 7 hari, pengajuan dilakukan setelah lebih dari 30 hari sejak tanggal pembayaran, atau pelanggaran Syarat & Ketentuan yang menyebabkan akun dinonaktifkan.'
-      },
+      }
     ]
   }
 ]

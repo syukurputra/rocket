@@ -96,11 +96,11 @@ const FrontMenu = (props: Props) => {
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
             Paket Harga
           </Typography>
-          <Typography color='text.primary' component={Link} href='/landing#faq'
+          <Typography color='text.primary' component={Link} href='/faq'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
             FAQ
           </Typography>
-          <Typography color='text.primary' component={Link} href='/landing#contact-us'
+          <Typography color='text.primary' component={Link} href='/contact'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
             Hubungi Kami
           </Typography>
