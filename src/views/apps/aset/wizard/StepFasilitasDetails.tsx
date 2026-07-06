@@ -14,11 +14,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
-import Autocomplete from '@mui/material/Autocomplete'
-
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
+import IconSearchAutocomplete from '@/src/components/IconSearchAutocomplete'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type Props = {
@@ -48,7 +47,6 @@ const StepFasilitasDetails = ({ activeStep, handleNext, handlePrev, steps, asetI
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
   const [fasilitas, setFasilitas] = useState<FasilitasData[]>([])
-  const [icons, setIcons] = useState<IconData[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -58,25 +56,11 @@ const StepFasilitasDetails = ({ activeStep, handleNext, handlePrev, steps, asetI
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    fetchIcons()
-
     if (asetId) {
       fetchFasilitas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asetId])
-
-  const fetchIcons = async () => {
-    try {
-      const res = await apiFetchClient<IconData[]>(`/api/master/icon/dropdown`)
-
-      if (res) {
-        setIcons(res)
-      }
-    } catch (error) {
-      console.error('Error fetching icons:', error)
-    }
-  }
 
   const fetchFasilitas = async () => {
     try {
@@ -281,23 +265,9 @@ const StepFasilitasDetails = ({ activeStep, handleNext, handlePrev, steps, asetI
         />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <Autocomplete
-          options={icons}
-          getOptionLabel={option => option.nama}
+        <IconSearchAutocomplete
           value={selectedIcon}
-          onChange={(_, newValue) => setSelectedIcon(newValue)}
-          renderInput={params => <CustomTextField {...params} label='Icon' placeholder='Pilih Icon' />}
-          renderOption={(props, option) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { key, ...otherProps } = props
-
-            return (
-              <li key={option.id} {...otherProps}>
-                <i className={option.code} style={{ marginRight: 8, fontSize: '20px' }} />
-                {option.nama}
-              </li>
-            )
-          }}
+          onChange={setSelectedIcon}
         />
       </Grid>
 

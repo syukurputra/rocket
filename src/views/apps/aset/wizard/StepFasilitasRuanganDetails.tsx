@@ -19,6 +19,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
+import IconSearchAutocomplete from '@/src/components/IconSearchAutocomplete'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type Props = {
@@ -55,7 +56,6 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   const [view, setView] = useState<'table' | 'form'>('table')
   const [fasilitas, setFasilitas] = useState<FasilitasRuanganData[]>([])
   const [ruangans, setRuangans] = useState<RuanganData[]>([])
-  const [icons, setIcons] = useState<IconData[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -65,26 +65,12 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   const [selectedIcon, setSelectedIcon] = useState<IconData | null>(null)
 
   useEffect(() => {
-    fetchIcons()
-
     if (asetId) {
       fetchRuangans()
       fetchFasilitas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asetId])
-
-  const fetchIcons = async () => {
-    try {
-      const res = await apiFetchClient<IconData[]>(`/api/master/icon/dropdown`)
-
-      if (res) {
-        setIcons(res)
-      }
-    } catch (error) {
-      console.error('Error fetching icons:', error)
-    }
-  }
 
   const fetchRuangans = async () => {
     try {
@@ -292,23 +278,9 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
         />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <Autocomplete
-          options={icons}
-          getOptionLabel={option => option.nama}
+        <IconSearchAutocomplete
           value={selectedIcon}
-          onChange={(_, newValue) => setSelectedIcon(newValue)}
-          renderInput={params => <CustomTextField {...params} label='Icon' placeholder='Pilih Icon' />}
-          renderOption={(props, option) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { key, ...otherProps } = props
-
-            return (
-              <li key={option.id} {...otherProps}>
-                <i className={option.code} style={{ marginRight: 8, fontSize: '20px' }} />
-                {option.nama}
-              </li>
-            )
-          }}
+          onChange={setSelectedIcon}
         />
       </Grid>
       <Grid size={{ xs: 12 }}>

@@ -1,15 +1,7 @@
-import Grid from '@mui/material/Grid2'
-
-import BookingList from '@/src/views/apps/booking/list'
+import { redirect } from 'next/navigation'
 
 const BookingPage = () => {
-  return (
-    <Grid container>
-      <Grid size={{ xs: 12 }}>
-        <BookingList />
-      </Grid>
-    </Grid>
-  )
+  redirect('/booking/aset')
 }
 
 export default BookingPage

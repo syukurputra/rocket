@@ -41,7 +41,8 @@ import CustomTextField from '@core/components/mui/TextField'
 import tableStyles from '@core/styles/table.module.css'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import BookingDetailDialog from './BookingDetailDialog'
+import BookingDetailDialog from '@/src/views/apps/booking/list/BookingDetailDialog'
+import TambahBookingDialog from './TambahBookingDialog'
 
 declare module '@tanstack/table-core' {
   interface FilterFns { fuzzy: FilterFn<unknown> }
@@ -85,7 +86,7 @@ const columnHelper = createColumnHelper<TagihanWithAction>()
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
-const BookingList = () => {
+const BookingAsetList = () => {
   const [data, setData] = useState<TagihanWithAction[]>([])
   const [filteredData, setFilteredData] = useState<TagihanWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
@@ -98,26 +99,30 @@ const BookingList = () => {
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
   const [pendingSearch, setPendingSearch] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
+  const [pendingStatus, setPendingStatus] = useState('')
+  const [activeStatus, setActiveStatus] = useState('')
   const filterOpen = Boolean(filterAnchor)
 
   const [selectedTagihan, setSelectedTagihan] = useState<TagihanBooking | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [tambahOpen, setTambahOpen] = useState(false)
 
   const { snack, showSnack, closeSnack } = useSnackbar()
 
-  const activeFilterCount = [activeSearch].filter(Boolean).length
+  const activeFilterCount = [activeSearch, activeStatus].filter(Boolean).length
 
-  const fetchData = async (pageNum = 0, limit = 10, search = '') => {
+  const fetchData = async (pageNum = 0, limit = 10, search = '', status = '') => {
     try {
       setLoading(true)
       const params = new URLSearchParams({ page: String(pageNum + 1), limit: String(limit) })
 
       if (search.trim()) params.append('search', search.trim())
+      if (status) params.append('status', status)
 
       const result = await apiFetchClient<{
         data: TagihanBooking[]
         pagination: { totalCount: number; totalPages: number; page: number; limit: number }
-      }>(`/api/booking?${params}`, undefined, { redirectOn401: '/login' })
+      }>(`/api/booking/aset?${params}`, undefined, { redirectOn401: '/login' })
 
       const rows = result.data || []
       const totalPages = result.pagination?.totalPages ?? 0
@@ -128,26 +133,29 @@ const BookingList = () => {
       setTotalCount(total)
       setPageCountState(totalPages || Math.ceil(total / limit))
     } catch (err) {
-      console.error('Fetch booking error:', err)
+      console.error('Fetch booking aset error:', err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchData(currentPage, pageSize, activeSearch)
+    fetchData(currentPage, pageSize, activeSearch, activeStatus)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, activeSearch])
+  }, [currentPage, pageSize, activeSearch, activeStatus])
 
   const handleApplyFilter = () => {
     setActiveSearch(pendingSearch)
+    setActiveStatus(pendingStatus)
     setCurrentPage(0)
     setFilterAnchor(null)
   }
 
   const handleResetFilter = () => {
     setPendingSearch('')
+    setPendingStatus('')
     setActiveSearch('')
+    setActiveStatus('')
     setCurrentPage(0)
     setFilterAnchor(null)
   }
@@ -155,18 +163,26 @@ const BookingList = () => {
   const columns = useMemo<ColumnDef<TagihanWithAction, any>[]>(
     () => [
       columnHelper.accessor('penyewa', {
+        id: 'penyewa',
+        header: 'Penyewa',
+        cell: ({ row }) => (
+          <Box>
+            <Typography variant='body2' fontWeight={500}>{row.original.penyewa?.nama || '-'}</Typography>
+            {row.original.penyewa?.nomorTelepon && (
+              <Typography variant='caption' color='text.secondary'>{row.original.penyewa.nomorTelepon}</Typography>
+            )}
+          </Box>
+        )
+      }),
+      columnHelper.accessor('penyewa', {
         id: 'aset',
         header: 'Aset',
         cell: ({ row }) => <Typography>{row.original.aset?.nama || '-'}</Typography>
       }),
       columnHelper.accessor('ruangan', {
         id: 'ruangan',
-        header: 'Nama Item Sewa',
+        header: 'Item Aset',
         cell: ({ row }) => <Typography>{row.original.ruangan?.nama || '-'}</Typography>
-      }),
-      columnHelper.accessor('keterangan', {
-        header: 'Keterangan',
-        cell: ({ row }) => <Typography variant='body2'>{row.original.keterangan}</Typography>
       }),
       columnHelper.accessor('periodeSewa', {
         id: 'periodeSewa',
@@ -176,11 +192,11 @@ const BookingList = () => {
         )
       }),
       columnHelper.accessor('mulaiSewa', {
-        header: 'Tanggal Mulai Sewa',
+        header: 'Mulai Sewa',
         cell: ({ row }) => <Typography>{dayjs(row.original.mulaiSewa).format('DD-MM-YYYY')}</Typography>
       }),
       columnHelper.accessor('selesaiSewa', {
-        header: 'Tanggal Selesai Sewa',
+        header: 'Selesai Sewa',
         cell: ({ row }) => <Typography>{dayjs(row.original.selesaiSewa).format('DD-MM-YYYY')}</Typography>
       }),
       columnHelper.accessor('nominal', {
@@ -205,7 +221,7 @@ const BookingList = () => {
       columnHelper.accessor('action', {
         header: 'Aksi',
         cell: ({ row }) => (
-          <Tooltip title='Detail & Bayar'>
+          <Tooltip title='Detail'>
             <IconButton
               size='small'
               onClick={() => { setSelectedTagihan(row.original); setDetailOpen(true) }}
@@ -280,9 +296,18 @@ const BookingList = () => {
 
       <Card>
         <CardHeader
-          title='Daftar Booking'
+          title='Booking Aset'
           action={
             <Box display='flex' alignItems='center' gap={2}>
+              <Button
+                variant='contained'
+                size='small'
+                startIcon={<i className='tabler-plus' />}
+                onClick={() => setTambahOpen(true)}
+              >
+                Tambah Booking
+              </Button>
+
               <Button
                 size='small'
                 onMouseEnter={e => setFilterAnchor(e.currentTarget)}
@@ -317,19 +342,33 @@ const BookingList = () => {
                 onClose={() => setFilterAnchor(null)}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 320 } } }}
+                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 340 } } }}
               >
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
                     <CustomTextField
                       fullWidth
                       label='Cari'
-                      placeholder='Cari keterangan / aset...'
+                      placeholder='Cari penyewa / aset / item...'
                       value={pendingSearch}
                       onChange={e => setPendingSearch(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
                       autoFocus
                     />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      label='Status'
+                      value={pendingStatus}
+                      onChange={e => setPendingStatus(e.target.value)}
+                    >
+                      <MenuItem value=''>Semua Status</MenuItem>
+                      <MenuItem value='LUNAS'>Lunas</MenuItem>
+                      <MenuItem value='BELUM TERBAYAR'>Belum Terbayar</MenuItem>
+                      <MenuItem value='DIBATALKAN'>Dibatalkan</MenuItem>
+                    </CustomTextField>
                   </Grid>
                   <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
                     <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
@@ -426,10 +465,16 @@ const BookingList = () => {
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         tagihan={selectedTagihan}
-        onPaid={() => fetchData(currentPage, pageSize, activeSearch)}
+        onPaid={() => fetchData(currentPage, pageSize, activeSearch, activeStatus)}
+      />
+
+      <TambahBookingDialog
+        open={tambahOpen}
+        onClose={() => setTambahOpen(false)}
+        onSuccess={() => fetchData(currentPage, pageSize, activeSearch, activeStatus)}
       />
     </>
   )
 }
 
-export default BookingList
+export default BookingAsetList

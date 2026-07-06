@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from 'react'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -21,7 +20,7 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid2'
 import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
-import Badge from '@mui/material/Badge'
+import Popover from '@mui/material/Popover'
 
 import classnames from 'classnames'
 import dayjs from 'dayjs'
@@ -74,7 +73,8 @@ const KonfirmasiPembayaranTable = () => {
   const [tanggalSampai, setTanggalSampai] = useState('')
   const [invoiceDari, setInvoiceDari] = useState('')
   const [invoiceSampai, setInvoiceSampai] = useState('')
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const filterOpen = Boolean(filterAnchor)
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
@@ -108,6 +108,7 @@ const KonfirmasiPembayaranTable = () => {
   const activeFilterCount = [statusFilter, companyFilter, tanggalDari, tanggalSampai, invoiceDari, invoiceSampai].filter(Boolean).length
 
   const handleApplyFilter = () => {
+    setFilterAnchor(null)
     setStatusFilter(pendingStatus)
     setCompanyFilter(pendingCompany)
     setInvoiceDari(pendingInvoiceDari)
@@ -118,6 +119,7 @@ const KonfirmasiPembayaranTable = () => {
   }
 
   const handleResetFilter = () => {
+    setFilterAnchor(null)
     setPendingStatus('')
     setPendingCompany('')
     setPendingInvoiceDari('')
@@ -300,102 +302,125 @@ const KonfirmasiPembayaranTable = () => {
         <CardHeader
           title='Konfirmasi Pembayaran'
           action={
-            <div className='flex items-center gap-2'>
-              <Badge badgeContent={activeFilterCount || undefined} color='error'>
-                <Button
-                  variant={filterOpen ? 'contained' : 'outlined'}
-                  size='small'
-                  startIcon={<i className='tabler-filter' />}
-                  onClick={() => setFilterOpen(prev => !prev)}
-                >
-                  Filter
-                </Button>
-              </Badge>
+            <Box display='flex' alignItems='center' gap={2}>
+              <Button
+                size='small'
+                onMouseEnter={e => setFilterAnchor(e.currentTarget)}
+                onClick={e => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
+                endIcon={<i className={`tabler-chevron-${filterOpen ? 'up' : 'down'} text-base`} />}
+                sx={{
+                  border: '1px solid',
+                  borderColor: activeFilterCount > 0 ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  px: 2,
+                  py: 0.75,
+                  color: activeFilterCount > 0 ? 'primary.main' : 'text.secondary',
+                  bgcolor: 'transparent',
+                  fontWeight: 400,
+                  fontSize: '0.875rem',
+                  textTransform: 'none',
+                  gap: 1,
+                  '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'transparent' }
+                }}
+              >
+                <i className='tabler-filter text-base' />
+                Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+              </Button>
+
               {activeFilterCount > 0 && (
                 <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
               )}
-            </div>
+
+              <Popover
+                open={filterOpen}
+                anchorEl={filterAnchor}
+                onClose={() => setFilterAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 400 } } }}
+              >
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      value={pendingStatus}
+                      onChange={e => setPendingStatus(e.target.value)}
+                      label='Status'
+                      slotProps={{ select: { displayEmpty: true } }}
+                    >
+                      <MenuItem value=''>Semua Status</MenuItem>
+                      <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
+                      <MenuItem value='PAID'>Lunas</MenuItem>
+                      <MenuItem value='PENDING'>Menunggu</MenuItem>
+                      <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
+                      <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
+                    </CustomTextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      autoFocus
+                      fullWidth
+                      value={pendingCompany}
+                      onChange={e => setPendingCompany(e.target.value)}
+                      label='Nama Perusahaan'
+                      placeholder='Cari perusahaan...'
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      type='date'
+                      fullWidth
+                      value={pendingInvoiceDari}
+                      onChange={e => setPendingInvoiceDari(e.target.value)}
+                      label='Invoice Dari'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      type='date'
+                      fullWidth
+                      value={pendingInvoiceSampai}
+                      onChange={e => setPendingInvoiceSampai(e.target.value)}
+                      label='Invoice Sampai'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      type='date'
+                      fullWidth
+                      value={pendingTanggalDari}
+                      onChange={e => setPendingTanggalDari(e.target.value)}
+                      label='Bayar Dari'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      type='date'
+                      fullWidth
+                      value={pendingTanggalSampai}
+                      onChange={e => setPendingTanggalSampai(e.target.value)}
+                      label='Bayar Sampai'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
+                    <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
+                      Tutup
+                    </Button>
+                    <Button size='small' variant='contained' onClick={handleApplyFilter}>
+                      Terapkan
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Popover>
+            </Box>
           }
         />
-        <Collapse in={filterOpen}>
-          <Divider />
-          <CardContent>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  value={pendingStatus}
-                  onChange={e => setPendingStatus(e.target.value)}
-                  label='Status'
-                  slotProps={{ select: { displayEmpty: true } }}
-                >
-                  <MenuItem value=''>Semua Status</MenuItem>
-                  <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
-                  <MenuItem value='PAID'>Lunas</MenuItem>
-                  <MenuItem value='PENDING'>Menunggu</MenuItem>
-                  <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
-                  <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  fullWidth
-                  value={pendingCompany}
-                  onChange={e => setPendingCompany(e.target.value)}
-                  label='Nama Perusahaan'
-                  placeholder='Cari perusahaan...'
-                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  value={pendingInvoiceDari}
-                  onChange={e => setPendingInvoiceDari(e.target.value)}
-                  label='Invoice Dari'
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  value={pendingInvoiceSampai}
-                  onChange={e => setPendingInvoiceSampai(e.target.value)}
-                  label='Invoice Sampai'
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  value={pendingTanggalDari}
-                  onChange={e => setPendingTanggalDari(e.target.value)}
-                  label='Bayar Dari'
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  value={pendingTanggalSampai}
-                  onChange={e => setPendingTanggalSampai(e.target.value)}
-                  label='Bayar Sampai'
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }} className='flex justify-end'>
-                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
-                  Cari
-                </Button>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Collapse>
 
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>

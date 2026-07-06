@@ -190,7 +190,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/forgot-password',
       '/reset-password',
       '/auth-success',
-      '/publish'
+      '/publish',
+      '/home'
     ]
 
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
@@ -227,7 +228,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/forgot-password',
       '/reset-password',
       '/auth-success',
-      '/publish'
+      '/publish',
+      '/home'
     ]
 
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))

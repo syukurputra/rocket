@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
+const DEMO_COMPANY_ID = 'company-demo-001'
+
 // GET /api/invoice/[id]
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
@@ -36,8 +38,8 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'Invoice tidak ditemukan' }, { status: 404 })
     }
 
-    // Ensure the invoice belongs to the user's company
-    if (invoice.companyId !== user.companyId) {
+    // Ensure the invoice belongs to the user's company (demo company can access all)
+    if (user.companyId !== DEMO_COMPANY_ID && invoice.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
     }
 
@@ -61,7 +63,7 @@ async function handlePatch(request: NextRequest, { user, params }: AuthContext &
       return NextResponse.json({ message: 'Invoice tidak ditemukan' }, { status: 404 })
     }
 
-    if (existing.companyId !== user.companyId) {
+    if (user.companyId !== DEMO_COMPANY_ID && existing.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
     }
 

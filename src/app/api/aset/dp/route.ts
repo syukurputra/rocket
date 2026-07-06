@@ -7,9 +7,7 @@ async function handleGet(
   { user }: AuthContext
 ) {
   try {
-    const where = {
-      createdById: user.id
-    }
+    const where: any = user.companyId ? { companyId: user.companyId } : { createdById: user.id }
 
     // Fetch data dengan relations
     const [data] = await Promise.all([

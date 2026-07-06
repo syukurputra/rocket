@@ -17,8 +17,7 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
-import Badge from '@mui/material/Badge'
-import Collapse from '@mui/material/Collapse'
+import Popover from '@mui/material/Popover'
 import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
@@ -89,16 +88,19 @@ const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
   const [selectedRole, setSelectedRole] = useState<RoleClient | null>(null)
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
 
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const filterOpen = Boolean(filterAnchor)
   const [pendingSearch, setPendingSearch] = useState('')
 
   const activeFilterCount = [pendingSearch].filter(Boolean).length
 
   const handleApplyFilter = () => {
+    setFilterAnchor(null)
     setGlobalFilter(pendingSearch)
   }
 
   const handleResetFilter = () => {
+    setFilterAnchor(null)
     setPendingSearch('')
     setGlobalFilter('')
   }
@@ -264,45 +266,68 @@ const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
         <CardHeader
           title='Role Management'
           action={
-            <div className='flex items-center gap-2'>
-              <Badge badgeContent={activeFilterCount || undefined} color='error'>
-                <Button
-                  variant={filterOpen ? 'contained' : 'outlined'}
-                  size='small'
-                  startIcon={<i className='tabler-filter' />}
-                  onClick={() => setFilterOpen(o => !o)}
-                >
-                  Filter
-                </Button>
-              </Badge>
+            <Box display='flex' alignItems='center' gap={2}>
+              <Button
+                size='small'
+                onMouseEnter={e => setFilterAnchor(e.currentTarget)}
+                onClick={e => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
+                endIcon={<i className={`tabler-chevron-${filterOpen ? 'up' : 'down'} text-base`} />}
+                sx={{
+                  border: '1px solid',
+                  borderColor: activeFilterCount > 0 ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  px: 2,
+                  py: 0.75,
+                  color: activeFilterCount > 0 ? 'primary.main' : 'text.secondary',
+                  bgcolor: 'transparent',
+                  fontWeight: 400,
+                  fontSize: '0.875rem',
+                  textTransform: 'none',
+                  gap: 1,
+                  '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'transparent' }
+                }}
+              >
+                <i className='tabler-filter text-base' />
+                Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+              </Button>
+
               {activeFilterCount > 0 && (
                 <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
               )}
-            </div>
+
+              <Popover
+                open={filterOpen}
+                anchorEl={filterAnchor}
+                onClose={() => setFilterAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 320 } } }}
+              >
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12 }}>
+                    <CustomTextField
+                      autoFocus
+                      fullWidth
+                      label='Cari'
+                      placeholder='Cari role...'
+                      value={pendingSearch}
+                      onChange={e => setPendingSearch(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
+                    <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
+                      Tutup
+                    </Button>
+                    <Button size='small' variant='contained' onClick={handleApplyFilter}>
+                      Terapkan
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Popover>
+            </Box>
           }
         />
-        <Collapse in={filterOpen}>
-          <Divider />
-          <CardContent>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Cari'
-                  placeholder='Cari role...'
-                  value={pendingSearch}
-                  onChange={e => setPendingSearch(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }} className='flex justify-end'>
-                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
-                  Cari
-                </Button>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Collapse>
         <Divider />
         <CardContent className='flex items-end justify-end gap-4 flex-wrap'>
           <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={() => setDialogOpen(true)}>

@@ -38,7 +38,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
               </div>
             </Grid>
             <Grid size={{ xs: 12, sm: 4, md: 2.5 }}>
-              <Typography color='white' className='font-semibold mbe-4'>
+              <Typography component={Link} href='/contact' color='white' className='font-semibold mbe-4 hover:opacity-80'>
                 Kontak Kami
               </Typography>
               <div className='flex flex-col gap-3'>
@@ -63,7 +63,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
               </div>
             </Grid>
             <Grid size={{ xs: 12, sm: 4, md: 2 }}>
-              <Typography color='white' className='font-semibold mbe-4'>
+              <Typography component={Link} href='/faq' color='white' className='font-semibold mbe-4 hover:opacity-80'>
                 FAQ
               </Typography>
               <div className='flex flex-col gap-3'>
@@ -79,7 +79,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
               </div>
             </Grid>
             <Grid size={{ xs: 12, sm: 4, md: 3.5 }}>
-              <Typography color='white' className='font-semibold mbe-4'>
+              <Typography component={Link} href='/term-condition' color='white' className='font-semibold mbe-4 hover:opacity-80'>
                 Syarat dan Ketentuan
               </Typography>
               <div className='flex flex-col gap-3'>

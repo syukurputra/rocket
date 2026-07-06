@@ -5,11 +5,13 @@ import type { Theme } from '@mui/material/styles'
 
 const AppFullCalendar = styled('div')(({ theme }: { theme: Theme }) => ({
   display: 'flex',
+  width: '100%',
   position: 'relative',
   borderRadius: 'var(--mui-shape-borderRadius)',
   '& .fc': {
     zIndex: 1,
-    '.fc-col-header, .fc-daygrid-body, .fc-scrollgrid-sync-table, .fc-timegrid-body, .fc-timegrid-body table': {
+    width: '100%',
+    '.fc-col-header, .fc-daygrid-body, .fc-scrollgrid-sync-table, .fc-timegrid-body, .fc-timegrid-body table, .fc-list, .fc-list-table': {
       width: '100% !important'
     },
     '& .fc-toolbar': {
@@ -165,7 +167,8 @@ const AppFullCalendar = styled('div')(({ theme }: { theme: Theme }) => ({
     },
     '& .fc-view-harness': {
       minHeight: '650px',
-      margin: theme.spacing(0, -6)
+      margin: theme.spacing(0, -6),
+      width: '100% !important'
     },
     '& .fc-col-header': {
       '& .fc-col-header-cell-cushion': {
@@ -217,6 +220,7 @@ const AppFullCalendar = styled('div')(({ theme }: { theme: Theme }) => ({
     },
     '& .fc-list': {
       border: 'none',
+      width: '100% !important',
       '& .fc-list-day-cushion': {
         background: 'transparent',
         padding: theme.spacing(2, 4)
@@ -252,6 +256,7 @@ const AppFullCalendar = styled('div')(({ theme }: { theme: Theme }) => ({
         borderTop: '1px solid var(--mui-palette-divider)'
       },
       '.fc-list-table': {
+        width: '100%',
         borderBottom: '1px solid var(--mui-palette-divider)'
       }
     },

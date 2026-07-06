@@ -1,17 +1,28 @@
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+
 import prisma from '@/src/libs/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get('search') || ''
+
+    // Wajib minimal 2 karakter
+    if (search.trim().length < 2) {
+      return NextResponse.json([])
+    }
+
     const icons = await prisma.masterIcon.findMany({
-      select: {
-        id: true,
-        nama: true,
-        code: true
+      where: {
+        OR: [
+          { nama: { contains: search.trim(), mode: 'insensitive' } },
+          { code: { contains: search.trim(), mode: 'insensitive' } }
+        ]
       },
-      orderBy: {
-        nama: 'asc'
-      }
+      select: { id: true, nama: true, code: true },
+      orderBy: { nama: 'asc' },
+      take: 50
     })
 
     return NextResponse.json(icons)

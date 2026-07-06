@@ -13,11 +13,11 @@ import Grid from '@mui/material/Grid2'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Autocomplete from '@mui/material/Autocomplete'
-
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import DialogCloseButton from '@components/dialogs/DialogCloseButton'
 import CustomTextField from '@core/components/mui/TextField'
+import IconSearchAutocomplete from '@/src/components/IconSearchAutocomplete'
+import type { IconOption } from '@/src/components/IconSearchAutocomplete'
 import type { CategoryKeuanganClient } from '@/src/types/apps/categoryKeuanganTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
@@ -53,27 +53,7 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
   const [form, setForm] = useState<FormValues>(DEFAULTS)
   const [saving, setSaving] = useState(false)
   const { snack, showSnack, closeSnack } = useSnackbar()
-  const [icons, setIcons] = useState<Array<{ id: string; nama: string; code: string }>>([])
-
-
-  // Fetch icons for dropdown
-  useEffect(() => {
-    const fetchIcons = async () => {
-      try {
-        const response = await apiFetchClient<{ data: Array<{ id: string; nama: string; code: string }> }>(
-          '/api/master/icon?all=true'
-        )
-
-        setIcons(response.data || [])
-      } catch (error) {
-        console.error('Failed to fetch icons:', error)
-      }
-    }
-
-    if (open) {
-      fetchIcons()
-    }
-  }, [open])
+  const [selectedIcon, setSelectedIcon] = useState<IconOption | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -88,8 +68,17 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
         color: initialData.color ?? '#000000',
         status: initialData.status ?? true
       })
+      // Set selected icon untuk mode edit
+      if (initialData.iconId && (initialData as any).icon) {
+        setSelectedIcon((initialData as any).icon)
+      } else if (initialData.iconId) {
+        setSelectedIcon({ id: initialData.iconId, nama: '', code: '' })
+      } else {
+        setSelectedIcon(null)
+      }
     } else {
       setForm(DEFAULTS)
+      setSelectedIcon(null)
     }
   }, [open, mode, initialData])
 
@@ -226,30 +215,12 @@ export default function AddEditCategoryKeuangan({ open, setOpen, mode = 'create'
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Autocomplete
-                  options={icons}
-                  getOptionLabel={option => option.nama}
-                  value={icons.find(icon => icon.id === form.iconId) || null}
-                  onChange={(_, newValue) => {
-                    setForm(prev => ({ ...prev, iconId: newValue?.id || '' }))
+                <IconSearchAutocomplete
+                  value={selectedIcon}
+                  onChange={icon => {
+                    setSelectedIcon(icon)
+                    setForm(prev => ({ ...prev, iconId: icon?.id || '' }))
                   }}
-                  renderInput={params => (
-                    <CustomTextField {...params} label='Icon' placeholder='Cari icon...' variant='outlined' />
-                  )}
-                  renderOption={(props, option) => {
-                    const { key, ...otherProps } = props as any
-
-                    return (
-                      <li key={key} {...otherProps}>
-                        <div className='flex items-center gap-2'>
-                          <i className={option.code} />
-                          <span>{option.nama}</span>
-                        </div>
-                      </li>
-                    )
-                  }}
-                  noOptionsText='Tidak ada icon'
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>

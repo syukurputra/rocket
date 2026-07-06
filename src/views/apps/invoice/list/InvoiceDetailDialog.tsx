@@ -21,7 +21,7 @@ import dayjs from 'dayjs'
 import type { InvoiceClient, InvoiceStatus } from '@/src/types/apps/invoiceTypes'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import tableStyles from '@core/styles/table.module.css'
+import { downloadPdfFromApi } from '@/src/utils/downloadPdf'
 
 const statusColors: Record<InvoiceStatus, 'warning' | 'success' | 'error' | 'default' | 'info'> = {
   PENDING: 'warning',
@@ -43,171 +43,6 @@ const formatRupiah = (num: number | string) => {
   const n = typeof num === 'string' ? parseFloat(num) : num
 
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
-}
-
-const downloadInvoicePdf = async (invoice: InvoiceClient) => {
-  const { jsPDF } = await import('jspdf')
-  const { default: autoTable } = await import('jspdf-autotable')
-
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-
-  const primaryColor: [number, number, number] = [99, 89, 233]
-  const successColor: [number, number, number] = [40, 167, 69]
-  const grayText: [number, number, number] = [108, 117, 125]
-  const lightGray: [number, number, number] = [245, 245, 248]
-  const darkText: [number, number, number] = [33, 37, 41]
-  const borderColor: [number, number, number] = [220, 220, 228]
-  const pageW = doc.internal.pageSize.getWidth()
-  const margin = 20
-  const contentW = pageW - margin * 2
-
-  // ── Header card (gray bg, like dialog) ────────────────────────────────────
-  doc.setFillColor(...lightGray)
-  doc.roundedRect(margin, 15, contentW, 30, 2, 2, 'F')
-
-  // Left: Bantu Sewa
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.setTextColor(...darkText)
-  doc.text('Bantu Sewa', margin + 5, 27)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(...grayText)
-  doc.text('Platform Manajemen Sewa', margin + 5, 34)
-
-  // Right: Lunas badge centered in header card
-  const rightX = pageW - margin - 5
-  doc.setFillColor(...successColor)
-  doc.roundedRect(rightX - 22, 27, 22, 7, 2, 2, 'F')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  doc.setTextColor(255, 255, 255)
-  doc.text('Lunas', rightX - 11, 32, { align: 'center' })
-
-  // Info Transaksi
-  let y = 56
-  const labelX = margin
-  const valueX = margin + 42
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(...grayText)
-  doc.text('ID Invoice', labelX, y)
-  doc.setTextColor(...darkText)
-  doc.setFont('helvetica', 'bold')
-  doc.text(invoice.nomorInvoice, valueX, y)
-
-  y += 7
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...grayText)
-  doc.text('Tanggal Invoice', labelX, y)
-  doc.setTextColor(...darkText)
-  doc.setFont('helvetica', 'bold')
-  doc.text(dayjs(invoice.tanggalInvoice).format('DD MMMM YYYY'), valueX, y)
-
-  if (invoice.tanggalBayar) {
-    y += 7
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...grayText)
-    doc.text('Tanggal Bayar', labelX, y)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...successColor)
-    doc.text(dayjs(invoice.tanggalBayar).format('DD MMMM YYYY'), valueX, y)
-  }
-
-  y += 10
-  doc.setDrawColor(...borderColor)
-  doc.setLineWidth(0.3)
-  doc.line(margin, y, pageW - margin, y)
-  y += 8
-
-  // ── DITAGIHKAN KEPADA ──────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8)
-  doc.setTextColor(...grayText)
-  doc.text('DITAGIHKAN KEPADA', margin, y)
-  y += 6
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...darkText)
-  doc.text((invoice as any).company?.nama || '-', margin, y)
-  y += 5
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(...grayText)
-  if ((invoice as any).company?.alamat) { doc.text((invoice as any).company.alamat, margin, y); y += 5 }
-  if ((invoice as any).company?.email) { doc.text((invoice as any).company.email, margin, y); y += 5 }
-
-  // ── Divider ────────────────────────────────────────────────────────────────
-  y += 4
-  doc.setDrawColor(...borderColor)
-  doc.setLineWidth(0.4)
-  doc.line(margin, y, pageW - margin, y)
-  y += 6
-
-  // ── Tabel PAKET | SIKLUS | HARGA ──────────────────────────────────────────
-  autoTable(doc, {
-    startY: y,
-    margin: { left: margin, right: margin },
-    head: [['PAKET', 'SIKLUS', 'HARGA']],
-    body: [[(invoice as any).paket?.nama || '-', invoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan', formatRupiah(invoice.subtotal)]],
-    headStyles: {
-      fillColor: lightGray,
-      textColor: grayText,
-      fontSize: 8,
-      fontStyle: 'bold',
-      lineColor: borderColor,
-      lineWidth: 0.3
-    },
-    bodyStyles: { fontSize: 10, textColor: darkText },
-    columnStyles: {
-      0: { cellWidth: 'auto' },
-      1: { cellWidth: 35 },
-      2: { halign: 'right', textColor: primaryColor, fontStyle: 'bold' }
-    },
-    theme: 'plain',
-    tableLineColor: borderColor,
-    tableLineWidth: 0.3
-  })
-
-  // ── Summary ────────────────────────────────────────────────────────────────
-  y = (doc as any).lastAutoTable.finalY + 8
-  const summaryLabelX = pageW - margin - 60
-  const summaryValX = pageW - margin
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(...grayText)
-  doc.text('Subtotal', summaryLabelX, y)
-  doc.text(formatRupiah(invoice.subtotal), summaryValX, y, { align: 'right' })
-  y += 7
-  doc.text('PPN (11%)', summaryLabelX, y)
-  doc.text(formatRupiah(invoice.pajak), summaryValX, y, { align: 'right' })
-  y += 4
-  doc.setDrawColor(...borderColor)
-  doc.setLineWidth(0.3)
-  doc.line(summaryLabelX, y, summaryValX, y)
-  y += 6
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...darkText)
-  doc.text('Total', summaryLabelX, y)
-  doc.setTextColor(...primaryColor)
-  doc.setFontSize(13)
-  doc.text(formatRupiah(invoice.total), summaryValX, y, { align: 'right' })
-
-  // ── Footer ─────────────────────────────────────────────────────────────────
-  const footerY = doc.internal.pageSize.getHeight() - 15
-  doc.setDrawColor(...borderColor)
-  doc.setLineWidth(0.3)
-  doc.line(margin, footerY - 4, pageW - margin, footerY - 4)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.setTextColor(...grayText)
-  const printDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
-  doc.text(`Dicetak: ${printDate}`, margin, footerY)
-  doc.text('Bantu Sewa — Platform Manajemen Sewa', pageW - margin, footerY, { align: 'right' })
-
-  doc.save(`Bukti Bayar Paket.pdf`)
 }
 
 interface Props {
@@ -424,7 +259,7 @@ const InvoiceDetailDialog = ({ open, invoiceId, onClose, onUpdated }: Props) => 
                           if (downloading) return
                           try {
                             setDownloading(true)
-                            await downloadInvoicePdf(invoice)
+                            await downloadPdfFromApi(`/api/invoice/${invoice.id}/pdf`, `invoice-${invoice.nomorInvoice}.pdf`)
                           } catch {
                             showSnack('Gagal mengunduh bukti pembayaran', 'error')
                           } finally {

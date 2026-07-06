@@ -11,51 +11,72 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak terkait dengan perusahaan' }, { status: 400 })
     }
 
-    // Get total active aset
-    const totalAsetAktif = await prisma.aset.count({
+    // Total semua aset
+    const totalAset = await prisma.aset.count({
+      where: { companyId: user.companyId }
+    })
+
+    // Total semua item aset (ruangan)
+    const totalItemAset = await prisma.ruangan.count({
+      where: { companyId: user.companyId }
+    })
+
+    // Tersewa hari ini: tagihan LUNAS yang periodenya mencakup hari ini
+    const today = new Date()
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59)
+
+    const tersewaHariIni = await prisma.tagihan.count({
       where: {
         companyId: user.companyId,
-        status: 'aktif'
+        status: 'LUNAS',
+        mulaiSewa: { lte: endOfDay },
+        selesaiSewa: { gte: startOfDay }
       }
     })
 
-    // Get total ruangan huni (status = "huni")
-    const totalRuanganHuni = await prisma.ruangan.count({
+    // Tersewa bulan ini: tagihan LUNAS yang periodenya overlap dengan bulan ini
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59)
+
+    const tersewaBulanIni = await prisma.tagihan.count({
       where: {
         companyId: user.companyId,
-        status: 'huni'
+        status: 'LUNAS',
+        mulaiSewa: { lte: endOfMonth },
+        selesaiSewa: { gte: startOfMonth }
       }
     })
 
-    // Get total ruangan tidak huni (status = "tidak huni")
-    const totalRuanganTidakHuni = await prisma.ruangan.count({
+    // Booking aset bulan ini: tagihan LUNAS yang dibuat bulan ini
+    const bookingAsetBulanIni = await prisma.tagihan.count({
       where: {
         companyId: user.companyId,
-        status: 'tidak huni'
+        status: 'LUNAS',
+        createdAt: { gte: startOfMonth, lte: endOfMonth }
       }
     })
 
-    // Get tagihan yang selesai dalam 1 bulan ke depan
-    const oneMonthFromNow = new Date()
+    // Booking aset tahun ini: tagihan LUNAS yang dibuat tahun ini
+    const startOfYear = new Date(today.getFullYear(), 0, 1)
+    const endOfYear = new Date(today.getFullYear(), 11, 31, 23, 59, 59)
 
-    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
-
-    const penyewaSelesaiHuni = await prisma.tagihan.count({
+    const bookingAsetTahunIni = await prisma.tagihan.count({
       where: {
         companyId: user.companyId,
-        selesaiSewa: {
-          gte: new Date(),
-          lte: oneMonthFromNow
-        }
+        status: 'LUNAS',
+        createdAt: { gte: startOfYear, lte: endOfYear }
       }
     })
 
     return NextResponse.json({
       data: {
-        totalAsetAktif,
-        totalRuanganHuni,
-        totalRuanganTidakHuni,
-        penyewaSelesaiHuni
+        totalAset,
+        totalItemAset,
+        tersewaHariIni,
+        tersewaBulanIni,
+        bookingAsetBulanIni,
+        bookingAsetTahunIni
       },
       message: 'Statistik berhasil diambil'
     })

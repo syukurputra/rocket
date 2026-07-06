@@ -99,7 +99,7 @@ const KalenderView = () => {
 
   return (
     <>
-      <Card>
+      <Card className='is-full'>
         <CardContent sx={{ pb: '0 !important' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4, flexWrap: 'wrap' }}>
             <Chip size='small' label='Sedang Berjalan' color='success' variant='tonal' />
@@ -115,8 +115,8 @@ const KalenderView = () => {
             </Box>
           </CardContent>
         ) : (
-          <AppFullCalendar>
-            <CardContent sx={{ p: 6 }}>
+          <AppFullCalendar sx={{ width: '100%' }}>
+            <CardContent sx={{ p: 6, width: '100%' }}>
               <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
@@ -140,6 +140,7 @@ const KalenderView = () => {
                 dayMaxEvents={3}
                 navLinks
                 height='auto'
+                expandRows
                 eventClassNames={({ event }: any) => [`event-bg-${event.extendedProps.color}`]}
               />
             </CardContent>

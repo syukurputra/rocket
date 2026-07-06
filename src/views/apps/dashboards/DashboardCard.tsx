@@ -15,10 +15,12 @@ import HorizontalWithBorder from '@components/card-statistics/HorizontalWithBord
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type DashboardStats = {
-  totalAsetAktif: number
-  totalRuanganHuni: number
-  totalRuanganTidakHuni: number
-  penyewaSelesaiHuni: number
+  totalAset: number
+  totalItemAset: number
+  tersewaHariIni: number
+  tersewaBulanIni: number
+  bookingAsetBulanIni: number
+  bookingAsetTahunIni: number
 }
 
 const DashboardCard = () => {
@@ -63,27 +65,27 @@ const DashboardCard = () => {
 
   const data: CardStatsHorizontalWithBorderProps[] = [
     {
-      title: 'Aset Aktif',
-      stats: stats.totalAsetAktif.toString(),
+      title: 'Total Aset',
+      stats: stats.totalAset.toString(),
       icon: 'tabler-building',
       color: 'primary'
     },
     {
-      title: 'Ruangan Huni',
-      stats: stats.totalRuanganHuni.toString(),
-      icon: 'tabler-home-check',
+      title: 'Total Item Aset',
+      stats: stats.totalItemAset.toString(),
+      icon: 'tabler-door',
       color: 'success'
     },
     {
-      title: 'Ruangan Tidak Huni',
-      stats: stats.totalRuanganTidakHuni.toString(),
-      icon: 'tabler-home-x',
+      title: 'Tersewa Hari Ini',
+      stats: stats.tersewaHariIni.toString(),
+      icon: 'tabler-calendar-check',
       color: 'warning'
     },
     {
-      title: 'Selesai Huni 1 Bulan',
-      stats: stats.penyewaSelesaiHuni.toString(),
-      icon: 'tabler-calendar-time',
+      title: 'Tersewa Bulan Ini',
+      stats: stats.tersewaBulanIni.toString(),
+      icon: 'tabler-calendar-month',
       color: 'error'
     }
   ]

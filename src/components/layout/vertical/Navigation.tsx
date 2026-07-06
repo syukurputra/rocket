@@ -1,13 +1,17 @@
 'use client'
 
 // React Imports
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 // MUI Imports
 import { styled, useColorScheme, useTheme } from '@mui/material/styles'
+import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
+import Typography from '@mui/material/Typography'
 
 // Type Imports
 import type { Mode } from '@core/types'
@@ -55,9 +59,13 @@ const Navigation = (props: Props) => {
   const { updateSettings, settings } = useSettings()
   const { mode: muiMode, systemMode: muiSystemMode } = useColorScheme()
   const theme = useTheme()
+  const pathname = usePathname()
 
   // Refs
   const shadowRef = useRef(null)
+
+  // State — null = belum dicek
+  const [isAuth, setIsAuth] = useState<boolean | null>(null)
 
   // Vars
   const { isCollapsed, isHovered, collapseVerticalNav, isBreakpointReached } = verticalNavOptions
@@ -66,6 +74,10 @@ const Navigation = (props: Props) => {
   const currentMode = muiMode === 'system' ? muiSystemMode : muiMode || mode
 
   const isDark = currentMode === 'dark'
+
+  useEffect(() => {
+    setIsAuth(!!localStorage.getItem('accessToken'))
+  }, [pathname])
 
   const scrollMenu = (container: any, isPerfectScrollbar: boolean) => {
     container = isBreakpointReached || !isPerfectScrollbar ? container.target : container
@@ -91,6 +103,9 @@ const Navigation = (props: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.layout])
 
+  const isHomePage = pathname === '/home'
+  const hideMenu = isHomePage && !isAuth
+
   return (
     // eslint-disable-next-line lines-around-comment
     // Sidebar Vertical Menu
@@ -111,7 +126,7 @@ const Navigation = (props: Props) => {
         <Link href='/home'>
           <Logo />
         </Link>
-        {!(isCollapsed && !isHovered) && (
+        {!(isCollapsed && !isHovered) && !hideMenu && (
           <NavCollapseIcons
             lockedIcon={<i className='tabler-circle-dot text-xl' />}
             unlockedIcon={<i className='tabler-circle text-xl' />}
@@ -121,7 +136,21 @@ const Navigation = (props: Props) => {
         )}
       </NavHeader>
       <StyledBoxForShadow ref={shadowRef} />
-      <VerticalMenu scrollMenu={scrollMenu} />
+      {!hideMenu && <VerticalMenu scrollMenu={scrollMenu} />}
+      {hideMenu && (
+        <div className='flex flex-col gap-3 p-4 mt-4'>
+          <Typography variant='body2' color='text.secondary' className='text-center'>
+            Kelola aset sewa Anda dengan mudah
+          </Typography>
+          <Divider />
+          <Button component={Link} href='/login' variant='contained' fullWidth startIcon={<i className='tabler-login-2' />}>
+            Masuk
+          </Button>
+          <Button component={Link} href='/register' variant='outlined' fullWidth startIcon={<i className='tabler-user-plus' />}>
+            Daftar
+          </Button>
+        </div>
+      )}
     </VerticalNav>
   )
 }

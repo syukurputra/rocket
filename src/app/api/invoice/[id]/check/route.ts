@@ -5,6 +5,8 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { checkIpaymuTransaction } from '@/src/libs/ipaymu'
 
+const DEMO_COMPANY_ID = 'company-demo-001'
+
 async function handlePost(request: NextRequest, { params, user }: AuthContext & { params: { id: string } }) {
   try {
     if (!user.companyId) {
@@ -22,8 +24,8 @@ async function handlePost(request: NextRequest, { params, user }: AuthContext & 
       return NextResponse.json({ message: 'Invoice tidak ditemukan' }, { status: 404 })
     }
 
-    // Ensure it belongs to the user's company
-    if (invoice.companyId !== user.companyId) {
+    // Ensure it belongs to the user's company (demo company can access all)
+    if (user.companyId !== DEMO_COMPANY_ID && invoice.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
     }
 

@@ -23,6 +23,8 @@ async function generateNomorInvoice(): Promise<string> {
   return `${prefix}${String(count + 1).padStart(5, '0')}`
 }
 
+const DEMO_COMPANY_ID = 'company-demo-001'
+
 // GET /api/invoice - List invoices for the current company
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
@@ -36,7 +38,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const status = searchParams.get('status') || ''
     const skip = (page - 1) * limit
 
-    const where: any = { companyId: user.companyId }
+    const isDemo = user.companyId === DEMO_COMPANY_ID
+    const where: any = isDemo ? {} : { companyId: user.companyId }
 
     if (status) where.status = status
 
@@ -46,6 +49,9 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         include: {
           paket: {
             select: { id: true, nama: true, hargaBulanan: true, hargaTahunan: true }
+          },
+          company: {
+            select: { id: true, nama: true }
           },
           createdBy: {
             select: { id: true, username: true, email: true }

@@ -22,8 +22,8 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
 import type { TextFieldProps } from '@mui/material/TextField'
-import Badge from '@mui/material/Badge'
-import Collapse from '@mui/material/Collapse'
+import Box from '@mui/material/Box'
+import Popover from '@mui/material/Popover'
 import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
@@ -97,6 +97,8 @@ const DebouncedInput = ({
 
 const columnHelper = createColumnHelper<InvoiceClient>()
 
+const DEMO_COMPANY_ID = 'company-demo-001'
+
 const InvoiceListTable = () => {
   const [data, setData] = useState<InvoiceClient[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -105,15 +107,28 @@ const InvoiceListTable = () => {
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [pageCountState, setPageCountState] = useState(0)
+  const [isDemo, setIsDemo] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('userData')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        setIsDemo(parsed?.companyId === DEMO_COMPANY_ID)
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   // Filter panel
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const filterOpen = Boolean(filterAnchor)
   const [pendingStatus, setPendingStatus] = useState('')
   const [pendingSearch, setPendingSearch] = useState('')
 
   const activeFilterCount = [pendingStatus, pendingSearch].filter(Boolean).length
 
   const handleApplyFilter = () => {
+    setFilterAnchor(null)
     setStatusFilter(pendingStatus)
     setSearchQuery(pendingSearch)
     setCurrentPage(0)
@@ -121,6 +136,7 @@ const InvoiceListTable = () => {
   }
 
   const handleResetFilter = () => {
+    setFilterAnchor(null)
     setPendingStatus('')
     setPendingSearch('')
     setStatusFilter('')
@@ -217,6 +233,16 @@ const InvoiceListTable = () => {
           </div>
         )
       }),
+      ...(isDemo
+        ? [
+            columnHelper.accessor('companyId', {
+              header: 'Perusahaan',
+              cell: ({ row }) => (
+                <Typography>{(row.original as any).company?.nama || row.original.companyId}</Typography>
+              )
+            })
+          ]
+        : []),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
@@ -302,7 +328,7 @@ const InvoiceListTable = () => {
         )
       }
     ],
-    []
+    [isDemo]
   )
 
   const table = useReactTable({
@@ -327,63 +353,85 @@ const InvoiceListTable = () => {
       <CardHeader
         title='Daftar Invoice'
         action={
-          <div className='flex items-center gap-2'>
-            <Badge badgeContent={activeFilterCount || undefined} color='error'>
-              <Button
-                variant={filterOpen ? 'contained' : 'outlined'}
-                size='small'
-                startIcon={<i className='tabler-filter' />}
-                onClick={() => setFilterOpen(o => !o)}
-              >
-                Filter
-              </Button>
-            </Badge>
+          <Box display='flex' alignItems='center' gap={2}>
+            <Button
+              size='small'
+              onMouseEnter={e => setFilterAnchor(e.currentTarget)}
+              onClick={e => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
+              endIcon={<i className={`tabler-chevron-${filterOpen ? 'up' : 'down'} text-base`} />}
+              sx={{
+                border: '1px solid',
+                borderColor: activeFilterCount > 0 ? 'primary.main' : 'divider',
+                borderRadius: 1,
+                px: 2,
+                py: 0.75,
+                color: activeFilterCount > 0 ? 'primary.main' : 'text.secondary',
+                bgcolor: 'transparent',
+                fontWeight: 400,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                gap: 1,
+                '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'transparent' }
+              }}
+            >
+              <i className='tabler-filter text-base' />
+              Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+            </Button>
+
             {activeFilterCount > 0 && (
               <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
             )}
-          </div>
+
+            <Popover
+              open={filterOpen}
+              anchorEl={filterAnchor}
+              onClose={() => setFilterAnchor(null)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 320 } } }}
+            >
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12 }}>
+                  <CustomTextField
+                    select
+                    fullWidth
+                    label='Status'
+                    value={pendingStatus}
+                    onChange={e => setPendingStatus(e.target.value)}
+                    slotProps={{ select: { displayEmpty: true } }}
+                  >
+                    <MenuItem value=''>Semua Status</MenuItem>
+                    <MenuItem value='PENDING'>Menunggu</MenuItem>
+                    <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
+                    <MenuItem value='PAID'>Lunas</MenuItem>
+                    <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
+                    <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
+                  </CustomTextField>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <CustomTextField
+                    autoFocus
+                    fullWidth
+                    label='Cari'
+                    placeholder='Cari invoice...'
+                    value={pendingSearch}
+                    onChange={e => setPendingSearch(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
+                  <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
+                    Tutup
+                  </Button>
+                  <Button size='small' variant='contained' onClick={handleApplyFilter}>
+                    Terapkan
+                  </Button>
+                </Grid>
+              </Grid>
+            </Popover>
+          </Box>
         }
       />
-
-      <Collapse in={filterOpen}>
-        <Divider />
-        <CardContent>
-          <Grid container spacing={4}>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <CustomTextField
-                select
-                fullWidth
-                label='Status'
-                value={pendingStatus}
-                onChange={e => setPendingStatus(e.target.value)}
-                slotProps={{ select: { displayEmpty: true } }}
-              >
-                <MenuItem value=''>Semua Status</MenuItem>
-                <MenuItem value='PENDING'>Menunggu</MenuItem>
-                <MenuItem value='KONFIRMASI'>Konfirmasi</MenuItem>
-                <MenuItem value='PAID'>Lunas</MenuItem>
-                <MenuItem value='CANCELLED'>Dibatalkan</MenuItem>
-                <MenuItem value='EXPIRED'>Kadaluarsa</MenuItem>
-              </CustomTextField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <CustomTextField
-                fullWidth
-                label='Cari'
-                placeholder='Cari invoice...'
-                value={pendingSearch}
-                onChange={e => setPendingSearch(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12 }} className='flex justify-end'>
-              <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
-                Cari
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Collapse>
 
       <Divider />
       <CardContent className='flex justify-between flex-wrap items-end gap-4'>

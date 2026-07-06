@@ -20,8 +20,8 @@ import Alert from '@mui/material/Alert'
 import TablePagination from '@mui/material/TablePagination'
 import type { TextFieldProps } from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
-import Badge from '@mui/material/Badge'
-import Collapse from '@mui/material/Collapse'
+import Box from '@mui/material/Box'
+import Popover from '@mui/material/Popover'
 import Grid from '@mui/material/Grid2'
 
 // Third-party Imports
@@ -163,7 +163,8 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   const exportMenuOpen = Boolean(exportAnchorEl)
 
   // Filter panel state
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const filterOpen = Boolean(filterAnchor)
   const [pendingStartDate, setPendingStartDate] = useState(getDefaultStartDate())
   const [pendingEndDate, setPendingEndDate] = useState(getDefaultEndDate())
   const [pendingJenis, setPendingJenis] = useState('')
@@ -198,6 +199,7 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   ].filter(Boolean).length
 
   const handleApplyFilter = () => {
+    setFilterAnchor(null)
     setStartDate(pendingStartDate)
     setEndDate(pendingEndDate)
     setJenis(pendingJenis)
@@ -209,6 +211,7 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   }
 
   const handleResetFilter = () => {
+    setFilterAnchor(null)
     const s = getDefaultStartDate()
     const e = getDefaultEndDate()
     setPendingStartDate(s)
@@ -646,113 +649,134 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
         <CardHeader
           title='Data Keuangan'
           action={
-            <div className='flex items-center gap-2'>
-              <Badge badgeContent={activeFilterCount || undefined} color='error'>
-                <Button
-                  variant={filterOpen ? 'contained' : 'outlined'}
-                  size='small'
-                  startIcon={<i className='tabler-filter' />}
-                  onClick={() => setFilterOpen(o => !o)}
-                >
-                  Filter
-                </Button>
-              </Badge>
+            <Box display='flex' alignItems='center' gap={2}>
+              <Button
+                size='small'
+                onMouseEnter={e => setFilterAnchor(e.currentTarget)}
+                onClick={e => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
+                endIcon={<i className={`tabler-chevron-${filterOpen ? 'up' : 'down'} text-base`} />}
+                sx={{
+                  border: '1px solid',
+                  borderColor: activeFilterCount > 0 ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  px: 2,
+                  py: 0.75,
+                  color: activeFilterCount > 0 ? 'primary.main' : 'text.secondary',
+                  bgcolor: 'transparent',
+                  fontWeight: 400,
+                  fontSize: '0.875rem',
+                  textTransform: 'none',
+                  gap: 1,
+                  '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'transparent' }
+                }}
+              >
+                <i className='tabler-filter text-base' />
+                Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+              </Button>
+
               {activeFilterCount > 0 && (
                 <Chip label='Reset' size='small' onDelete={handleResetFilter} onClick={handleResetFilter} />
               )}
-            </div>
+
+              <Popover
+                open={filterOpen}
+                anchorEl={filterAnchor}
+                onClose={() => setFilterAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 400 } } }}
+              >
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      autoFocus
+                      type='date'
+                      fullWidth
+                      label='Dari Tanggal'
+                      value={pendingStartDate}
+                      onChange={e => setPendingStartDate(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      inputProps={{ max: pendingEndDate || undefined }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      type='date'
+                      fullWidth
+                      label='Sampai Tanggal'
+                      value={pendingEndDate}
+                      onChange={e => setPendingEndDate(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      inputProps={{ min: pendingStartDate || undefined }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      label='Jenis'
+                      value={pendingJenis}
+                      onChange={e => { setPendingJenis(e.target.value); setPendingCategoryId('') }}
+                      slotProps={{ select: { displayEmpty: true } }}
+                    >
+                      <MenuItem value=''>Semua Jenis</MenuItem>
+                      <MenuItem value='pemasukan'>Pemasukan</MenuItem>
+                      <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
+                    </CustomTextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      label='Aset'
+                      value={pendingAsetId}
+                      onChange={e => setPendingAsetId(e.target.value)}
+                      slotProps={{ select: { displayEmpty: true } }}
+                    >
+                      <MenuItem value=''>Semua Aset</MenuItem>
+                      {asetOptions.map(a => (
+                        <MenuItem key={a.id} value={a.id}>{a.jenis} - {a.nama}</MenuItem>
+                      ))}
+                    </CustomTextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      label='Kategori'
+                      value={pendingCategoryId}
+                      onChange={e => setPendingCategoryId(e.target.value)}
+                      slotProps={{ select: { displayEmpty: true } }}
+                    >
+                      <MenuItem value=''>Semua Kategori</MenuItem>
+                      {filteredKategoriOptions.map(k => (
+                        <MenuItem key={k.id} value={k.id}>{k.nama}</MenuItem>
+                      ))}
+                    </CustomTextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Cari'
+                      placeholder='Cari keuangan...'
+                      value={pendingSearch}
+                      onChange={e => setPendingSearch(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
+                    <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
+                      Tutup
+                    </Button>
+                    <Button size='small' variant='contained' onClick={handleApplyFilter}>
+                      Terapkan
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Popover>
+            </Box>
           }
         />
-
-        {/* Collapsible Filter Panel */}
-        <Collapse in={filterOpen}>
-          <Divider />
-          <CardContent>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  label='Dari Tanggal'
-                  value={pendingStartDate}
-                  onChange={e => setPendingStartDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: pendingEndDate || undefined }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  type='date'
-                  fullWidth
-                  label='Sampai Tanggal'
-                  value={pendingEndDate}
-                  onChange={e => setPendingEndDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ min: pendingStartDate || undefined }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Jenis'
-                  value={pendingJenis}
-                  onChange={e => { setPendingJenis(e.target.value); setPendingCategoryId('') }}
-                  slotProps={{ select: { displayEmpty: true } }}
-                >
-                  <MenuItem value=''>Semua Jenis</MenuItem>
-                  <MenuItem value='pemasukan'>Pemasukan</MenuItem>
-                  <MenuItem value='pengeluaran'>Pengeluaran</MenuItem>
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Aset'
-                  value={pendingAsetId}
-                  onChange={e => setPendingAsetId(e.target.value)}
-                  slotProps={{ select: { displayEmpty: true } }}
-                >
-                  <MenuItem value=''>Semua Aset</MenuItem>
-                  {asetOptions.map(a => (
-                    <MenuItem key={a.id} value={a.id}>{a.jenis} - {a.nama}</MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  label='Kategori'
-                  value={pendingCategoryId}
-                  onChange={e => setPendingCategoryId(e.target.value)}
-                  slotProps={{ select: { displayEmpty: true } }}
-                >
-                  <MenuItem value=''>Semua Kategori</MenuItem>
-                  {filteredKategoriOptions.map(k => (
-                    <MenuItem key={k.id} value={k.id}>{k.nama}</MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                <CustomTextField
-                  fullWidth
-                  label='Cari'
-                  placeholder='Cari keuangan...'
-                  value={pendingSearch}
-                  onChange={e => setPendingSearch(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
-                <Button variant='contained' startIcon={<i className='tabler-search' />} onClick={handleApplyFilter}>
-                  Cari
-                </Button>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Collapse>
 
         <Divider />
 

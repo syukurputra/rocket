@@ -21,7 +21,8 @@ async function handleGet(request: NextRequest) {
         select: {
           id: true,
           nama: true,
-          asetId: true
+          asetId: true,
+          hargaItemAset: { select: { id: true, jenisHarga: true, harga: true } }
         },
         orderBy: { nama: 'desc' }
       }),

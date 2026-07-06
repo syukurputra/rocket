@@ -1,5 +1,11 @@
 'use client'
 
+// React Imports
+import { useEffect, useState } from 'react'
+
+// Next Imports
+import { usePathname } from 'next/navigation'
+
 // Third-party Imports
 import classnames from 'classnames'
 
@@ -13,6 +19,18 @@ import NotificationsDropdown from '@components/layout/shared/NotificationsDropdo
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
 
 const NavbarContent = () => {
+  const pathname = usePathname()
+  const [isAuth, setIsAuth] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setIsAuth(!!localStorage.getItem('accessToken'))
+  }, [pathname])
+
+  // Di /home tanpa login, header kosong (tombol ada di sidebar)
+  if (pathname === '/home' && !isAuth) {
+    return <div className={classnames(verticalLayoutClasses.navbarContent, 'is-full')} />
+  }
+
   return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
