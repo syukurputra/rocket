@@ -37,57 +37,57 @@ type IconData = {
   code: string
 }
 
-type RuanganData = {
+type ItemAsetData = {
   id: string
   nama: string
 }
 
-type FasilitasRuanganData = {
+type FasilitasItemAsetData = {
   id?: string
   nama: string
   iconId: string
   ruanganId: string
   icon?: IconData
-  ruangan?: RuanganData
+  ruangan?: ItemAsetData
 }
 
-const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
+const StepFasilitasItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
-  const [fasilitas, setFasilitas] = useState<FasilitasRuanganData[]>([])
-  const [ruangans, setRuangans] = useState<RuanganData[]>([])
+  const [fasilitas, setFasilitas] = useState<FasilitasItemAsetData[]>([])
+  const [itemAsets, setItemAsets] = useState<ItemAsetData[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // Form State
   const [nama, setNama] = useState('')
-  const [selectedRuangan, setSelectedRuangan] = useState<RuanganData | null>(null)
+  const [selectedItemAset, setSelectedItemAset] = useState<ItemAsetData | null>(null)
   const [selectedIcon, setSelectedIcon] = useState<IconData | null>(null)
 
   useEffect(() => {
     if (asetId) {
-      fetchRuangans()
+      fetchItemAsets()
       fetchFasilitas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asetId])
 
-  const fetchRuangans = async () => {
+  const fetchItemAsets = async () => {
     try {
-      const res = await apiFetchClient<{ data: RuanganData[] }>(`/api/aset-item?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: ItemAsetData[] }>(`/api/aset-item?asetId=${asetId}`)
 
       if (res.data) {
-        setRuangans(res.data)
+        setItemAsets(res.data)
       }
     } catch (error) {
-      console.error('Error fetching ruangans:', error)
+      console.error('Error fetching item asets:', error)
     }
   }
 
   const fetchFasilitas = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: FasilitasRuanganData[] }>(`/api/fasilitas-aset-item?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: FasilitasItemAsetData[] }>(`/api/fasilitas-aset-item?asetId=${asetId}`)
 
       if (res.data) {
         setFasilitas(res.data)
@@ -105,10 +105,10 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
     setView('form')
   }
 
-  const handleEdit = (item: FasilitasRuanganData) => {
+  const handleEdit = (item: FasilitasItemAsetData) => {
     setEditingId(item.id!)
     setNama(item.nama)
-    setSelectedRuangan(item.ruangan || null)
+    setSelectedItemAset(item.ruangan || null)
     setSelectedIcon(item.icon || null)
     setView('form')
   }
@@ -127,12 +127,12 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
 
   const resetForm = () => {
     setNama('')
-    setSelectedRuangan(null)
+    setSelectedItemAset(null)
     setSelectedIcon(null)
   }
 
   const handleSubmit = async () => {
-    if (!nama || !selectedRuangan || !selectedIcon) {
+    if (!nama || !selectedItemAset || !selectedIcon) {
       onShowMessage?.('Semua field harus diisi', 'error')
 
       return
@@ -140,7 +140,7 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
 
     const data = {
       nama,
-      ruanganId: selectedRuangan.id,
+      ruanganId: selectedItemAset.id,
       iconId: selectedIcon.id
     }
 
@@ -270,10 +270,10 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Autocomplete
-          options={ruangans}
+          options={itemAsets}
           getOptionLabel={option => option.nama}
-          value={selectedRuangan}
-          onChange={(_, newValue) => setSelectedRuangan(newValue)}
+          value={selectedItemAset}
+          onChange={(_, newValue) => setSelectedItemAset(newValue)}
           renderInput={params => <CustomTextField {...params} label='Item Aset' placeholder='Pilih Item Aset' />}
         />
       </Grid>
@@ -307,4 +307,4 @@ const StepFasilitasRuanganDetails = ({ activeStep, handleNext, handlePrev, steps
   )
 }
 
-export default StepFasilitasRuanganDetails
+export default StepFasilitasItemAsetDetails

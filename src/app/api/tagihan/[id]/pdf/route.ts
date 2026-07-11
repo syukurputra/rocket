@@ -36,7 +36,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       mulaiSewa: tagihan.mulaiSewa,
       selesaiSewa: tagihan.selesaiSewa,
       penyewa: tagihan.penyewa,
-      ruangan: tagihan.ruangan,
+      itemAset: tagihan.ruangan,
       aset: tagihan.aset
     })
 

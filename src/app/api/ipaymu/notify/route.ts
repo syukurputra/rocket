@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
                   nomorBooking,
                   namaPemesan: tagihan.penyewa?.nama || '-',
                   namaAset: tagihan.aset?.nama || '-',
-                  namaRuangan: tagihan.ruangan?.nama || '-',
+                  namaItemAset: tagihan.ruangan?.nama || '-',
                   periodeSewa: tagihan.periodeSewa || '-',
                   mulaiSewa: tagihan.mulaiSewa.toISOString(),
                   selesaiSewa: tagihan.selesaiSewa.toISOString(),

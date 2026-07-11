@@ -16,7 +16,7 @@ import ScrollToTop from '@core/components/scroll-to-top'
 import { getSystemMode } from '@core/utils/serverHelpers'
 
 export const metadata = {
-  title: 'Bantu Sewa - Landing Page',
+  title: 'Bantu Sewa',
   description: 'Platform manajemen sewa'
 }
 

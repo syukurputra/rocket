@@ -43,7 +43,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
         extendedProps: {
           color,
           aset: t.aset?.nama ?? '',
-          ruangan: t.ruangan?.nama ?? '',
+          itemAset: t.ruangan?.nama ?? '',
           status: t.status,
           periodeSewa: t.periodeSewa
         }

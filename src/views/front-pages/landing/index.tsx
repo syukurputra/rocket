@@ -8,6 +8,7 @@ import type { SystemMode } from '@core/types'
 
 // Component Imports
 import HeroSection from '@/src/views/front-pages/landing/HeroSection'
+import PromoSection from '@/src/views/front-pages/landing/PromoSection'
 import UsefulFeature from '@/src/views/front-pages/landing/UsefulFeature'
 import CustomerReviews from '@/src/views/front-pages/landing/CustomerReviews'
 import OurTeam from '@/src/views/front-pages/landing/OurTeam'
@@ -29,8 +30,9 @@ const LandingPageWrapper = ({ mode }: { mode: SystemMode }) => {
   }, [])
 
   return (
-    <div className='bg-backgroundPaper'>
+    <div className='bg-backgroundDefault'>
       <HeroSection mode={mode} />
+      <PromoSection />
       <UsefulFeature />
       {/* <CustomerReviews /> */}
       {/* <OurTeam /> */}

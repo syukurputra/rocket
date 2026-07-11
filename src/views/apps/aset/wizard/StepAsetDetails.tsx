@@ -41,8 +41,8 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [nama, setNama] = useState(initialData?.nama || '')
   const [jenis, setJenis] = useState(initialData?.status || 'aktif')
   const [tipe, setTipe] = useState(initialData?.jenis || '') // Map DB 'jenis' to UI 'tipe'
-  const [bookingOnline, setBookingOnline] = useState<boolean>(initialData?.bookingOnline ?? false)
-  const [pembayaranOnline, setPembayaranOnline] = useState<boolean>(initialData?.pembayaranOnline ?? false)
+  const [publishId, setPublishId] = useState(initialData?.publishId || '')
+  const [publishIdStatus, setPublishIdStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [jenisAsetOptions, setJenisAsetOptions] = useState<{ id: string; nama: string }[]>([])
   const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi || '')
   const [nomorWa, setNomorWa] = useState(initialData?.nomorWa || '')
@@ -98,6 +98,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       setNama(initialData.nama || '')
       setJenis(initialData.status || 'aktif')
       setTipe(initialData.jenis || '')
+      setPublishId(initialData.publishId || '')
       setDeskripsi(initialData.deskripsi || '')
       setNomorWa(initialData.nomorWa || '')
       setNomorWaAktif(initialData.nomorWaAktif ?? false)
@@ -218,6 +219,44 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
     fetchKelurahan()
   }, [selectedKecamatanId])
 
+  const toSlug = (text: string) =>
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+
+  const slugPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/
+
+  const checkPublishId = async (value: string, excludeId?: string) => {
+    if (!value) { setPublishIdStatus('idle'); return }
+    if (!slugPattern.test(value)) { setPublishIdStatus('invalid'); return }
+
+    setPublishIdStatus('checking')
+
+    try {
+      const params = new URLSearchParams({ publishId: value, ...(excludeId ? { excludeId } : {}) })
+      const res = await fetch(`/api/aset/check-slug?${params}`)
+      const json = await res.json()
+
+      setPublishIdStatus(json.available ? 'available' : 'taken')
+    } catch {
+      setPublishIdStatus('idle')
+    }
+  }
+
+  const handlePublishIdChange = (value: string) => {
+    const cleaned = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+
+    setPublishId(cleaned)
+    setPublishIdStatus('idle')
+
+    clearTimeout((handlePublishIdChange as any)._timer)
+    ;(handlePublishIdChange as any)._timer = setTimeout(() => checkPublishId(cleaned, initialData?.id), 600)
+  }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files)
@@ -270,8 +309,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           nama,
           jenis: tipe, // UI Tipe -> DB jenis
           status: jenis, // UI Jenis -> DB status
-          bookingOnline,
-          pembayaranOnline,
+          publishId: publishId || null,
           deskripsi,
           nomorWa,
           nomorWaAktif,
@@ -303,7 +341,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
         <Typography variant='h5'>Informasi Aset</Typography>
         <Typography>Silakan lengkapi detail aset Anda.</Typography>
       </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
+      <Grid size={{ xs: 12 }}>
         <CustomTextField
           fullWidth
           label='Nama Aset'
@@ -321,27 +359,33 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField
-          select
           fullWidth
-          label='Booking Online'
-          value={bookingOnline ? 'aktif' : 'non_aktif'}
-          onChange={e => setBookingOnline(e.target.value === 'aktif')}
-        >
-          <MenuItem value='aktif'>Aktif</MenuItem>
-          <MenuItem value='non_aktif'>Non Aktif</MenuItem>
-        </CustomTextField>
-      </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
-        <CustomTextField
-          select
-          fullWidth
-          label='Pembayaran Online'
-          value={pembayaranOnline ? 'aktif' : 'non_aktif'}
-          onChange={e => setPembayaranOnline(e.target.value === 'aktif')}
-        >
-          <MenuItem value='aktif'>Aktif</MenuItem>
-          <MenuItem value='non_aktif'>Non Aktif</MenuItem>
-        </CustomTextField>
+          label='ID Publish (URL Slug)'
+          placeholder='contoh: gedung-sewa-jakarta'
+          value={publishId}
+          onChange={e => handlePublishIdChange(e.target.value)}
+          helperText={
+            publishIdStatus === 'checking' ? 'Memeriksa ketersediaan...' :
+            publishIdStatus === 'available' ? '✓ ID tersedia' :
+            publishIdStatus === 'taken' ? '✗ ID sudah digunakan, coba yang lain' :
+            publishIdStatus === 'invalid' ? 'Hanya huruf kecil, angka, dan tanda "-"' :
+            publishId ? `URL: /publish/${publishId}` : 'Kosongkan untuk pakai ID otomatis'
+          }
+          FormHelperTextProps={{
+            sx: {
+              color: publishIdStatus === 'available' ? 'success.main' :
+                     publishIdStatus === 'taken' || publishIdStatus === 'invalid' ? 'error.main' : 'text.secondary'
+            }
+          }}
+          InputProps={{
+            endAdornment: nama && !publishId ? (
+              <Button size='small' variant='text' sx={{ minWidth: 'unset', fontSize: '0.7rem', px: 1 }}
+                onClick={() => handlePublishIdChange(toSlug(nama))}>
+                Dari Nama
+              </Button>
+            ) : undefined
+          }}
+        />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <CustomTextField
@@ -519,6 +563,9 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
             Pilih Gambar
             <input type='file' hidden multiple accept='image/*' onChange={handleFileChange} />
           </Button>
+          <Typography variant='caption' color='text.secondary'>
+            Rekomendasi ukuran <strong>1280 × 720 px</strong> (rasio 16:9) untuk hasil terbaik. Maksimal 3 gambar, ukuran maks 5MB per file.
+          </Typography>
 
           {/* Selected New Files */}
           {selectedFiles.length > 0 && (

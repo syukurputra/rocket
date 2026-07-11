@@ -164,8 +164,10 @@ model Aset {
   instagramAktif   Boolean         @default(false)
   facebook         String?
   facebookAktif    Boolean         @default(false)
-  status           String          @default("aktif")
-  bookingOnline    Boolean         @default(false)
+  status              String          @default("aktif")
+  publishId           String?         @unique
+  syaratKetentuan     String?         @db.Text
+  bookingOnline       Boolean         @default(false)
   pembayaranOnline Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -550,6 +552,20 @@ model MasterKelurahan {
 
   @@index([districtId])
   @@map("master_kelurahan")
+}
+
+model BannerPromo {
+  id           String   @id @default(cuid())
+  judul        String
+  deskripsi    String?  @db.Text
+  imageUrl     String?
+  periodeAwal  DateTime
+  periodeAkhir DateTime
+  status       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("banner_promo")
 }
 
 // Scheduler Logs

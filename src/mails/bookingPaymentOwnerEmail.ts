@@ -10,7 +10,7 @@ type BookingPaymentOwnerParams = {
   nomorBooking: string
   namaPemesan: string
   namaAset: string
-  namaRuangan: string
+  namaItemAset: string
   periodeSewa: string
   mulaiSewa: string
   selesaiSewa: string
@@ -18,7 +18,7 @@ type BookingPaymentOwnerParams = {
 }
 
 export async function sendBookingPaymentOwnerEmail(to: string, params: BookingPaymentOwnerParams) {
-  const { nomorBooking, namaPemesan, namaAset, namaRuangan, periodeSewa, mulaiSewa, selesaiSewa, total } = params
+  const { nomorBooking, namaPemesan, namaAset, namaItemAset, periodeSewa, mulaiSewa, selesaiSewa, total } = params
 
   const html = `<!DOCTYPE html>
 <html lang="id">
@@ -66,7 +66,7 @@ export async function sendBookingPaymentOwnerEmail(to: string, params: BookingPa
                 </tr>
                 <tr style="border-top:1px solid #e5e7eb;">
                   <td style="padding:8px 0;color:#6b7280;font-size:14px;">Item Aset</td>
-                  <td style="padding:8px 0;color:#1f2937;font-size:14px;font-weight:600;text-align:right;">${namaRuangan}</td>
+                  <td style="padding:8px 0;color:#1f2937;font-size:14px;font-weight:600;text-align:right;">${namaItemAset}</td>
                 </tr>
                 <tr style="border-top:1px solid #e5e7eb;">
                   <td style="padding:8px 0;color:#6b7280;font-size:14px;">Periode Sewa</td>

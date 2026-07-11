@@ -63,7 +63,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
   // New state for periode sewa and pricing
   const [periodeSewa, setPeriodeSewa] = useState<string>('')
 
-  const [ruanganPricing, setRuanganPricing] = useState({
+  const [itemAsetPricing, setItemAsetPricing] = useState({
     hargaHarian: 0,
     hargaBulanan: 0,
     hargaTahunan: 0
@@ -84,7 +84,7 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
 
           // Set ruangan pricing
           if (response.data.ruangan) {
-            setRuanganPricing({
+            setItemAsetPricing({
               hargaHarian: Number(response.data.ruangan.hargaHarian) || 0,
               hargaBulanan: Number(response.data.ruangan.hargaBulanan) || 0,
               hargaTahunan: Number(response.data.ruangan.hargaTahunan) || 0
@@ -129,15 +129,15 @@ export default function AddEditTagihan({ open, setOpen, mode = 'create', initial
       const diffTime = Math.abs(form.selesaiSewa.getTime() - form.mulaiSewa.getTime())
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
 
-      calculatedNominal = diffDays * ruanganPricing.hargaHarian
+      calculatedNominal = diffDays * itemAsetPricing.hargaHarian
     } else if (periodeSewa === 'bulanan' && form.jumlahBulan) {
-      calculatedNominal = form.jumlahBulan * ruanganPricing.hargaBulanan
+      calculatedNominal = form.jumlahBulan * itemAsetPricing.hargaBulanan
     } else if (periodeSewa === 'tahunan' && form.jumlahTahun) {
-      calculatedNominal = form.jumlahTahun * ruanganPricing.hargaTahunan
+      calculatedNominal = form.jumlahTahun * itemAsetPricing.hargaTahunan
     }
 
     setForm(prev => ({ ...prev, nominal: calculatedNominal }))
-  }, [form.mulaiSewa, form.selesaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa, ruanganPricing, mode])
+  }, [form.mulaiSewa, form.selesaiSewa, form.jumlahBulan, form.jumlahTahun, periodeSewa, itemAsetPricing, mode])
 
   const handleChange = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [key]: e.target.value }))

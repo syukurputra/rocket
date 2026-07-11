@@ -47,6 +47,7 @@ export default function MapPicker({ latitude, longitude, onLocationChange, conta
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [locating, setLocating] = useState(false)
 
   // Default center: Indonesia (Jakarta)
   const defaultCenter: LatLngExpression = [-6.2088, 106.8456]
@@ -170,6 +171,29 @@ export default function MapPicker({ latitude, longitude, onLocationChange, conta
     }
   }
 
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) return
+
+    setLocating(true)
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const { latitude: lat, longitude: lng } = coords
+
+        if (map) {
+          map.setView([lat, lng], 16)
+          updateMarker(lat, lng, map)
+        }
+
+        setLocating(false)
+      },
+      () => {
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
   const handleSelectResult = (result: SearchResult) => {
     const lat = parseFloat(result.lat)
     const lng = parseFloat(result.lon)
@@ -206,53 +230,66 @@ export default function MapPicker({ latitude, longitude, onLocationChange, conta
     <Box>
       {/* Search Box - Only show if interactive */}
       {onLocationChange && (
-        <Box sx={{ mb: 2, display: 'flex', gap: 1, position: 'relative' }}>
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Cari alamat atau lokasi...'
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            onKeyPress={e => {
-              if (e.key === 'Enter') {
-                handleSearch()
-              }
-            }}
-          />
-          <Button variant='contained' onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
-            {searching ? <CircularProgress size={20} /> : <i className='tabler-search' />}
-          </Button>
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <Paper
-              sx={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                right: 0,
-                mt: 0.5,
-                maxHeight: 300,
-                overflow: 'auto',
-                zIndex: 1000
+        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
+          <Box sx={{ display: 'flex', gap: 1, position: 'relative' }}>
+            <TextField
+              fullWidth
+              size='small'
+              placeholder='Cari alamat atau lokasi...'
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyPress={e => {
+                if (e.key === 'Enter') {
+                  handleSearch()
+                }
               }}
-            >
-              <List dense>
-                {searchResults.map(result => (
-                  <ListItem key={result.place_id} disablePadding>
-                    <ListItemButton onClick={() => handleSelectResult(result)}>
-                      <ListItemText
-                        primary={result.display_name}
-                        primaryTypographyProps={{
-                          sx: { fontSize: '0.875rem' }
-                        }}
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          )}
+            />
+            <Button variant='contained' onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
+              {searching ? <CircularProgress size={20} /> : <i className='tabler-search' />}
+            </Button>
+
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <Paper
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  mt: 0.5,
+                  maxHeight: 300,
+                  overflow: 'auto',
+                  zIndex: 1000
+                }}
+              >
+                <List dense>
+                  {searchResults.map(result => (
+                    <ListItem key={result.place_id} disablePadding>
+                      <ListItemButton onClick={() => handleSelectResult(result)}>
+                        <ListItemText
+                          primary={result.display_name}
+                          primaryTypographyProps={{
+                            sx: { fontSize: '0.875rem' }
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
+          </Box>
+          <Button
+            variant='tonal'
+            color='secondary'
+            size='small'
+            sx={{ width: 'fit-content' }}
+            startIcon={locating ? <CircularProgress size={14} color='inherit' /> : <i className='tabler-current-location' />}
+            onClick={handleGetCurrentLocation}
+            disabled={locating}
+          >
+            {locating ? 'Mengambil lokasi...' : 'Ambil Lokasi Sekarang'}
+          </Button>
         </Box>
       )}
 

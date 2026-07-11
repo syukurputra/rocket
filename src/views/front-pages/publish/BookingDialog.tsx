@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
 
 import CustomTextField from '@core/components/mui/TextField'
 
@@ -27,12 +28,20 @@ interface HargaItem {
 interface BookingDialogProps {
   open: boolean
   onClose: () => void
-  ruangan: {
+  itemAset: {
     id: string
     nama: string
     hargaItemAset: HargaItem[]
   }
   asetNama: string
+  // pre-filled dari pendingBooking (setelah redirect login)
+  initialData?: {
+    jenisHarga?: string
+    mulaiSewa?: string
+    durasi?: number
+    catatan?: string
+    errorMessage?: string
+  }
 }
 
 const JENIS_LABEL: Record<string, string> = {
@@ -56,28 +65,26 @@ const addDuration = (date: Date, durasi: number, jenis: string): Date => {
   return d
 }
 
-const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps) => {
+const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: BookingDialogProps) => {
   const router = useRouter()
-  const [namaPemesan, setNamaPemesan] = useState('')
-  const [email, setEmail] = useState('')
-  const [telepon, setTelepon] = useState('')
-  const [jenisHarga, setJenisHarga] = useState(ruangan.hargaItemAset[0]?.jenisHarga || '')
-  const [mulaiSewa, setMulaiSewa] = useState('')
-  const [durasi, setDurasi] = useState(1)
-  const [catatan, setCatatan] = useState('')
+  const pathname = usePathname()
+
+  const [jenisHarga, setJenisHarga] = useState(initialData?.jenisHarga || itemAset.hargaItemAset[0]?.jenisHarga || '')
+  const [mulaiSewa, setMulaiSewa] = useState(initialData?.mulaiSewa || '')
+  const [durasi, setDurasi] = useState(initialData?.durasi || 1)
+  const [catatan, setCatatan] = useState(initialData?.catatan || '')
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(initialData?.errorMessage || '')
   const [nomorBooking, setNomorBooking] = useState('')
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const [loggedInUser, setLoggedInUser] = useState<{ id?: string; username?: string; email?: string; nomorTelepon?: string } | null>(null)
 
-  const selectedHarga = ruangan.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
+  const selectedHarga = itemAset.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
-
   const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
-  // Load user from localStorage if logged in, fetch fresh data if nomorTelepon missing
   useEffect(() => {
     const userData = localStorage.getItem('user')
     const accessToken = localStorage.getItem('accessToken')
@@ -88,82 +95,86 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
       const parsed = JSON.parse(userData)
 
       if (parsed.nomorTelepon !== undefined) {
-        // Data already has nomorTelepon
         setLoggedInUser(parsed)
-        setNamaPemesan(parsed.username || parsed.nama || '')
-        setEmail(parsed.email || '')
-        setTelepon(parsed.nomorTelepon || '')
       } else {
-        // Fetch fresh data to get nomorTelepon
         fetch('/api/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } })
           .then(r => r.json())
           .then(data => {
             if (data.user) {
               localStorage.setItem('user', JSON.stringify(data.user))
               setLoggedInUser(data.user)
-              setNamaPemesan(data.user.username || '')
-              setEmail(data.user.email || '')
-              setTelepon(data.user.nomorTelepon || '')
             }
           })
-          .catch(() => {
-            setLoggedInUser(parsed)
-            setNamaPemesan(parsed.username || '')
-            setEmail(parsed.email || '')
-          })
+          .catch(() => setLoggedInUser(parsed))
       }
     } catch {}
   }, [open])
 
   useEffect(() => {
-    if (ruangan.hargaItemAset.length > 0) {
-      setJenisHarga(ruangan.hargaItemAset[0].jenisHarga)
+    if (itemAset.hargaItemAset.length > 0 && !initialData?.jenisHarga) {
+      setJenisHarga(itemAset.hargaItemAset[0].jenisHarga)
     }
-  }, [ruangan])
+  }, [itemAset])
 
   const handleClose = () => {
     if (isLoading) return
-    setNamaPemesan('')
-    setEmail('')
-    setTelepon('')
-    setJenisHarga(ruangan.hargaItemAset[0]?.jenisHarga || '')
+    setJenisHarga(itemAset.hargaItemAset[0]?.jenisHarga || '')
     setMulaiSewa('')
     setDurasi(1)
     setCatatan('')
     setSuccess(false)
     setError('')
+    setNomorBooking('')
+    setPaymentUrl(null)
     setLoggedInUser(null)
     onClose()
   }
 
-  const handleSubmit = async () => {
-    const missing = []
+  const handleBooking = async () => {
+    if (!jenisHarga) { setError('Pilih Jenis Harga terlebih dahulu.'); return }
+    if (!mulaiSewa) { setError('Pilih Tanggal Mulai terlebih dahulu.'); return }
 
-    if (!namaPemesan) missing.push('Nama Lengkap')
-    if (!telepon) missing.push('No. WhatsApp / Telepon')
-    if (!jenisHarga) missing.push('Jenis Harga')
-    if (!mulaiSewa) missing.push('Tanggal Mulai')
+    // Belum login → simpan ke localStorage lalu redirect ke login
+    const accessToken = localStorage.getItem('accessToken')
 
-    if (missing.length > 0) {
-      setError(`Mohon lengkapi field berikut: ${missing.join(', ')}.`)
+    if (!accessToken) {
+      const pendingBooking = {
+        ruanganId: itemAset.id,
+        itemAsetNama: itemAset.nama,
+        asetNama,
+        jenisHarga,
+        mulaiSewa,
+        durasi,
+        catatan,
+        hargaSatuan,
+        total,
+        selesaiSewa: selesaiSewa?.toISOString(),
+        returnTo: pathname
+      }
+
+      localStorage.setItem('pendingBooking', JSON.stringify(pendingBooking))
+      router.push('/login')
 
       return
     }
+
+    // Sudah login → proses booking
+    const user = loggedInUser
+
+    if (!user) { setError('Data pengguna tidak ditemukan. Coba refresh halaman.'); return }
 
     setIsLoading(true)
     setError('')
 
     try {
-      const userId = loggedInUser ? (loggedInUser as any).id || null : null
-
       const res = await fetch('/api/public/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ruanganId: ruangan.id,
-          namaPemesan,
-          email,
-          telepon,
+          ruanganId: itemAset.id,
+          namaPemesan: (user as any).username || (user as any).nama || '',
+          email: (user as any).email || '',
+          telepon: (user as any).nomorTelepon || '',
           jenisHarga,
           mulaiSewa,
           selesaiSewa: selesaiSewa?.toISOString(),
@@ -171,14 +182,19 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
           hargaSatuan,
           total,
           catatan,
-          userId
+          userId: (user as any).id || null
         })
       })
 
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.message || 'Gagal membuat booking')
+
+      // Hapus pending booking jika ada
+      localStorage.removeItem('pendingBooking')
+
       setNomorBooking(data.data.nomorBooking || `BK-${data.data.tagihan?.id?.slice(-8).toUpperCase()}`)
+      setPaymentUrl(data.data.tagihan?.paymentUrl || null)
       setSuccess(true)
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan, coba lagi.')
@@ -198,7 +214,7 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
             <div>
               <Typography variant='h5'>Form Booking</Typography>
               <Typography variant='caption' color='text.secondary'>
-                {asetNama} — {ruangan.nama}
+                {asetNama} — {itemAset.nama}
               </Typography>
             </div>
           </div>
@@ -218,107 +234,83 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
             </div>
             <Typography variant='h5' color='success.main'>Booking Berhasil!</Typography>
             <Typography color='text.secondary' align='center'>
-              Permintaan booking Anda telah diterima. Tim kami akan segera menghubungi Anda untuk konfirmasi.
+              Permintaan booking Anda telah diterima. Silakan lanjutkan ke pembayaran.
             </Typography>
             <Chip label={`Nomor Booking: ${nomorBooking}`} color='primary' variant='tonal' />
-            <Button variant='contained' onClick={() => { handleClose(); router.push('/booking') }} sx={{ mt: 2 }}>
-              Tutup
-            </Button>
+            <div className='flex gap-3 mt-2'>
+              {paymentUrl && (
+                <Button
+                  variant='contained'
+                  color='success'
+                  startIcon={<i className='tabler-credit-card' />}
+                  onClick={() => window.open(paymentUrl, '_blank')}
+                >
+                  Bayar Sekarang
+                </Button>
+              )}
+              <Button variant='tonal' color='secondary' onClick={() => { handleClose(); router.push('/booking') }}>
+                Lihat Booking
+              </Button>
+            </div>
           </div>
         ) : (
           <Grid container spacing={6}>
-            {/* Left: Form */}
+            {/* Left: Form Detail Sewa */}
             <Grid size={{ xs: 12, md: 7 }}>
-              <div className='flex flex-col gap-5'>
-                <div>
-                  <Typography variant='h6' className='mbe-4'>
-                    <i className='tabler-user mie-2' />
-                    Informasi Pemesan
-                  </Typography>
-                  <div className='flex flex-col gap-4'>
-                    <CustomTextField
-                      fullWidth
-                      label='Nama Lengkap *'
-                      placeholder='Masukkan nama lengkap'
-                      value={namaPemesan}
-                      onChange={e => setNamaPemesan(e.target.value)}
-                      disabled={!!loggedInUser}
-                      InputProps={loggedInUser ? { endAdornment: <i className='tabler-lock text-textDisabled' /> } : undefined}
-                    />
-                    <CustomTextField
-                      fullWidth
-                      label='No. WhatsApp / Telepon *'
-                      placeholder='Contoh: 08123456789'
-                      value={telepon}
-                      onChange={e => setTelepon(e.target.value)}
-                      disabled={!!loggedInUser}
-                      InputProps={loggedInUser ? { endAdornment: <i className='tabler-lock text-textDisabled' /> } : undefined}
-                    />
-                    <CustomTextField
-                      fullWidth
-                      label='Email'
-                      placeholder='email@example.com'
-                      type='email'
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      disabled={!!loggedInUser}
-                      InputProps={loggedInUser ? { endAdornment: <i className='tabler-lock text-textDisabled' /> } : undefined}
-                    />
-                  </div>
-                </div>
+              <div className='flex flex-col gap-4'>
+                <Typography variant='h6'>
+                  <i className='tabler-calendar mie-2' />
+                  Detail Sewa
+                </Typography>
 
-                <Divider />
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Jenis Harga *'
+                  value={jenisHarga}
+                  onChange={e => { setJenisHarga(e.target.value); setDurasi(1) }}
+                >
+                  {itemAset.hargaItemAset.map(h => (
+                    <MenuItem key={h.id} value={h.jenisHarga}>
+                      {JENIS_LABEL[h.jenisHarga] || h.jenisHarga} — {formatCurrency(h.harga)}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
 
-                <div>
-                  <Typography variant='h6' className='mbe-4'>
-                    <i className='tabler-calendar mie-2' />
-                    Detail Sewa
-                  </Typography>
-                  <div className='flex flex-col gap-4'>
-                    <CustomTextField
-                      select
-                      fullWidth
-                      label='Jenis Harga *'
-                      value={jenisHarga}
-                      onChange={e => { setJenisHarga(e.target.value); setDurasi(1) }}
-                    >
-                      {ruangan.hargaItemAset.map(h => (
-                        <MenuItem key={h.id} value={h.jenisHarga}>
-                          {JENIS_LABEL[h.jenisHarga] || h.jenisHarga} — {formatCurrency(h.harga)}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
+                <CustomTextField
+                  fullWidth
+                  label='Tanggal Mulai *'
+                  type={jenisHarga === 'JAM' ? 'datetime-local' : 'date'}
+                  value={mulaiSewa}
+                  onChange={e => setMulaiSewa(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: new Date().toISOString().split('T')[0] }}
+                />
 
-                    <CustomTextField
-                      fullWidth
-                      label='Tanggal Mulai *'
-                      type={jenisHarga === 'JAM' ? 'datetime-local' : 'date'}
-                      value={mulaiSewa}
-                      onChange={e => setMulaiSewa(e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                      inputProps={{ min: new Date().toISOString().split('T')[0] }}
-                    />
+                <CustomTextField
+                  fullWidth
+                  label={`Durasi (${JENIS_LABEL[jenisHarga] || jenisHarga}) *`}
+                  type='number'
+                  value={durasi}
+                  onChange={e => setDurasi(Math.max(1, Number(e.target.value)))}
+                  inputProps={{ min: 1 }}
+                />
 
-                    <CustomTextField
-                      fullWidth
-                      label={`Durasi (${JENIS_LABEL[jenisHarga] || jenisHarga}) *`}
-                      type='number'
-                      value={durasi}
-                      onChange={e => setDurasi(Math.max(1, Number(e.target.value)))}
-                      inputProps={{ min: 1 }}
-                    />
+                <CustomTextField
+                  fullWidth
+                  label='Catatan (Opsional)'
+                  placeholder='Permintaan khusus atau keterangan lainnya'
+                  multiline
+                  rows={3}
+                  value={catatan}
+                  onChange={e => setCatatan(e.target.value)}
+                />
 
-                    <CustomTextField
-                      fullWidth
-                      label='Catatan (Opsional)'
-                      placeholder='Permintaan khusus atau keterangan lainnya'
-                      multiline
-                      rows={3}
-                      value={catatan}
-                      onChange={e => setCatatan(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {!loggedInUser && (
+                  <Alert severity='info' icon={<i className='tabler-info-circle' />}>
+                    Anda perlu <strong>login</strong> untuk menyelesaikan booking. Data Anda akan disimpan sementara.
+                  </Alert>
+                )}
 
                 {error && <Alert severity='error'>{error}</Alert>}
               </div>
@@ -332,8 +324,8 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
 
                 <div className='flex flex-col gap-3'>
                   <div className='flex justify-between'>
-                    <Typography color='text.secondary'>Ruangan</Typography>
-                    <Typography fontWeight={500}>{ruangan.nama}</Typography>
+                    <Typography color='text.secondary'>Item Aset</Typography>
+                    <Typography fontWeight={500}>{itemAset.nama}</Typography>
                   </div>
                   <div className='flex justify-between'>
                     <Typography color='text.secondary'>Jenis Sewa</Typography>
@@ -374,11 +366,11 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
                   </Typography>
                 </div>
 
-                <div className='flex flex-col gap-2 mbs-auto'>
+                <Box sx={{ mt: 'auto' }}>
                   <Typography variant='caption' color='text.secondary'>
                     * Harga di atas tidak termasuk biaya layanan pembayaran.
                   </Typography>
-                </div>
+                </Box>
               </div>
             </Grid>
 
@@ -391,11 +383,11 @@ const BookingDialog = ({ open, onClose, ruangan, asetNama }: BookingDialogProps)
                 </Button>
                 <Button
                   variant='contained'
-                  onClick={handleSubmit}
+                  onClick={handleBooking}
                   disabled={isLoading}
-                  startIcon={isLoading ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-send' />}
+                  startIcon={isLoading ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-calendar-check' />}
                 >
-                  {isLoading ? 'Mengirim...' : 'Kirim Booking'}
+                  {isLoading ? 'Memproses...' : loggedInUser ? 'Booking' : 'Login & Booking'}
                 </Button>
               </div>
             </Grid>

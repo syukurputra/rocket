@@ -30,7 +30,7 @@ import { downloadPdfFromApi } from '@/src/utils/downloadPdf'
 import type { TagihanClient } from '@/src/types/apps/tagihanTypes'
 
 type AsetOption = { id: string; nama: string; jenis: string }
-type RuanganOption = { id: string; nama: string; status: string; hargaItemAset?: { jenisHarga: string; harga: number }[] }
+type ItemAsetOption = { id: string; nama: string; status: string; hargaItemAset?: { jenisHarga: string; harga: number }[] }
 
 type Props = {
   activeStep: number
@@ -74,16 +74,16 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   const [jumlahBulan, setJumlahBulan] = useState(1)
   const [jumlahTahun, setJumlahTahun] = useState(1)
 
-  // Aset / Ruangan
+  // Aset / Item Aset
   const [asetId, setAsetId] = useState('')
-  const [ruanganId, setRuanganId] = useState('')
+  const [itemAsetId, setItemAsetId] = useState('')
   const [asetList, setAsetList] = useState<AsetOption[]>([])
-  const [ruanganList, setRuanganList] = useState<RuanganOption[]>([])
+  const [itemAsetList, setItemAsetList] = useState<ItemAsetOption[]>([])
 
   // Periode sewa (input di form tagihan)
   const [periodeSewa, setPeriodeSewa] = useState<string>('bulanan')
 
-  const [ruanganPricing, setRuanganPricing] = useState({
+  const [itemAsetPricing, setItemAsetPricing] = useState({
     hargaHarian: 0,
     hargaBulanan: 0,
     hargaTahunan: 0
@@ -97,21 +97,21 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   }, [penyewaId])
 
   useEffect(() => {
-    if (asetId) fetchRuangan(asetId)
-    else setRuanganList([])
+    if (asetId) fetchItemAset(asetId)
+    else setItemAsetList([])
   }, [asetId])
 
   useEffect(() => {
-    const ruangan = ruanganList.find(r => r.id === ruanganId)
+    const itemAset = itemAsetList.find(r => r.id === itemAsetId)
 
-    if (ruangan?.hargaItemAset) {
-      setRuanganPricing({
-        hargaHarian: Number(ruangan.hargaItemAset.find(h => h.jenisHarga === 'HARIAN')?.harga) || 0,
-        hargaBulanan: Number(ruangan.hargaItemAset.find(h => h.jenisHarga === 'BULANAN')?.harga) || 0,
-        hargaTahunan: Number(ruangan.hargaItemAset.find(h => h.jenisHarga === 'TAHUNAN')?.harga) || 0
+    if (itemAset?.hargaItemAset) {
+      setItemAsetPricing({
+        hargaHarian: Number(itemAset.hargaItemAset.find(h => h.jenisHarga === 'HARIAN')?.harga) || 0,
+        hargaBulanan: Number(itemAset.hargaItemAset.find(h => h.jenisHarga === 'BULANAN')?.harga) || 0,
+        hargaTahunan: Number(itemAset.hargaItemAset.find(h => h.jenisHarga === 'TAHUNAN')?.harga) || 0
       })
     }
-  }, [ruanganId, ruanganList])
+  }, [itemAsetId, itemAsetList])
 
   // Auto-calculate end date
   useEffect(() => {
@@ -143,15 +143,15 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     let calculatedNominal = 0
 
     if (periodeSewa === 'harian' && jumlahHari) {
-      calculatedNominal = jumlahHari * ruanganPricing.hargaHarian
+      calculatedNominal = jumlahHari * itemAsetPricing.hargaHarian
     } else if (periodeSewa === 'bulanan' && jumlahBulan) {
-      calculatedNominal = jumlahBulan * ruanganPricing.hargaBulanan
+      calculatedNominal = jumlahBulan * itemAsetPricing.hargaBulanan
     } else if (periodeSewa === 'tahunan' && jumlahTahun) {
-      calculatedNominal = jumlahTahun * ruanganPricing.hargaTahunan
+      calculatedNominal = jumlahTahun * itemAsetPricing.hargaTahunan
     }
 
     setNominal(calculatedNominal)
-  }, [mulaiSewa, selesaiSewa, jumlahBulan, jumlahTahun, periodeSewa, ruanganPricing, editingId])
+  }, [mulaiSewa, selesaiSewa, jumlahBulan, jumlahTahun, periodeSewa, itemAsetPricing, editingId])
 
   const fetchAsets = async () => {
     try {
@@ -163,13 +163,13 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     }
   }
 
-  const fetchRuangan = async (id: string) => {
+  const fetchItemAset = async (id: string) => {
     try {
-      const res = await apiFetchClient<{ data: RuanganOption[] }>(`/api/aset-item?asetId=${id}&limit=100&aktifOnly=true`)
+      const res = await apiFetchClient<{ data: ItemAsetOption[] }>(`/api/aset-item?asetId=${id}&limit=100&aktifOnly=true`)
 
-      if (res.data) setRuanganList(res.data)
+      if (res.data) setItemAsetList(res.data)
     } catch (error) {
-      console.error('Error fetching ruangan:', error)
+      console.error('Error fetching item aset:', error)
     }
   }
 
@@ -207,9 +207,9 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     setNominal(Number(item.nominal) || 0)
     if (item.asetId) {
       setAsetId(item.asetId)
-      await fetchRuangan(item.asetId)
+      await fetchItemAset(item.asetId)
     }
-    if (item.ruanganId) setRuanganId(item.ruanganId)
+    if (item.ruanganId) setItemAsetId(item.ruanganId)
     setView('form')
   }
 
@@ -253,7 +253,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
     setJumlahBulan(1)
     setJumlahTahun(1)
     setAsetId('')
-    setRuanganId('')
+    setItemAsetId('')
   }
 
   const handleSubmit = async () => {
@@ -273,7 +273,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
       selesaiSewa: selesaiSewa.toISOString(),
       nominal,
       asetId: asetId || null,
-      ruanganId: ruanganId || null
+      ruanganId: itemAsetId || null
     }
 
     try {
@@ -438,16 +438,16 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
         {/* Nama Aset */}
         <Grid size={{ xs: 12, sm: 6 }}>
           <CustomTextField select fullWidth label='Nama Aset' value={asetId}
-            onChange={e => { setAsetId(e.target.value); setRuanganId('') }}>
+            onChange={e => { setAsetId(e.target.value); setItemAsetId('') }}>
             {asetList.map(a => <MenuItem key={a.id} value={a.id}>{a.nama}</MenuItem>)}
           </CustomTextField>
         </Grid>
 
         {/* Nama Item Aset */}
         <Grid size={{ xs: 12, sm: 6 }}>
-          <CustomTextField select fullWidth label='Nama Item Aset' value={ruanganId}
-            onChange={e => setRuanganId(e.target.value)} disabled={!asetId}>
-            {ruanganList.map(r => <MenuItem key={r.id} value={r.id}>{r.nama}</MenuItem>)}
+          <CustomTextField select fullWidth label='Nama Item Aset' value={itemAsetId}
+            onChange={e => setItemAsetId(e.target.value)} disabled={!asetId}>
+            {itemAsetList.map(r => <MenuItem key={r.id} value={r.id}>{r.nama}</MenuItem>)}
           </CustomTextField>
         </Grid>
 

@@ -13,7 +13,7 @@ export type TagihanForPdf = {
     nomorTelepon?: string | null
     email?: string | null
   } | null
-  ruangan?: { nama: string } | null
+  itemAset?: { nama: string } | null
   aset?: { nama: string } | null
 }
 
@@ -122,7 +122,7 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   y += 6
 
   // Table ITEM | JUMLAH
-  const namaItem = tagihan.ruangan?.nama || tagihan.keterangan || '-'
+  const namaItem = tagihan.itemAset?.nama || tagihan.keterangan || '-'
   const itemContent = `${namaItem}\n${periodeSewa}\n${mulai} - ${selesai}`
 
   autoTable(doc, {

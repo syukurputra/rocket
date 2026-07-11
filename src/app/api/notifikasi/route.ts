@@ -5,12 +5,16 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 // GET /api/notifikasi - List notifikasi milik user yang sedang login
-async function handleGet(_request: NextRequest, { user }: AuthContext) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
+    const { searchParams } = new URL(request.url)
+    const limitParam = searchParams.get('limit')
+    const take = limitParam === 'all' ? undefined : Number(limitParam) || 20
+
     const notifikasi = await prisma.notifikasi.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
-      take: 20
+      ...(take ? { take } : {})
     })
 
     return NextResponse.json({ data: notifikasi })

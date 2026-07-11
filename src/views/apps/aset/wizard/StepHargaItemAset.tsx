@@ -65,7 +65,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // Form state
-  const [selectedRuanganId, setSelectedRuanganId] = useState('')
+  const [selectedItemAsetId, setSelectedItemAsetId] = useState('')
   const [jenisHarga, setJenisHarga] = useState('HARIAN')
   const [harga, setHarga] = useState('')
 
@@ -94,7 +94,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   }
 
   const resetForm = () => {
-    setSelectedRuanganId('')
+    setSelectedItemAsetId('')
     setJenisHarga('HARIAN')
     setHarga('')
     setEditingId(null)
@@ -104,7 +104,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
 
   const handleEdit = (item: HargaData) => {
     setEditingId(item.id)
-    setSelectedRuanganId(item.ruanganId)
+    setSelectedItemAsetId(item.ruanganId)
     setJenisHarga(item.jenisHarga)
     setHarga(formatNumber(String(Math.floor(Number(item.harga)))))
     setView('form')
@@ -121,14 +121,14 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   }
 
   const handleSubmit = async () => {
-    if (!selectedRuanganId || !jenisHarga || !harga) {
+    if (!selectedItemAsetId || !jenisHarga || !harga) {
       onShowMessage?.('Semua field harus diisi.', 'error')
 
       return
     }
 
     try {
-      const payload = { ruanganId: selectedRuanganId, jenisHarga, harga: Number(parseNumber(harga)) }
+      const payload = { ruanganId: selectedItemAsetId, jenisHarga, harga: Number(parseNumber(harga)) }
 
       if (editingId) {
         await apiFetchClient(`/api/harga-item-aset/${editingId}`, {
@@ -240,8 +240,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
           select
           fullWidth
           label='Pilih Item Aset'
-          value={selectedRuanganId}
-          onChange={e => setSelectedRuanganId(e.target.value)}
+          value={selectedItemAsetId}
+          onChange={e => setSelectedItemAsetId(e.target.value)}
         >
           <MenuItem value=''>-- Pilih Item Aset --</MenuItem>
           {itemAsets.map(r => (
@@ -284,7 +284,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
             variant='contained'
             onClick={handleSubmit}
             endIcon={<i className='tabler-check' />}
-            disabled={!selectedRuanganId || !harga}
+            disabled={!selectedItemAsetId || !harga}
           >
             Submit
           </Button>

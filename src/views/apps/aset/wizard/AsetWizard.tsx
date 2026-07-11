@@ -22,8 +22,9 @@ import classnames from 'classnames'
 import CustomAvatar from '@core/components/mui/Avatar'
 import StepAsetDetails from './StepAsetDetails'
 import StepFasilitasDetails from './StepFasilitasDetails'
-import StepRuanganDetails from './StepRuanganDetails'
-import StepFasilitasRuanganDetails from './StepFasilitasRuanganDetails'
+import StepSyaratKetentuan from './StepSyaratKetentuan'
+import StepItemAsetDetails from './StepItemAsetDetails'
+import StepFasilitasItemAsetDetails from './StepFasilitasItemAsetDetails'
 import StepHargaItemAset from './StepHargaItemAset'
 
 // Styled Component Imports
@@ -40,6 +41,11 @@ const steps = [
     icon: 'tabler-building-plus',
     title: 'Fasilitas Aset',
     subtitle: 'Informasi Fasilitas Aset'
+  },
+  {
+    icon: 'tabler-file-text',
+    title: 'Syarat & Ketentuan',
+    subtitle: 'Syarat dan Ketentuan Aset'
   },
   {
     icon: 'tabler-door',
@@ -88,7 +94,7 @@ type AsetData = {
   pembayaranOnline?: boolean
 }
 
-type RuanganData = {
+type ItemAsetData = {
   nama: string
   status: string
 }
@@ -179,10 +185,11 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         console.log('Upload response status:', uploadRes.status)
 
         if (!uploadRes.ok) {
-          const errText = await uploadRes.text()
-
-          console.error('Upload failed:', errText)
-          throw new Error(`Image upload failed: ${uploadRes.status} ${uploadRes.statusText}`)
+          const errData = await uploadRes.json().catch(() => ({}))
+          console.error('Upload failed:', errData)
+          setErrorMessage(errData.message || `Gagal mengupload gambar (${uploadRes.status})`)
+          setSuccessMessage(null)
+          return
         }
       }
 
@@ -219,7 +226,7 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
     }
   }
 
-  const handleCreateRuangan = async (data: RuanganData) => {
+  const handleCreateItemAset = async (data: ItemAsetData) => {
     if (!asetId) {
       setErrorMessage('Aset belum dibuat!')
       setSuccessMessage(null)
@@ -234,12 +241,12 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
       })
 
       if (res.data) {
-        showMessage('Item aset berhasil ditambahkan!', 'success')
+        showMessage('Item Aset berhasil ditambahkan!', 'success')
 
         // Optional: Redirect or reset
       }
     } catch (error) {
-      console.error('Error saving ruangan:', error)
+      console.error('Error saving item aset:', error)
       showMessage('Gagal menyimpan item aset.', 'error')
     }
   }
@@ -271,28 +278,41 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         )
       case 2:
         return (
-          <StepRuanganDetails
+          <StepSyaratKetentuan
             activeStep={step}
             handleNext={handleNext}
             handlePrev={handlePrev}
             steps={steps}
-            onSave={handleCreateRuangan}
             asetId={asetId}
+            initialSyarat={currentAsetData?.syaratKetentuan || ''}
             onShowMessage={showMessage}
+            onSaved={syarat => setCurrentAsetData((prev: any) => ({ ...prev, syaratKetentuan: syarat }))}
           />
         )
       case 3:
         return (
-          <StepFasilitasRuanganDetails
+          <StepItemAsetDetails
             activeStep={step}
             handleNext={handleNext}
             handlePrev={handlePrev}
             steps={steps}
+            onSave={handleCreateItemAset}
             asetId={asetId}
             onShowMessage={showMessage}
           />
         )
       case 4:
+        return (
+          <StepFasilitasItemAsetDetails
+            activeStep={step}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            steps={steps}
+            asetId={asetId}
+            onShowMessage={showMessage}
+          />
+        )
+      case 5:
         return (
           <StepHargaItemAset
             activeStep={step}
@@ -359,9 +379,6 @@ const AsetWizard = ({ mode = 'create', initialData }: Props) => {
         {errorMessage && (
           <Alert severity='error' sx={{ mb: 4 }} onClose={() => setErrorMessage(null)}>
             {errorMessage}
-            <Button onClick={() => setErrorMessage(null)} sx={{ ml: 2 }} size='small' variant='outlined' color='error'>
-              Tutup
-            </Button>
           </Alert>
         )}
 

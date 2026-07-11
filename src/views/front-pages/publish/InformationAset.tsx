@@ -10,6 +10,7 @@ import Tooltip from '@mui/material/Tooltip'
 // Component Imports
 import MapPicker from '@/src/components/MapPicker'
 import CustomIconButton from '@core/components/mui/IconButton'
+import SyaratKetentuanDialog from './SyaratKetentuanDialog'
 
 interface InformationAsetProps {
   data: any
@@ -60,6 +61,12 @@ const InformationAset = ({ data }: InformationAsetProps) => {
                 </Grid>
               )}
             </Grid>
+            {data.syaratKetentuan && (
+              <>
+                <Divider className='mbs-7 mbe-7' />
+                <SyaratKetentuanDialog syaratKetentuan={data.syaratKetentuan} />
+              </>
+            )}
           </CardContent>
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>

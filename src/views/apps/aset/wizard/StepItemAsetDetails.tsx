@@ -34,7 +34,7 @@ type Props = {
   onShowMessage?: (message: string, type: 'success' | 'error') => void
 }
 
-type RuanganData = {
+type ItemAsetData = {
   id?: string
   asetId: string
   nama: string
@@ -43,10 +43,10 @@ type RuanganData = {
   images?: any[]
 }
 
-const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
+const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
-  const [rooms, setRooms] = useState<RuanganData[]>([])
+  const [rooms, setRooms] = useState<ItemAsetData[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -69,7 +69,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   const fetchRooms = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: (RuanganData & { images: any[] })[] }>(`/api/aset-item?asetId=${asetId}`)
+      const res = await apiFetchClient<{ data: (ItemAsetData & { images: any[] })[] }>(`/api/aset-item?asetId=${asetId}`)
 
       if (res.data) {
         // @ts-ignore
@@ -88,7 +88,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
     setView('form')
   }
 
-  const handleEdit = (room: RuanganData & { images?: any[] }) => {
+  const handleEdit = (room: ItemAsetData & { images?: any[] }) => {
     setEditingId(room.id!)
     setNama(room.nama)
     setDeskripsi(room.deskripsi || '')
@@ -155,6 +155,8 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
     setExistingImages([])
   }
 
+  const [submitting, setSubmitting] = useState(false)
+
   const handleSubmit = async () => {
     if (!asetId) return
 
@@ -164,6 +166,8 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
       deskripsi,
       status
     }
+
+    setSubmitting(true)
 
     try {
       let roomId = editingId
@@ -176,7 +180,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
         })
       } else {
         // Create
-        const res = await apiFetchClient<{ data: RuanganData }>(`/api/aset-item`, {
+        const res = await apiFetchClient<{ data: ItemAsetData }>(`/api/aset-item`, {
           method: 'POST',
           body: JSON.stringify(data)
         })
@@ -187,30 +191,45 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
       }
 
       // Handle Image Upload
+      console.log('[item-upload] roomId:', roomId, 'selectedFiles:', selectedFiles.length)
+
       if (roomId && selectedFiles.length > 0) {
         const formData = new FormData()
 
         selectedFiles.forEach(file => {
           formData.append('files', file)
+          console.log('[item-upload] appending file:', file.name, file.type, file.size)
         })
 
-        // Use fetch with Auth header
         const token = localStorage.getItem('accessToken')
 
-        await fetch(`/api/aset-item/${roomId}/images`, {
+        const uploadRes = await fetch(`/api/aset-item/${roomId}/images`, {
           method: 'POST',
           headers: {
             ...(token && { Authorization: `Bearer ${token}` })
           },
           body: formData
         })
+
+        console.log('[item-upload] response status:', uploadRes.status)
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}))
+          console.error('[item-upload] error:', errData)
+          onShowMessage?.(errData.message || 'Gagal mengupload gambar', 'error')
+          setSubmitting(false)
+          return
+        }
       }
 
+      onShowMessage?.('Item aset berhasil disimpan', 'success')
       fetchRooms()
       setView('table')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving room:', error)
-      onShowMessage?.('Gagal menyimpan item aset.', 'error')
+      onShowMessage?.(error?.message || 'Gagal menyimpan item aset.', 'error')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -327,7 +346,7 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
         <CustomTextField
           fullWidth
           label='Nama Item Aset'
-          placeholder='Contoh: Kamar/Ruangan/Jenis Motor/Jenis Mobil'
+          placeholder='Contoh: Kamar/Unit/Jenis Motor/Jenis Mobil'
           value={nama}
           onChange={e => setNama(e.target.value)}
         />
@@ -370,6 +389,9 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
             Pilih Gambar
             <input type='file' hidden multiple accept='image/*' onChange={handleFileChange} />
           </Button>
+          <Typography variant='caption' color='text.secondary'>
+            Rekomendasi ukuran <strong>1280 × 720 px</strong> (rasio 16:9) untuk hasil terbaik. Maksimal 3 gambar, ukuran maks 5MB per file.
+          </Typography>
 
           {/* Selected New Files */}
           {selectedFiles.length > 0 && (
@@ -442,8 +464,14 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
           <Button variant='tonal' color='secondary' onClick={() => setView('table')}>
             Cancel
           </Button>
-          <Button variant='contained' color='primary' onClick={handleSubmit} endIcon={<i className='tabler-check' />}>
-            Submit
+          <Button
+            variant='contained'
+            color='primary'
+            onClick={handleSubmit}
+            disabled={submitting}
+            endIcon={submitting ? <i className='tabler-loader-2 animate-spin' /> : <i className='tabler-check' />}
+          >
+            {submitting ? 'Menyimpan...' : 'Submit'}
           </Button>
         </div>
       </Grid>
@@ -467,4 +495,4 @@ const StepRuanganDetails = ({ activeStep, handleNext, handlePrev, steps, asetId,
   )
 }
 
-export default StepRuanganDetails
+export default StepItemAsetDetails

@@ -20,8 +20,8 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
       return NextResponse.json({ message: 'Gambar tidak ditemukan' }, { status: 404 })
     }
 
-    // Check ownership via Ruangan -> Company
-    // The ruangan must belong to the user's company
+    // Check ownership via Item Aset -> Company
+    // The item aset must belong to the user's company
     const ruangan = await prisma.ruangan.findUnique({
       where: { id: image.ruanganId }
     })

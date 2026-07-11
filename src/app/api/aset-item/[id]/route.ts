@@ -50,15 +50,15 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     const body = await request.json()
     const { nama, deskripsi, status, asetId } = body
 
-    const existingRuangan = await prisma.ruangan.findUnique({
+    const existingItemAset = await prisma.ruangan.findUnique({
       where: { id }
     })
 
-    if (!existingRuangan) {
+    if (!existingItemAset) {
       return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
-    const updatedRuangan = await prisma.ruangan.update({
+    const updatedItemAset = await prisma.ruangan.update({
       where: { id },
       data: {
         ...(nama && { nama }),
@@ -85,7 +85,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     return NextResponse.json({
-      data: updatedRuangan,
+      data: updatedItemAset,
       message: 'Item aset berhasil diupdate'
     })
   } catch (error) {
@@ -99,24 +99,24 @@ async function handleDelete(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
 
-    const existingRuangan = await prisma.ruangan.findUnique({
+    const existingItemAset = await prisma.ruangan.findUnique({
       where: { id },
       include: {
         images: true
       }
     })
 
-    if (!existingRuangan) {
+    if (!existingItemAset) {
       return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
     // Check ownership
-    if (existingRuangan.companyId !== user.companyId) {
+    if (existingItemAset.companyId !== user.companyId) {
       return NextResponse.json({ message: 'Akses tidak diizinkan' }, { status: 403 })
     }
 
     // Delete all item aset images from S3 before deleting the record
-    for (const image of existingRuangan.images) {
+    for (const image of existingItemAset.images) {
       try {
         const s3Key = getS3KeyFromUrl(image.filepath)
 

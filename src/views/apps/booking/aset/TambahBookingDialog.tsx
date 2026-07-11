@@ -23,7 +23,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
 type AsetItem = { id: string; nama: string; jenis?: string }
-type RuanganItem = { id: string; nama: string; asetId: string; hargaItemAset: { id: string; jenisHarga: string; harga: number }[] }
+type ItemAsetItem = { id: string; nama: string; asetId: string; hargaItemAset: { id: string; jenisHarga: string; harga: number }[] }
 type PenyewaItem = { id: string; nama: string; nomorTelepon?: string; email?: string }
 
 const JENIS_LABEL: Record<string, string> = {
@@ -61,7 +61,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const [email, setEmail] = useState('')
 
   const [asetId, setAsetId] = useState('')
-  const [ruanganId, setRuanganId] = useState('')
+  const [itemAsetId, setItemAsetId] = useState('')
   const [jenisHarga, setJenisHarga] = useState('')
   const [mulaiSewa, setMulaiSewa] = useState('')
   const [durasi, setDurasi] = useState(1)
@@ -69,7 +69,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const [statusBooking, setStatusBooking] = useState<'BELUM TERBAYAR' | 'LUNAS'>('BELUM TERBAYAR')
 
   const [asetList, setAsetList] = useState<AsetItem[]>([])
-  const [ruanganList, setRuanganList] = useState<RuanganItem[]>([])
+  const [itemAsetList, setItemAsetList] = useState<ItemAsetItem[]>([])
   const [penyewaList, setPenyewaList] = useState<PenyewaItem[]>([])
 
   const [loading, setLoading] = useState(false)
@@ -77,8 +77,8 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const [success, setSuccess] = useState(false)
   const [nomorBooking, setNomorBooking] = useState('')
 
-  const selectedRuangan = ruanganList.find(r => r.id === ruanganId)
-  const selectedHarga = selectedRuangan?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
+  const selectedItemAset = itemAsetList.find(r => r.id === itemAsetId)
+  const selectedHarga = selectedItemAset?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
   const selesaiSewa = mulaiSewa && jenisHarga ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
@@ -94,19 +94,19 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   }, [open])
 
   useEffect(() => {
-    if (!asetId) { setRuanganList([]); setRuanganId(''); setJenisHarga(''); return }
-    apiFetchClient<{ data: RuanganItem[] }>(`/api/aset-item/dp?asetId=${asetId}`, undefined, { redirectOn401: '/login' })
-      .then(res => { setRuanganList(res.data || []); setRuanganId(''); setJenisHarga('') })
+    if (!asetId) { setItemAsetList([]); setItemAsetId(''); setJenisHarga(''); return }
+    apiFetchClient<{ data: ItemAsetItem[] }>(`/api/aset-item/dp?asetId=${asetId}`, undefined, { redirectOn401: '/login' })
+      .then(res => { setItemAsetList(res.data || []); setItemAsetId(''); setJenisHarga('') })
       .catch(() => {})
   }, [asetId])
 
   useEffect(() => {
-    if (selectedRuangan?.hargaItemAset.length) {
-      setJenisHarga(selectedRuangan.hargaItemAset[0].jenisHarga)
+    if (selectedItemAset?.hargaItemAset.length) {
+      setJenisHarga(selectedItemAset.hargaItemAset[0].jenisHarga)
     } else {
       setJenisHarga('')
     }
-  }, [ruanganId])
+  }, [itemAsetId])
 
   const handleReset = () => {
     setPenyewaMode('pilih')
@@ -115,7 +115,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
     setTelepon('')
     setEmail('')
     setAsetId('')
-    setRuanganId('')
+    setItemAsetId('')
     setJenisHarga('')
     setMulaiSewa('')
     setDurasi(1)
@@ -135,7 +135,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const handleSubmit = async () => {
     setError('')
 
-    if (!ruanganId) { setError('Pilih item aset terlebih dahulu'); return }
+    if (!itemAsetId) { setError('Pilih item aset terlebih dahulu'); return }
     if (!jenisHarga) { setError('Pilih jenis harga'); return }
     if (!mulaiSewa) { setError('Masukkan tanggal mulai sewa'); return }
     if (penyewaMode === 'pilih' && !penyewaId) { setError('Pilih penyewa'); return }
@@ -144,7 +144,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
     setLoading(true)
     try {
       const payload: any = {
-        ruanganId,
+        ruanganId: itemAsetId,
         jenisHarga,
         mulaiSewa,
         selesaiSewa: selesaiSewa?.toISOString(),
@@ -266,7 +266,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
               <Divider />
             </Grid>
 
-            {/* Aset & Ruangan */}
+            {/* Aset & Item Aset */}
             <Grid size={{ xs: 12 }}>
               <Typography variant='h6' className='mbe-3'>
                 <i className='tabler-building mie-2' />
@@ -292,12 +292,12 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
                     select
                     fullWidth
                     label='Pilih Item Aset *'
-                    value={ruanganId}
-                    onChange={e => setRuanganId(e.target.value)}
-                    disabled={!asetId || ruanganList.length === 0}
+                    value={itemAsetId}
+                    onChange={e => setItemAsetId(e.target.value)}
+                    disabled={!asetId || itemAsetList.length === 0}
                   >
                     <MenuItem value=''>-- Pilih Item Aset --</MenuItem>
-                    {ruanganList.map(r => (
+                    {itemAsetList.map(r => (
                       <MenuItem key={r.id} value={r.id}>{r.nama}</MenuItem>
                     ))}
                   </CustomTextField>
@@ -323,10 +323,10 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
                     label='Jenis Harga *'
                     value={jenisHarga}
                     onChange={e => { setJenisHarga(e.target.value); setDurasi(1) }}
-                    disabled={!ruanganId || !selectedRuangan?.hargaItemAset.length}
+                    disabled={!itemAsetId || !selectedItemAset?.hargaItemAset.length}
                   >
                     <MenuItem value=''>-- Pilih Jenis Harga --</MenuItem>
-                    {selectedRuangan?.hargaItemAset.map(h => (
+                    {selectedItemAset?.hargaItemAset.map(h => (
                       <MenuItem key={h.id} value={h.jenisHarga}>
                         {JENIS_LABEL[h.jenisHarga] || h.jenisHarga} — {formatCurrency(h.harga)}
                       </MenuItem>

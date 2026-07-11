@@ -34,8 +34,15 @@ async function handleGet(request: NextRequest, { params }: ParamCtx) {
       return NextResponse.json({ message: 'Aset tidak ditemukan' }, { status: 404 })
     }
 
+    // Ambil publishId & syaratKetentuan via raw SQL
+    const extraRows = await prisma.$queryRaw<{ publishId: string | null; syaratKetentuan: string | null }[]>`
+      SELECT "publishId", "syaratKetentuan" FROM aset WHERE id = ${id}
+    `
+    const publishId = extraRows[0]?.publishId ?? null
+    const syaratKetentuan = extraRows[0]?.syaratKetentuan ?? null
+
     return NextResponse.json({
-      data: aset,
+      data: { ...aset, publishId, syaratKetentuan },
       message: 'Data berhasil diambil'
     })
   } catch (error) {
@@ -49,7 +56,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, bookingOnline, pembayaranOnline } = body
+    const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, syaratKetentuan, bookingOnline, pembayaranOnline } = body
 
     const existingAset = await prisma.aset.findUnique({
       where: { id }
@@ -57,6 +64,18 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
 
     if (!existingAset) {
       return NextResponse.json({ message: 'Aset tidak ditemukan' }, { status: 404 })
+    }
+
+    // Validasi dan simpan publishId via raw SQL (bypass Prisma Client type check)
+    if (publishId !== undefined && publishId !== null && publishId !== '') {
+      const slugPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/
+      if (!slugPattern.test(publishId)) {
+        return NextResponse.json({ message: 'ID Publish hanya boleh huruf kecil, angka, dan tanda hubung (-), tidak boleh diawali/diakhiri tanda hubung' }, { status: 400 })
+      }
+      const conflicts = await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM aset WHERE "publishId" = ${publishId} AND id != ${id}`
+      if (conflicts.length > 0) {
+        return NextResponse.json({ message: 'ID Publish sudah digunakan oleh aset lain' }, { status: 409 })
+      }
     }
 
     const updatedAset = await prisma.aset.update({
@@ -99,6 +118,17 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         }
       }
     })
+
+    // Update publishId & syaratKetentuan via raw SQL
+    if (publishId !== undefined) {
+      const slug = publishId || null
+      await prisma.$executeRaw`UPDATE aset SET "publishId" = ${slug} WHERE id = ${id}`
+    }
+
+    if (syaratKetentuan !== undefined) {
+      const syarat = syaratKetentuan || null
+      await prisma.$executeRaw`UPDATE aset SET "syaratKetentuan" = ${syarat} WHERE id = ${id}`
+    }
 
     return NextResponse.json({
       data: updatedAset,

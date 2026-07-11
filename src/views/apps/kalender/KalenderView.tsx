@@ -33,7 +33,7 @@ type KalenderEvent = {
   extendedProps: {
     color: string
     aset: string
-    ruangan: string
+    itemAset: string
     status: string
     periodeSewa: string
   }
@@ -170,7 +170,7 @@ const KalenderView = () => {
                   <Typography variant='caption' color='text.secondary'>
                     Item Aset
                   </Typography>
-                  <Typography variant='body1'>{selectedEvent.extendedProps.ruangan || '-'}</Typography>
+                  <Typography variant='body1'>{selectedEvent.extendedProps.itemAset || '-'}</Typography>
                 </Box>
                 <Box>
                   <Typography variant='caption' color='text.secondary'>

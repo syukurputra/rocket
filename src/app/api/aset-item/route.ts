@@ -90,7 +90,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
     }
 
-    const newRuangan = await prisma.ruangan.create({
+    const newItemAset = await prisma.ruangan.create({
       data: {
         asetId: asetId,
         nama: nama,
@@ -119,7 +119,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json(
       {
-        data: newRuangan,
+        data: newItemAset,
         message: 'Item aset berhasil ditambahkan'
       },
       { status: 201 }

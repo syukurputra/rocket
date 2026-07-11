@@ -163,8 +163,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           window.dispatchEvent(new Event('userMenusUpdated'))
         }
 
-        // Use /home to be safe as per user screenshot, assume consistent with prev login logic
-        router.push('/home')
+        // Redirect ke publish page (returnTo) jika ada pendingBooking, otherwise /home
+        try {
+          const raw = localStorage.getItem('pendingBooking')
+          const returnTo = raw ? JSON.parse(raw).returnTo : null
+
+          router.push(returnTo || '/home')
+        } catch {
+          router.push('/home')
+        }
 
         return { success: true }
       } else {

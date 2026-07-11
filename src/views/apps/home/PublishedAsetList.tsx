@@ -31,7 +31,7 @@ type AsetImage = {
   filepath: string
 }
 
-type Ruangan = {
+type ItemAset = {
   id: string
   nama: string
   status: string
@@ -51,6 +51,7 @@ type FasilitasAset = {
 
 type PublishedAset = {
   id: string
+  publishId?: string | null
   jenis: string
   nama: string
   deskripsi?: string
@@ -61,7 +62,7 @@ type PublishedAset = {
   longitude: number | null
   nominal: number
   images: AsetImage[]
-  ruangan: Ruangan[]
+  itemAsets: ItemAset[]
   fasilitasAset: FasilitasAset[]
 }
 
@@ -150,16 +151,16 @@ const PublishedAsetList = (props: Props) => {
     fetchData()
   }, [fetchData])
 
-  const getLowestPrice = (ruangan: Ruangan[]): number => {
-    if (ruangan.length === 0) return 0
+  const getLowestPrice = (itemAsets: ItemAset[]): number => {
+    if (itemAsets.length === 0) return 0
 
-    const prices = ruangan.map(r => r.hargaBulanan).filter(p => p > 0)
+    const prices = itemAsets.map(r => r.hargaBulanan).filter(p => p > 0)
 
     return prices.length > 0 ? Math.min(...prices) : 0
   }
 
-  const getAvailableRoomCount = (ruangan: Ruangan[]): number => {
-    return ruangan.filter(r => r.status === 'tidak huni').length
+  const getAvailableRoomCount = (itemAsets: ItemAset[]): number => {
+    return itemAsets.filter(r => r.status === 'tidak huni').length
   }
 
   // Skeleton card for loading state
@@ -230,7 +231,7 @@ const PublishedAsetList = (props: Props) => {
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                 <div className='border rounded bs-full flex flex-col'>
                   <div className='pli-2 pbs-2'>
-                    <Link href={`/publish/${item.id}`} className='flex'>
+                    <Link href={`/publish/${item.publishId || item.id}`} className='flex'>
                       {item.images && item.images.length > 0 ? (
                         <img
                           src={item.images[0].filepath}
@@ -262,17 +263,12 @@ const PublishedAsetList = (props: Props) => {
                       <div className='flex items-center gap-1'>
                         <i className='tabler-box text-lg text-textSecondary' />
                         <Typography variant='body2' color='text.secondary'>
-                          {getAvailableRoomCount(item.ruangan)}/{item.ruangan.length} Item Aset
+                          {getAvailableRoomCount(item.itemAsets)}/{item.itemAsets.length} Item Aset
                         </Typography>
                       </div>
                     </div>
                     <div className='flex flex-col gap-1'>
-                      <Typography
-                        variant='h5'
-                        component={Link}
-                        href={`/publish/${item.id}`}
-                        className='hover:text-primary'
-                      >
+                      <Typography variant='h5'>
                         {item.nama}
                       </Typography>
                       <Typography variant='body2' color='text.secondary' className='line-clamp-2'>
@@ -327,10 +323,10 @@ const PublishedAsetList = (props: Props) => {
 
                     {/* Price & Action */}
                     <div className='flex flex-col gap-3 mt-auto'>
-                      {getLowestPrice(item.ruangan) > 0 && (
+                      {getLowestPrice(item.itemAsets) > 0 && (
                         <div className='flex items-baseline gap-1'>
                           <Typography variant='h6' color='primary.main' className='font-bold'>
-                            {formatCurrency(getLowestPrice(item.ruangan))}
+                            {formatCurrency(getLowestPrice(item.itemAsets))}
                           </Typography>
                           <Typography variant='caption' color='text.secondary'>
                             /bulan
@@ -342,7 +338,7 @@ const PublishedAsetList = (props: Props) => {
                         variant='tonal'
                         endIcon={<i className='tabler-chevron-right' />}
                         component={Link}
-                        href={`/publish/${item.id}`}
+                        href={`/publish/${item.publishId || item.id}`}
                       >
                         Lihat Detail
                       </Button>

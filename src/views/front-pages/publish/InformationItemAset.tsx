@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -13,18 +13,100 @@ import DialogContent from '@mui/material/DialogContent'
 import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 import Button from '@mui/material/Button'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 
 import BookingDialog from './BookingDialog'
+import ScheduleDialog from './ScheduleDialog'
 
-interface InformationRuanganProps {
+interface InformationItemAsetProps {
   data: any
   asetNama?: string
 }
 
-const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) => {
+const InformationItemAset = ({ data, asetNama = '' }: InformationItemAsetProps) => {
   const [openGallery, setOpenGallery] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
   const [openBooking, setOpenBooking] = useState(false)
+  const [openSchedule, setOpenSchedule] = useState(false)
+  const [pendingBookingData, setPendingBookingData] = useState<any>(null)
+  const [autoProcessing, setAutoProcessing] = useState(false)
+
+  // Auto-proses booking setelah redirect dari login
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken')
+
+    if (!accessToken) return
+
+    try {
+      const raw = localStorage.getItem('pendingBooking')
+
+      if (!raw) return
+
+      const pending = JSON.parse(raw)
+
+      if (pending.ruanganId !== data.id) return
+
+      // Ada pendingBooking untuk item aset ini + user sudah login → proses otomatis
+      setAutoProcessing(true)
+
+      const userData = localStorage.getItem('user')
+      const user = userData ? JSON.parse(userData) : null
+
+      if (!user) {
+        setAutoProcessing(false)
+        setPendingBookingData(pending)
+        setOpenBooking(true)
+
+        return
+      }
+
+      fetch('/api/public/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ruanganId: pending.ruanganId,
+          namaPemesan: user.username || user.nama || '',
+          email: user.email || '',
+          telepon: user.nomorTelepon || '',
+          jenisHarga: pending.jenisHarga,
+          mulaiSewa: pending.mulaiSewa,
+          selesaiSewa: pending.selesaiSewa,
+          durasi: pending.durasi,
+          hargaSatuan: pending.hargaSatuan,
+          total: pending.total,
+          catatan: pending.catatan || '',
+          userId: user.id
+        })
+      })
+        .then(res => res.json().then(d => ({ ok: res.ok, data: d })))
+        .then(({ ok, data: bookingData }) => {
+          localStorage.removeItem('pendingBooking')
+
+          if (ok) {
+            const paymentUrl = bookingData.data?.tagihan?.paymentUrl
+
+            if (paymentUrl) {
+              window.location.href = paymentUrl
+            } else {
+              window.location.href = '/booking'
+            }
+          } else {
+            // Gagal → buka dialog dengan error
+            setPendingBookingData({ ...pending, errorMessage: bookingData.message || 'Gagal memproses booking' })
+            setAutoProcessing(false)
+            setOpenBooking(true)
+          }
+        })
+        .catch(() => {
+          setPendingBookingData({ ...pending, errorMessage: 'Terjadi kesalahan jaringan, silakan coba lagi.' })
+          setAutoProcessing(false)
+          setOpenBooking(true)
+        })
+    } catch {
+      setAutoProcessing(false)
+    }
+  }, [])
 
   const images = data.images && data.images.length > 0 ? data.images : []
 
@@ -47,6 +129,22 @@ const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) =>
 
   const handlePrev = () => setActiveIdx(i => (i - 1 + images.length) % images.length)
   const handleNext = () => setActiveIdx(i => (i + 1) % images.length)
+
+  if (autoProcessing) {
+    return (
+      <Card>
+        <CardContent>
+          <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' gap={3} py={6}>
+            <CircularProgress size={48} />
+            <Typography variant='h6'>Memproses booking Anda...</Typography>
+            <Typography color='text.secondary' align='center'>
+              Mohon tunggu, kami sedang menyiapkan pembayaran untuk {data.nama}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <>
@@ -104,15 +202,17 @@ const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) =>
           {/* Right Column: Image */}
           <Grid size={{ xs: 12, md: 4 }}>
             <CardContent className='flex flex-col items-center justify-center h-full gap-2'>
-              {images.length > 0 ? (
+              {images.length > 0 && (
                 <>
-                  <img
-                    src={images[0].filepath}
-                    alt={data.nama}
-                    onClick={() => handleOpenGallery(0)}
-                    className='rounded cursor-pointer hover:opacity-80 transition-opacity w-full'
-                    style={{ objectFit: 'cover', maxHeight: 200 }}
-                  />
+                  <Box sx={{ width: '100%', overflow: 'hidden', borderRadius: 1 }}>
+                    <img
+                      src={images[0].filepath}
+                      alt={data.nama}
+                      onClick={() => handleOpenGallery(0)}
+                      className='cursor-pointer hover:opacity-80 transition-opacity'
+                      style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }}
+                    />
+                  </Box>
                   {images.length > 1 && (
                     <div className='flex gap-1 flex-wrap justify-start w-full'>
                       {images.slice(1).map((img: any, i: number) => (
@@ -122,30 +222,33 @@ const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) =>
                           alt={`${data.nama} ${i + 2}`}
                           onClick={() => handleOpenGallery(i + 1)}
                           className='rounded cursor-pointer hover:opacity-80 transition-opacity'
-                          style={{ width: 60, height: 60, objectFit: 'cover' }}
+                          style={{ width: 60, height: 60, objectFit: 'cover', flexShrink: 0 }}
                         />
                       ))}
                     </div>
                   )}
                 </>
-              ) : (
-                <img
-                  src='/images/publish-gallery-1.png'
-                  className='rounded w-full'
-                  alt={data.nama}
-                  style={{ objectFit: 'cover', maxHeight: 200 }}
-                />
               )}
               {data.hargaItemAset && data.hargaItemAset.length > 0 && (
-                <Button
-                  variant='contained'
-                  fullWidth
-                  startIcon={<i className='tabler-calendar-check' />}
-                  onClick={() => setOpenBooking(true)}
-                  sx={{ mt: 1 }}
-                >
-                  Booking Sekarang
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1, mt: 1, width: '100%' }}>
+                  <Button
+                    variant='outlined'
+                    color='secondary'
+                    fullWidth
+                    startIcon={<i className='tabler-calendar' />}
+                    onClick={() => setOpenSchedule(true)}
+                  >
+                    Schedule
+                  </Button>
+                  <Button
+                    variant='contained'
+                    fullWidth
+                    startIcon={<i className='tabler-calendar-check' />}
+                    onClick={() => setOpenBooking(true)}
+                  >
+                    Booking
+                  </Button>
+                </Box>
               )}
             </CardContent>
           </Grid>
@@ -156,11 +259,20 @@ const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) =>
       {data.hargaItemAset && data.hargaItemAset.length > 0 && (
         <BookingDialog
           open={openBooking}
-          onClose={() => setOpenBooking(false)}
-          ruangan={{ id: data.id, nama: data.nama, hargaItemAset: data.hargaItemAset }}
+          onClose={() => { setOpenBooking(false); setPendingBookingData(null) }}
+          itemAset={{ id: data.id, nama: data.nama, hargaItemAset: data.hargaItemAset }}
           asetNama={asetNama}
+          initialData={pendingBookingData || undefined}
         />
       )}
+
+      {/* Schedule Dialog */}
+      <ScheduleDialog
+        open={openSchedule}
+        onClose={() => setOpenSchedule(false)}
+        itemAsetId={data.id}
+        itemAsetNama={data.nama}
+      />
 
       {/* Image Gallery Modal */}
       <Dialog open={openGallery} onClose={handleCloseGallery} maxWidth='md' fullWidth>
@@ -217,4 +329,4 @@ const InformationRuangan = ({ data, asetNama = '' }: InformationRuanganProps) =>
   )
 }
 
-export default InformationRuangan
+export default InformationItemAset

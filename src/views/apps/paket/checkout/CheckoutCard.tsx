@@ -122,9 +122,8 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                     </div>
                   </div>
                   <div>
-                    <Typography color='text.primary'>Jl. Sudirman No. 1, Jakarta Pusat</Typography>
-                    <Typography color='text.primary'>DKI Jakarta 10220, Indonesia</Typography>
-                    <Typography color='text.primary'>+62 (21) 555 1234</Typography>
+                    <Typography color='text.primary'>Aryana Karawaci Cluster Flora Blok E6-08</Typography>
+                    <Typography color='text.primary'>Kab. Tangerang</Typography>
                   </div>
                 </div>
 

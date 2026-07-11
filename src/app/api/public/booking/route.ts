@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!ruangan) {
-      return NextResponse.json({ message: 'Ruangan tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Item Aset tidak ditemukan' }, { status: 404 })
     }
 
     // Find company's first user to use as createdById for records
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
         nomorBooking,
         namaPemesan,
         namaAset: ruangan.aset.nama,
-        namaRuangan: ruangan.nama,
+        namaItemAset: ruangan.nama,
         periodeSewa,
         mulaiSewa: mulaiSewaDate.toISOString(),
         selesaiSewa: selesaiSewaDate.toISOString(),

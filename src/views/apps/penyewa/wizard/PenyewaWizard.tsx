@@ -56,7 +56,7 @@ type PenyewaData = {
   nama: string
   status: string
   asetId?: string
-  ruanganId?: string
+  itemAsetId?: string
   periodeSewa?: string
   mulaiSewa?: Date
   selesaiSewa?: Date
@@ -148,7 +148,7 @@ const PenyewaWizard = ({ mode = 'create', initialData }: Props) => {
     }
   }
 
-  const handleCreateRuangan = async (data: TagihanData) => {
+  const handleCreateItemAset = async (data: TagihanData) => {
     if (!penyewaId) {
       alert('Penyewa belum dibuat!')
 
@@ -162,13 +162,13 @@ const PenyewaWizard = ({ mode = 'create', initialData }: Props) => {
       })
 
       if (res) {
-        alert('Ruangan berhasil ditambahkan!')
+        alert('Item Aset berhasil ditambahkan!')
 
         // Optional: Redirect or reset
       }
     } catch (error) {
-      console.error('Error saving ruangan:', error)
-      alert('Gagal menyimpan ruangan.')
+      console.error('Error saving item aset:', error)
+      alert('Gagal menyimpan item aset.')
     }
   }
 
@@ -192,7 +192,7 @@ const PenyewaWizard = ({ mode = 'create', initialData }: Props) => {
             handleNext={handleNext}
             handlePrev={handlePrev}
             steps={steps}
-            onSave={handleCreateRuangan}
+            onSave={handleCreateItemAset}
             penyewaId={penyewaId}
           />
         )

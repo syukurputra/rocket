@@ -8,14 +8,20 @@ type ParamCtx = AuthContext & { params: { id: string } }
 async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id: asetId } = params
+    console.log('[aset-images] asetId:', asetId, 'companyId:', user.companyId)
 
-    // Verify aset exists and belongs to user's company
+    // Verify aset exists and belongs to this user (or same company)
     const aset = await prisma.aset.findFirst({
       where: {
         id: asetId,
-        companyId: user.companyId!
+        OR: [
+          { createdById: user.id },
+          ...(user.companyId ? [{ companyId: user.companyId }] : [])
+        ]
       }
     })
+
+    console.log('[aset-images] aset found:', !!aset)
 
     if (!aset) {
       return NextResponse.json({ message: 'Aset tidak ditemukan' }, { status: 404 })
@@ -24,14 +30,13 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
 
+    console.log('[aset-images] files count:', files.length, 'types:', files.map(f => f.type))
+
     if (!files || files.length === 0) {
       return NextResponse.json({ message: 'Tidak ada file yang diupload' }, { status: 400 })
     }
 
-    // Validate max 3 images
-    const existingImagesCount = await prisma.asetImage.count({
-      where: { asetId }
-    })
+    const existingImagesCount = await prisma.asetImage.count({ where: { asetId } })
 
     if (existingImagesCount + files.length > 3) {
       return NextResponse.json(
@@ -43,32 +48,27 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
     const uploadedImages = []
 
     for (const file of files) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
-      if (!allowedTypes.includes(file.type)) {
-        continue // Skip invalid files
+      if (!file.type.startsWith('image/') && file.type !== '') {
+        console.log('[aset-images] skipping non-image file:', file.name, file.type)
+        continue
       }
 
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024 // 5MB
+      const maxSize = 5 * 1024 * 1024
       if (file.size > maxSize) {
-        continue // Skip files that are too large
+        return NextResponse.json({ message: `File "${file.name}" terlalu besar. Maksimal 5MB per file.` }, { status: 400 })
       }
 
-      // Generate unique filename
       const timestamp = Date.now()
       const extension = file.name.split('.').pop() || 'jpg'
       const filename = `${asetId}_${timestamp}_${Math.random().toString(36).substring(7)}.${extension}`
-
-      // Convert file to buffer
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
-
-      // Upload to S3 Object Storage
       const s3Key = `aset/${filename}`
-      const publicUrl = await uploadToS3(buffer, s3Key, file.type)
 
-      // Create database record with S3 URL
+      console.log('[aset-images] uploading to S3:', s3Key)
+      const publicUrl = await uploadToS3(buffer, s3Key, file.type || 'image/jpeg')
+      console.log('[aset-images] S3 URL:', publicUrl)
+
       const imageRecord = await prisma.asetImage.create({
         data: {
           filename: file.name,
@@ -79,7 +79,12 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
         }
       })
 
+      console.log('[aset-images] DB record created:', imageRecord.id)
       uploadedImages.push(imageRecord)
+    }
+
+    if (uploadedImages.length === 0) {
+      return NextResponse.json({ message: 'Tidak ada file valid yang berhasil diupload (cek tipe/ukuran)' }, { status: 400 })
     }
 
     return NextResponse.json({
@@ -87,8 +92,8 @@ async function handlePost(request: NextRequest, { user, params }: ParamCtx) {
       data: uploadedImages
     })
   } catch (error) {
-    console.error('Upload error:', error)
-    return NextResponse.json({ message: 'Gagal mengupload gambar' }, { status: 500 })
+    console.error('[aset-images] Upload error:', error)
+    return NextResponse.json({ message: `Gagal mengupload gambar: ${error instanceof Error ? error.message : String(error)}` }, { status: 500 })
   }
 }
 

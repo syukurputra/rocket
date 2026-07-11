@@ -1,6 +1,8 @@
 ﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { Prisma } from '@prisma/client'
+
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
@@ -39,8 +41,16 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
 
   const totalPages = Math.ceil(total / limit)
 
+  // Enrich dengan publishId via raw SQL (Prisma Client mungkin belum di-generate ulang)
+  const ids = data.map(a => a.id)
+  const slugRows: { id: string; publishId: string | null }[] = ids.length
+    ? await prisma.$queryRaw`SELECT id, "publishId" FROM aset WHERE id IN (${Prisma.join(ids)})`
+    : []
+  const slugMap = Object.fromEntries(slugRows.map(r => [r.id, r.publishId]))
+  const enrichedData = data.map(a => ({ ...a, publishId: slugMap[a.id] ?? null }))
+
   return NextResponse.json({
-    data,
+    data: enrichedData,
     pagination: {
       page,
       limit,
@@ -55,7 +65,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
 
 async function handlePost(req: NextRequest, { user }: AuthContext) {
   const body = await req.json()
-  const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, bookingOnline, pembayaranOnline } = body
+  const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, bookingOnline, pembayaranOnline } = body
 
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
     return NextResponse.json({ message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' }, { status: 400 })
@@ -64,6 +74,18 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
   // Validate that user has a companyId
   if (!user.companyId) {
     return NextResponse.json({ message: 'User tidak memiliki company yang valid' }, { status: 400 })
+  }
+
+  // Validasi publishId via raw SQL (bypass Prisma Client type check)
+  if (publishId) {
+    const slugPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/
+    if (!slugPattern.test(publishId)) {
+      return NextResponse.json({ message: 'ID Publish hanya boleh huruf kecil, angka, dan tanda hubung (-), tidak boleh diawali/diakhiri tanda hubung' }, { status: 400 })
+    }
+    const conflicts = await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM aset WHERE "publishId" = ${publishId}`
+    if (conflicts.length > 0) {
+      return NextResponse.json({ message: 'ID Publish sudah digunakan oleh aset lain' }, { status: 409 })
+    }
   }
 
   const newAset = await prisma.aset.create({
@@ -97,6 +119,11 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
       updatedBy: { select: { id: true, username: true } }
     }
   })
+
+  // Set publishId via raw SQL setelah create (Prisma Client mungkin belum di-generate ulang)
+  if (publishId) {
+    await prisma.$executeRaw`UPDATE aset SET "publishId" = ${publishId} WHERE id = ${newAset.id}`
+  }
 
   return NextResponse.json({ data: newAset, message: 'Aset berhasil ditambahkan' }, { status: 201 })
 }

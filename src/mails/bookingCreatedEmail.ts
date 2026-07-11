@@ -10,7 +10,7 @@ type BookingCreatedParams = {
   nomorBooking: string
   namaPemesan: string
   namaAset: string
-  namaRuangan: string
+  namaItemAset: string
   periodeSewa: string
   mulaiSewa: string
   selesaiSewa: string
@@ -19,7 +19,7 @@ type BookingCreatedParams = {
 }
 
 export async function sendBookingCreatedEmail(to: string, params: BookingCreatedParams) {
-  const { nomorBooking, namaPemesan, namaAset, namaRuangan, periodeSewa, mulaiSewa, selesaiSewa, total, paymentUrl } = params
+  const { nomorBooking, namaPemesan, namaAset, namaItemAset, periodeSewa, mulaiSewa, selesaiSewa, total, paymentUrl } = params
 
   const html = `<!DOCTYPE html>
 <html lang="id">
@@ -60,7 +60,7 @@ export async function sendBookingCreatedEmail(to: string, params: BookingCreated
                 </tr>
                 <tr style="border-top:1px solid #e5e7eb;">
                   <td style="padding:8px 0;color:#6b7280;font-size:14px;">Item Aset</td>
-                  <td style="padding:8px 0;color:#1f2937;font-size:14px;font-weight:600;text-align:right;">${namaRuangan}</td>
+                  <td style="padding:8px 0;color:#1f2937;font-size:14px;font-weight:600;text-align:right;">${namaItemAset}</td>
                 </tr>
                 <tr style="border-top:1px solid #e5e7eb;">
                   <td style="padding:8px 0;color:#6b7280;font-size:14px;">Periode Sewa</td>
@@ -118,7 +118,7 @@ export async function sendBookingCreatedEmail(to: string, params: BookingCreated
 
   return sendEmail({
     to,
-    subject: `Booking Berhasil - ${nomorBooking} | ${namaAset} — ${namaRuangan}`,
+    subject: `Booking Berhasil - ${nomorBooking} | ${namaAset} — ${namaItemAset}`,
     html
   })
 }

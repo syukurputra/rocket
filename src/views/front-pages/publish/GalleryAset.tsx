@@ -29,8 +29,8 @@ const GalleryAset = ({ data }: GalleryAsetProps) => {
           <Box className='navigation-wrapper'>
             <div ref={sliderRef} className='keen-slider'>
               {data.map((src, idx) => (
-                <div key={idx} className='keen-slider__slide'>
-                  <img src={src} alt={`gallery-${idx}`} className='rounded' style={{ maxHeight: '60vh', width: '100%', objectFit: 'contain' }} />
+                <div key={idx} className='keen-slider__slide' style={{ aspectRatio: '16/9' }}>
+                  <img src={src} alt={`gallery-${idx}`} className='rounded' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>

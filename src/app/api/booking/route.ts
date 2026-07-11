@@ -49,8 +49,10 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const totalPages = Math.ceil(total / limit)
 
+    const mappedData = data.map(({ ruangan, ...rest }: any) => ({ ...rest, itemAset: ruangan }))
+
     return NextResponse.json({
-      data,
+      data: mappedData,
       pagination: { page, limit, totalCount: total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
       message: 'Data berhasil diambil'
     })

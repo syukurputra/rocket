@@ -206,6 +206,17 @@ const NotificationsDropdown = () => {
                     {unreadCount > 0 && (
                       <Chip size='small' variant='tonal' color='primary' label={`${unreadCount} Baru`} />
                     )}
+                    <Tooltip title='Lihat semua notifikasi'>
+                      <Button
+                        size='small'
+                        variant='text'
+                        color='primary'
+                        sx={{ minWidth: 'unset', fontSize: '0.75rem', px: 1 }}
+                        onClick={() => { setOpen(false); router.push('/notifikasi') }}
+                      >
+                        Semua Notif
+                      </Button>
+                    </Tooltip>
                     {notifications.length > 0 && (
                       <Tooltip title={allRead ? 'Sudah semua dibaca' : 'Tandai semua sudah dibaca'}>
                         <span>

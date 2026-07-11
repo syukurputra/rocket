@@ -69,7 +69,7 @@ type TagihanBooking = {
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
   aset?: { id: string; nama: string } | null
-  ruangan?: { id: string; nama: string } | null
+  itemAset?: { id: string; nama: string } | null
   penyewa?: {
     id: string
     nama: string
@@ -179,10 +179,10 @@ const BookingAsetList = () => {
         header: 'Aset',
         cell: ({ row }) => <Typography>{row.original.aset?.nama || '-'}</Typography>
       }),
-      columnHelper.accessor('ruangan', {
-        id: 'ruangan',
+      columnHelper.accessor('itemAset', {
+        id: 'itemAset',
         header: 'Item Aset',
-        cell: ({ row }) => <Typography>{row.original.ruangan?.nama || '-'}</Typography>
+        cell: ({ row }) => <Typography>{row.original.itemAset?.nama || '-'}</Typography>
       }),
       columnHelper.accessor('periodeSewa', {
         id: 'periodeSewa',

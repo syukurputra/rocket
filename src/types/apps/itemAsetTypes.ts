@@ -1,4 +1,4 @@
-export type RuanganImage = {
+export type ItemAsetImage = {
   id: string
   filename: string
   filepath: string
@@ -8,9 +8,9 @@ export type RuanganImage = {
   ruanganId: string
 }
 
-export type RuanganClient = {
+export type ItemAsetClient = {
   id: string
   nama: string
   status: string
-  images?: RuanganImage[]
+  images?: ItemAsetImage[]
 }

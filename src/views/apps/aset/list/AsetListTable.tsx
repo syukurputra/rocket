@@ -240,7 +240,7 @@ const AsetListTable = ({ initialData = [] }: AsetListTableProps) => {
             <Tooltip title='Jika Status Publish Bisa Dibuka'>
               <IconButton
                 aria-label='Lihat'
-                onClick={() => window.open(`/publish/${row.original.id}`, '_blank')}
+                onClick={() => window.open(`/publish/${(row.original as any).publishId || row.original.id}`, '_blank')}
                 className='flex'
               >
                 <i className='tabler-world-www text-textSecondary' />

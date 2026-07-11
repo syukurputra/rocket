@@ -1,6 +1,7 @@
 ﻿import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { Prisma } from '@prisma/client'
 import prisma from '@/src/libs/prisma'
 
 export async function GET(req: NextRequest) {
@@ -59,9 +60,17 @@ export async function GET(req: NextRequest) {
 
     const totalPages = Math.ceil(total / limit)
 
+    // Enrich dengan publishId via raw SQL
+    const ids = data.map(a => a.id)
+    const slugRows: { id: string; publishId: string | null }[] = ids.length
+      ? await prisma.$queryRaw`SELECT id, "publishId" FROM aset WHERE id IN (${Prisma.join(ids)})`
+      : []
+    const slugMap = Object.fromEntries(slugRows.map(r => [r.id, r.publishId]))
+
     // Sanitize Decimal fields
     const sanitizedData = data.map(item => ({
       ...item,
+      publishId: slugMap[item.id] ?? null,
       nominal: Number(item.nominal),
       latitude: item.latitude ?? null,
       longitude: item.longitude ?? null,
