@@ -29,8 +29,13 @@ type BannerPromo = {
   periodeAkhir: string
 }
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+const formatDate = (iso: string) => {
+  const d = new Date(iso)
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
 
 const PromoSection = () => {
   const [promos, setPromos] = useState<BannerPromo[]>([])
@@ -116,32 +121,22 @@ const PromoSection = () => {
             <AppKeenSlider>
               <div ref={sliderRef} className='keen-slider mbe-6'>
                 {promos.map(promo => (
-                  <div key={promo.id} className='keen-slider__slide flex justify-center p-2'>
-                    <Card elevation={8} className='flex flex-col' style={{ width: 300 }}>
+                  <div key={promo.id} className='keen-slider__slide py-2' style={{ width: 400 }}>
+                    <Card elevation={8} className='flex flex-col' style={{ width: '100%' }}>
                       {promo.imageUrl ? (
                         <Box
-                          sx={{
-                            width: 300,
-                            height: 350,
-                            overflow: 'hidden',
-                            cursor: 'zoom-in',
-                            flexShrink: 0,
-                            bgcolor: 'action.hover',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
+                          sx={{ cursor: 'zoom-in', overflow: 'hidden', lineHeight: 0 }}
                           onClick={() => setLightbox(promo.imageUrl!)}
                         >
                           <img
                             src={promo.imageUrl}
                             alt={promo.judul}
-                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }}
+                            style={{ display: 'block', width: '100%', height: 'auto' }}
                           />
                         </Box>
                       ) : (
                         <Box
-                          sx={{ width: 300, height: 350, bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          sx={{ width: 300, height: 300, bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <i className='tabler-speakerphone text-5xl text-primary opacity-30' />
                         </Box>
