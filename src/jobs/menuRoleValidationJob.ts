@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 import type { ScheduledJob } from '../types/scheduler'
+import { getParameter } from '../libs/getParameter'
 
 const prisma = new PrismaClient()
 
@@ -8,10 +9,12 @@ async function validateMenuRoleByPaket() {
   console.log('🔍 Memulai validasi menu_role berdasarkan paket...')
 
   try {
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
+
     // Ambil semua company beserta paket dan roles-nya
     const companies = await prisma.company.findMany({
       where: {
-        id: { not: 'company-demo-001' }
+        id: { not: DEMO_COMPANY_ID }
       },
       select: {
         id: true,
@@ -83,9 +86,11 @@ async function insertMissingMenuRoleForSuperAdmin() {
   console.log('➕ Memulai insert menu_role untuk Super Admin (paket_menu tampilkan=false)...')
 
   try {
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
+
     const companies = await prisma.company.findMany({
       where: {
-        id: { not: 'company-demo-001' },
+        id: { not: DEMO_COMPANY_ID },
         paketId: { not: null }
       },
       select: {

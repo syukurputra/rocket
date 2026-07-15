@@ -61,8 +61,18 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const totalPages = Math.ceil(total / limit)
 
+    // Merge nomorTagihan via raw SQL (Prisma client cache belum include field ini)
+    const ids = data.map((d: any) => d.id)
+    const nomorRows = ids.length > 0
+      ? await prisma.$queryRaw<{ id: string; nomorTagihan: string | null }[]>`
+          SELECT id, "nomorTagihan" FROM "tagihan" WHERE id = ANY(${ids}::text[])
+        `
+      : []
+    const nomorMap = new Map(nomorRows.map(r => [r.id, r.nomorTagihan]))
+    const enriched = data.map((d: any) => ({ ...d, nomorTagihan: nomorMap.get(d.id) ?? null }))
+
     return NextResponse.json({
-      data,
+      data: enriched,
       pagination: {
         page,
         limit,
@@ -78,6 +88,22 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }
+}
+
+async function generateNomorTagihan(): Promise<string> {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const prefix = `TG-${year}${month}-`
+
+  const rows = await prisma.$queryRawUnsafe<{ nomorTagihan: string }[]>(
+    `SELECT "nomorTagihan" FROM "tagihan" WHERE "nomorTagihan" LIKE $1 ORDER BY "nomorTagihan" DESC LIMIT 1`,
+    `${prefix}%`
+  )
+
+  const lastNum = rows.length > 0 ? parseInt(rows[0].nomorTagihan.slice(-5)) : 0
+
+  return `${prefix}${String(lastNum + 1).padStart(5, '0')}`
 }
 
 async function handlePost(request: NextRequest, { user }: AuthContext) {
@@ -131,6 +157,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     }
 
+    const nomorTagihan = await generateNomorTagihan()
+
     const newTagihan = await prisma.tagihan.create({
       data: {
         keterangan: keterangan || '',
@@ -168,13 +196,16 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     })
 
+    // Simpan nomorTagihan via raw SQL (Prisma client cache belum include field ini)
+    await prisma.$executeRaw`UPDATE "tagihan" SET "nomorTagihan" = ${nomorTagihan} WHERE id = ${newTagihan.id}`
+
     if (ruanganId) {
       await prisma.ruangan.update({ where: { id: ruanganId }, data: { status: 'Huni' } })
     }
 
     return NextResponse.json(
       {
-        data: newTagihan,
+        data: { ...newTagihan, nomorTagihan },
         message: 'Tagihan berhasil ditambahkan'
       },
       { status: 201 }

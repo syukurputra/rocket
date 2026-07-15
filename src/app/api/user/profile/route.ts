@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         username: true,
+        name: true,
         email: true,
         nomorTelepon: true,
         nomorKtp: true,
@@ -72,6 +73,7 @@ export async function PUT(req: NextRequest) {
     const data = await req.json()
     const {
       username,
+      name,
       email,
       nomorTelepon,
       nomorKtp,
@@ -84,12 +86,11 @@ export async function PUT(req: NextRequest) {
       longitude
     } = data
 
-    // Optional: add validation here
-
     const user = await prisma.user.update({
       where: { id: payload.userId },
       data: {
         username,
+        name: name || null,
         email,
         nomorTelepon,
         nomorKtp,
@@ -104,6 +105,7 @@ export async function PUT(req: NextRequest) {
       select: {
         id: true,
         username: true,
+        name: true,
         email: true,
         nomorTelepon: true,
         nomorKtp: true,

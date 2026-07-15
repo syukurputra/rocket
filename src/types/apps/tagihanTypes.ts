@@ -1,5 +1,6 @@
 export type TagihanClient = {
   id: string
+  nomorTagihan?: string | null
   judul?: string
   keterangan: string
   status: string

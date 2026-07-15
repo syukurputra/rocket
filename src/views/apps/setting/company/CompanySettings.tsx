@@ -2,23 +2,50 @@
 
 import { useState, useEffect } from 'react'
 
+import dynamic from 'next/dynamic'
+
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid2'
 import TextField from '@mui/material/TextField'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+import LinearProgress from '@mui/material/LinearProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Chip from '@mui/material/Chip'
-import Divider from '@mui/material/Divider'
 
+import type { ApexOptions } from 'apexcharts'
+import classnames from 'classnames'
+
+import CustomAvatar from '@core/components/mui/Avatar'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+
+const AppReactApexCharts = dynamic(() => import('@/src/libs/styles/AppReactApexCharts'), { ssr: false })
+
+type EarningItem = {
+  title: string
+  stats: string
+  progress: number
+  avatarIcon: string
+  avatarColor: 'primary' | 'info' | 'error'
+  progressColor: 'primary' | 'info' | 'error'
+}
+
+const earningData: EarningItem[] = [
+  { title: 'Pemasukan', stats: 'Rp 0', progress: 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-currency-dollar' },
+  { title: 'Keuntungan', stats: 'Rp 0', progress: 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-chart-pie-2' },
+  { title: 'Pengeluaran', stats: 'Rp 0', progress: 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-brand-paypal' }
+]
+
+const earningChartSeries = [{ data: [0, 0, 0, 0, 0, 0, 0] }]
 
 type LastInvoice = {
   id: string
@@ -165,15 +192,58 @@ const CompanySettings = () => {
     )
   }
 
+  const paketNama = company.paket?.nama || company.lastInvoice?.paket?.nama || '-'
+  const paketDeskripsi = company.paket?.deskripsi || company.lastInvoice?.paket?.deskripsi || ''
+  const billingCycleLabel = company.lastInvoice?.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'
+  const totalPembayaran = company.lastInvoice ? Number(company.lastInvoice.total) : 0
+  const nomorInvoice = company.lastInvoice?.nomorInvoice || '-'
+
+  const now = new Date()
+  const startDate = company.paketStartDate ? new Date(company.paketStartDate) : null
+  const endDate = company.paketEndDate ? new Date(company.paketEndDate) : null
+  const totalDays = startDate && endDate ? Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000)) : 30
+  const isExpired = endDate !== null && now > endDate
+  const daysUsedRaw = startDate ? Math.max(0, Math.ceil((now.getTime() - startDate.getTime()) / 86400000)) : 0
+  const daysUsed = Math.min(daysUsedRaw, totalDays)
+  const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / 86400000)) : 0
+  const progress = Math.min(100, Math.round((daysUsed / totalDays) * 100))
+  const isExpiringSoon = !isExpired && daysRemaining <= 7 && endDate !== null
+
+  const primaryColorWithOpacity = 'var(--mui-palette-primary-lightOpacity)'
+
+  const earningChartOptions: ApexOptions = {
+    chart: { parentHeightOffset: 0, toolbar: { show: false } },
+    tooltip: { enabled: false },
+    grid: { show: false, padding: { top: -31, left: 0, right: 0, bottom: -9 } },
+    plotOptions: {
+      bar: { borderRadius: 4, distributed: true, columnWidth: '42%' }
+    },
+    legend: { show: false },
+    dataLabels: { enabled: false },
+    colors: [
+      primaryColorWithOpacity, primaryColorWithOpacity, primaryColorWithOpacity,
+      primaryColorWithOpacity, 'var(--mui-palette-primary-main)',
+      primaryColorWithOpacity, primaryColorWithOpacity
+    ],
+    states: { hover: { filter: { type: 'none' } }, active: { filter: { type: 'none' } } },
+    xaxis: {
+      categories: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      axisTicks: { show: false },
+      axisBorder: { show: false },
+      labels: { style: { fontSize: '13px', colors: 'var(--mui-palette-text-disabled)' } }
+    },
+    yaxis: { show: false }
+  }
+
   return (
     <>
       <Grid container spacing={6}>
         {/* Company Information Card */}
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <div className='flex justify-between items-center mb-6'>
-                <Typography variant='h5'>Informasi Perusahaan</Typography>
+                <Typography variant='h5'>Informasi Usaha</Typography>
                 <Button variant='contained' onClick={handleEditClick} startIcon={<i className='tabler-edit' />}>
                   Ubah
                 </Button>
@@ -181,36 +251,19 @@ const CompanySettings = () => {
 
               <Grid container spacing={4}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    Nama Perusahaan
-                  </Typography>
-                  <Typography variant='body1' fontWeight={600} className='mt-1'>
-                    {company.nama}
-                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>Nama Usaha</Typography>
+                  <Typography variant='body1' fontWeight={600} className='mt-1'>{company.nama}</Typography>
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    Email
-                  </Typography>
-                  <Typography variant='body1' className='mt-1'>
-                    {company.email || '-'}
-                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>Email</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.email || '-'}</Typography>
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    Telepon
-                  </Typography>
-                  <Typography variant='body1' className='mt-1'>
-                    {company.telepon || '-'}
-                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>Telepon</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.telepon || '-'}</Typography>
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    Status
-                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>Status</Typography>
                   <div className='mt-1'>
                     {company.status ? (
                       <Chip label='Aktif' color='success' size='small' variant='tonal' />
@@ -219,96 +272,84 @@ const CompanySettings = () => {
                     )}
                   </div>
                 </Grid>
-
                 <Grid size={{ xs: 12 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    Alamat
-                  </Typography>
-                  <Typography variant='body1' className='mt-1'>
-                    {company.alamat || '-'}
-                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>Alamat</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.alamat || '-'}</Typography>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Package Information Card */}
-        <Grid size={{ xs: 12, md: 4 }}>
+        {/* Package Information Card - CurrentPlan style */}
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
+            <CardHeader title='Informasi Paket' />
             <CardContent>
-              <Typography variant='h5' className='mb-6'>
-                Informasi Paket
-              </Typography>
-
-              {company.lastInvoice ? (
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Paket Aktif
-                    </Typography>
-                    <Typography variant='h6' className='mt-1'>
-                      {company.lastInvoice.paket?.nama || company.paket?.nama || '-'}
-                    </Typography>
+              {company.paket || company.lastInvoice ? (
+                <Grid container spacing={6}>
+                  {/* Left: Plan details */}
+                  <Grid size={{ xs: 12, md: 6 }} className='flex flex-col gap-6'>
+                    <div className='flex flex-col gap-1'>
+                      <Typography color='text.primary' className='font-medium'>
+                        Paket saat ini: {paketNama}
+                      </Typography>
+                      {paketDeskripsi && <Typography>{paketDeskripsi}</Typography>}
+                    </div>
+                    <div className='flex flex-col gap-1'>
+                      <Typography color='text.primary' className='font-medium'>
+                        Aktif hingga {formatDate(company.paketEndDate)}
+                      </Typography>
+                      <Typography>Notifikasi akan dikirim saat langganan mendekati akhir</Typography>
+                    </div>
                   </Grid>
 
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Siklus Pembayaran
-                    </Typography>
-                    <Typography variant='body1' fontWeight={600} className='mt-1'>
-                      {company.lastInvoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'}
-                    </Typography>
+                  {/* Right: Invoice + Alert + Progress */}
+                  <Grid size={{ xs: 12, md: 6 }} className='flex flex-col gap-6'>
+                    {company.lastInvoice && (
+                      <div className='flex flex-col gap-1'>
+                        <div className='flex items-center gap-1.5'>
+                          <Typography color='text.primary' className='font-medium'>
+                            {formatCurrency(totalPembayaran)}
+                          </Typography>
+                          <Chip color='primary' variant='tonal' label={billingCycleLabel} size='small' />
+                        </div>
+                        <Typography>No. Invoice: {nomorInvoice}</Typography>
+                      </div>
+                    )}
+                    {isExpired && (
+                      <Alert severity='error'>
+                        <AlertTitle>Paket Habis!</AlertTitle>
+                        Paket anda sudah habis harap perpanjang paket
+                      </Alert>
+                    )}
+                    {isExpiringSoon && (
+                      <Alert severity='warning'>
+                        <AlertTitle>Perhatian!</AlertTitle>
+                        Paket anda akan habis
+                      </Alert>
+                    )}
+                    {endDate && (
+                      <div className='flex flex-col gap-1'>
+                        <div className='flex items-center justify-between'>
+                          <Typography color='text.primary' className='font-medium'>Hari</Typography>
+                          <Typography color='text.primary' className='font-medium'>
+                            {daysUsed} dari {totalDays} Hari
+                          </Typography>
+                        </div>
+                        <LinearProgress variant='determinate' value={progress} />
+                        <Typography variant='body2'>
+                          {isExpired ? 'Periode berlangganan telah berakhir' : `${daysRemaining} hari tersisa hingga periode berakhir`}
+                        </Typography>
+                      </div>
+                    )}
                   </Grid>
 
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Total Pembayaran Terakhir
-                    </Typography>
-                    <Typography variant='body1' fontWeight={600} color='primary.main' className='mt-1'>
-                      {formatCurrency(Number(company.lastInvoice.total))}
-                    </Typography>
-                  </Grid>
-
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      No. Invoice
-                    </Typography>
-                    <Typography variant='body2' className='mt-1'>
-                      {company.lastInvoice.nomorInvoice}
-                    </Typography>
-                  </Grid>
-
-                  <Grid size={{ xs: 12 }}>
-                    <Divider />
-                  </Grid>
-
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Periode Aktif
-                    </Typography>
-                    <Typography variant='body2' className='mt-1'>
-                      {formatDate(company.paketStartDate)} - {formatDate(company.paketEndDate)}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              ) : company.paket ? (
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Paket Aktif
-                    </Typography>
-                    <Typography variant='h6' className='mt-1'>
-                      {company.paket.nama}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant='caption' color='text.secondary'>
-                      Periode Aktif
-                    </Typography>
-                    <Typography variant='body2' className='mt-1'>
-                      {formatDate(company.paketStartDate)} - {formatDate(company.paketEndDate)}
-                    </Typography>
+                  {/* Bottom: Actions */}
+                  <Grid size={{ xs: 12 }} className='flex gap-4 flex-wrap'>
+                    <Button variant='contained' color='primary' href='/paket'>
+                      Upgrade Paket
+                    </Button>
                   </Grid>
                 </Grid>
               ) : (
@@ -317,11 +358,43 @@ const CompanySettings = () => {
             </CardContent>
           </Card>
         </Grid>
+        {/* Laporan Pendapatan Card */}
+        <Grid size={{ xs: 12 }}>
+          <Card>
+            <CardHeader title='Laporan Pendapatan' subheader='Ringkasan Pendapatan Mingguan' className='pbe-0' />
+            <CardContent className='flex flex-col gap-5'>
+              <div className='flex flex-col sm:flex-row items-center justify-between gap-8'>
+                <div className='flex flex-col gap-3 is-full sm:is-[unset]'>
+                  <div className='flex items-center gap-2.5'>
+                    <Typography variant='h2'>Rp 0</Typography>
+                    <Chip size='small' variant='tonal' color='secondary' label='Minggu ini' />
+                  </div>
+                  <Typography variant='body2'>Data pendapatan akan tampil setelah ada transaksi</Typography>
+                </div>
+                <AppReactApexCharts type='bar' height={163} width='100%' series={earningChartSeries} options={earningChartOptions} />
+              </div>
+              <div className='flex flex-col sm:flex-row gap-6 p-5 border rounded'>
+                {earningData.map((item, index) => (
+                  <div key={index} className='flex flex-col gap-2 is-full'>
+                    <div className='flex items-center gap-2'>
+                      <CustomAvatar skin='light' variant='rounded' color={item.avatarColor} size={26}>
+                        <i className={classnames(item.avatarIcon, 'text-lg')} />
+                      </CustomAvatar>
+                      <Typography variant='h6' className='leading-6 font-normal'>{item.title}</Typography>
+                    </div>
+                    <Typography variant='h4'>{item.stats}</Typography>
+                    <LinearProgress value={item.progress} variant='determinate' color={item.progressColor} className='max-bs-1' />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={() => !saving && setEditDialogOpen(false)} maxWidth='sm' fullWidth>
-        <DialogTitle>Ubah Informasi Perusahaan</DialogTitle>
+        <DialogTitle>Ubah Informasi Usaha</DialogTitle>
         <DialogContent>
           <Grid container spacing={4} className='mt-1'>
             <Grid size={{ xs: 12 }}>

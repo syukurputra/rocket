@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
+import { getParameter } from '@/src/libs/getParameter'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -40,6 +41,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Company tidak valid' }, { status: 400 })
     }
 
+    const adminBookingValue = await getParameter('ADMIN_BOOKING')
+    const adminBooking = Number(adminBookingValue) || 0
+
     const mulaiSewaDate = new Date(mulaiSewa)
     const selesaiSewaDate = new Date(selesaiSewa)
     const periodeSewa = JENIS_PERIODE[jenisHarga] || jenisHarga
@@ -68,8 +72,11 @@ export async function POST(req: NextRequest) {
       })
 
       if (existingPenyewa) {
-        // Sudah ada penyewa → pakai yang sudah ada, skip create penyewa
-        penyewa = existingPenyewa
+        // Sudah ada penyewa → update nama jika ada perubahan
+        penyewa = await prisma.penyewa.update({
+          where: { id: existingPenyewa.id },
+          data: { nama: namaPemesan, email: email || existingPenyewa.email, nomorTelepon: telepon || existingPenyewa.nomorTelepon }
+        })
       } else {
         // Belum ada → buat penyewa baru dengan id = userId
         penyewa = await prisma.penyewa.create({
@@ -122,6 +129,9 @@ export async function POST(req: NextRequest) {
       }
     })
 
+    const hargaMerchant = Math.max(0, Number(total) - adminBooking)
+    await prisma.$executeRaw`UPDATE "tagihan" SET "adminBooking" = ${adminBooking}, "hargaMerchant" = ${hargaMerchant} WHERE id = ${tagihan.id}`
+
     const nomorBooking = `BK-${tagihan.id.slice(-8).toUpperCase()}`
 
     // Generate iPaymu payment URL
@@ -131,7 +141,7 @@ export async function POST(req: NextRequest) {
       const referenceId = `BKG-${tagihan.id}`
       const ipaymuResult = await createIpaymuPayment({
         transactionId: referenceId,
-        amount: Number(total),
+        amount: Number(total) + adminBooking,
         buyerName: namaPemesan,
         buyerEmail: email || 'customer@example.com',
         buyerPhone: telepon,

@@ -60,6 +60,7 @@ type TagihanBooking = {
   id: string
   keterangan: string
   nominal: number
+  adminBooking?: number | null
   status: string
   periodeSewa?: string | null
   mulaiSewa: string

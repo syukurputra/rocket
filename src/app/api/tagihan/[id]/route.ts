@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
+import { createPendapatan } from '@/src/libs/pendapatanService'
 
 type ParamCtx = AuthContext & { params: { id: string } }
 
@@ -133,6 +134,12 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
     })
 
     // If status changed to LUNAS, update Penyewa status
+    if (status && status.toUpperCase() === 'LUNAS' && existingTagihan.status !== 'LUNAS') {
+      // Catat pendapatan
+      createPendapatan(id, updatedTagihan.companyId, Number(updatedTagihan.nominal))
+        .catch(err => console.error('[Tagihan PUT] Pendapatan error:', err))
+    }
+
     if (status && status.toUpperCase() === 'LUNAS' && updatedTagihan.penyewaId) {
       await prisma.penyewa.update({
         where: { id: updatedTagihan.penyewaId },
@@ -142,7 +149,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         }
       })
 
-      // Send email notification if penyewahas email
+      // Send email notification if penyewa has email
       if (updatedTagihan.penyewa?.email) {
         try {
           await sendPaymentConfirmationEmail(

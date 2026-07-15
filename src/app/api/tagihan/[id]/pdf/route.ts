@@ -4,11 +4,11 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { generateBookingPdf } from '@/src/libs/pdf/bookingPdf'
-
-const DEMO_COMPANY_ID = 'company-demo-001'
+import { getParameter } from '@/src/libs/getParameter'
 
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
     const { id } = params
 
     const tagihan = await prisma.tagihan.findUnique({

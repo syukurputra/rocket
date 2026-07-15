@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
@@ -87,6 +89,7 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
 const BookingAsetList = () => {
+  const router = useRouter()
   const [data, setData] = useState<TagihanWithAction[]>([])
   const [filteredData, setFilteredData] = useState<TagihanWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
@@ -471,7 +474,7 @@ const BookingAsetList = () => {
       <TambahBookingDialog
         open={tambahOpen}
         onClose={() => setTambahOpen(false)}
-        onSuccess={() => fetchData(currentPage, pageSize, activeSearch, activeStatus)}
+        onSuccess={() => router.push('/booking/saya')}
       />
     </>
   )

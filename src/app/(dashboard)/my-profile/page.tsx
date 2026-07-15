@@ -36,6 +36,7 @@ export default function MyProfilePage() {
 
   // Form States
   const [username, setUsername] = useState('')
+  const [nama, setNama] = useState('')
   const [email, setEmail] = useState('')
   const [nomorTelepon, setNomorTelepon] = useState('')
   const [nomorKtp, setNomorKtp] = useState('')
@@ -76,6 +77,7 @@ export default function MyProfilePage() {
 
         if (data) {
           setUsername(data.username || '')
+          setNama(data.name || data.username || '')
           setEmail(data.email || '')
           setNomorTelepon(data.nomorTelepon || '')
           setNomorKtp(data.nomorKtp || '')
@@ -246,6 +248,7 @@ export default function MyProfilePage() {
     try {
       const payload = {
         username,
+        name: nama,
         email,
         nomorTelepon,
         nomorKtp,
@@ -367,6 +370,15 @@ export default function MyProfilePage() {
                 placeholder='Username'
                 value={username}
                 onChange={e => setUsername(e.target.value)}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <CustomTextField
+                fullWidth
+                label='Nama Lengkap'
+                placeholder='Nama lengkap'
+                value={nama}
+                onChange={e => setNama(e.target.value)}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>

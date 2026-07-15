@@ -24,6 +24,7 @@ type TagihanBooking = {
   id: string
   keterangan: string
   nominal: number
+  adminBooking?: number | null
   status: string
   periodeSewa?: string | null
   mulaiSewa: string
@@ -148,9 +149,6 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
               </div>
               <div>
                 <Typography variant='h5'>Detail Booking</Typography>
-                <Typography variant='caption' color='text.secondary'>
-                  {tagihan.aset?.nama} — {tagihan.itemAset?.nama}
-                </Typography>
               </div>
             </div>
             <IconButton onClick={onClose}>
@@ -241,21 +239,18 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                             </Typography>
                           </td>
                         </tr>
+                        <tr style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                          <td style={{ padding: '12px 16px' }}>
+                            <Typography variant='h6' fontWeight={600}>Total</Typography>
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                            <Typography variant='h5' color='primary.main' fontWeight={700}>
+                              {formatCurrency(Number(tagihan.nominal))}
+                            </Typography>
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
-                  </div>
-
-                  {/* Total */}
-                  <div className='flex justify-end'>
-                    <div style={{ minWidth: 200 }}>
-                      <Divider sx={{ mb: 1 }} />
-                      <div className='flex justify-between items-center'>
-                        <Typography variant='h6' fontWeight={600}>Total</Typography>
-                        <Typography variant='h5' color='primary.main' fontWeight={700}>
-                          {formatCurrency(tagihan.nominal)}
-                        </Typography>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Bukti yang sudah ada */}

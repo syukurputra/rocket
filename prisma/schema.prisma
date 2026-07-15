@@ -26,6 +26,7 @@ model Company {
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
   invoices         Invoice[]          @relation("CompanyInvoices")
   keuangan         Keuangan[]
+  pendapatan       Pendapatan[]
   penyewa          Penyewa[]
   roles            Role[]
   ruangan          Ruangan[]
@@ -310,6 +311,16 @@ model MasterJenisAset {
   @@map("m_jenis_aset")
 }
 
+model MasterParameter {
+  id        String   @id
+  nama      String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("m_parameter")
+}
+
 model MasterPaket {
   id           String      @id @default(cuid())
   nama         String
@@ -345,6 +356,14 @@ model Invoice {
   // iPaymu fields
   ipaymuSessionId String?
   paymentUrl      String?
+
+  // Rekonsiliasi fields (diisi saat proses rekon Excel)
+  statusRekon      String?  // SESUAI | TIDAK_SESUAI
+  amountPembayaran Decimal? @db.Decimal(15, 2)
+  amountFee        Decimal? @db.Decimal(15, 2)
+  typePembayaran   String?
+  paymentChannel   String?
+  paymentNo        String?
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -449,6 +468,7 @@ model Penyewa {
 
 model Tagihan {
   id               String   @id @default(cuid())
+  nomorTagihan     String?  @unique
   keterangan       String
   status           String   @default("BELUM TERBAYAR")
   metodeBayar      String?
@@ -456,29 +476,56 @@ model Tagihan {
   mulaiSewa        DateTime @default(now())
   selesaiSewa      DateTime @default(now())
   nominal          Decimal  @default(0) @db.Decimal(15, 2)
+  adminBooking     Decimal  @default(0) @db.Decimal(15, 2)
+  hargaMerchant    Decimal  @default(0) @db.Decimal(15, 2)
   buktiPembayaran  String?
   ipaymuSessionId  String?
   paymentUrl       String?  @db.Text
 
+  // Rekonsiliasi fields
+  statusRekon      String?
+  amountPembayaran Decimal? @db.Decimal(15, 2)
+  amountFee        Decimal? @db.Decimal(15, 2)
+  typePembayaran   String?
+  paymentChannel   String?
+  paymentNo        String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   createdById String
   updatedById String
   companyId   String
   penyewaId   String
   asetId      String?
   ruanganId   String?
-  company     Company  @relation(fields: [companyId], references: [id])
-  createdBy   User     @relation("TagihanCreatedBy", fields: [createdById], references: [id])
-  penyewa     Penyewa  @relation(fields: [penyewaId], references: [id])
-  updatedBy   User     @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
-  aset        Aset?    @relation(fields: [asetId], references: [id])
-  ruangan     Ruangan? @relation(fields: [ruanganId], references: [id])
+  company     Company     @relation(fields: [companyId], references: [id])
+  createdBy   User        @relation("TagihanCreatedBy", fields: [createdById], references: [id])
+  penyewa     Penyewa     @relation(fields: [penyewaId], references: [id])
+  updatedBy   User        @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
+  aset        Aset?       @relation(fields: [asetId], references: [id])
+  ruangan     Ruangan?    @relation(fields: [ruanganId], references: [id])
+  pendapatan  Pendapatan?
 
   @@index([companyId])
-
   @@map("tagihan")
+}
+
+model Pendapatan {
+  id            String   @id @default(cuid())
+  tagihanId     String   @unique
+  companyId     String
+  biayaBooking  Decimal  @db.Decimal(15, 2)
+  biayaLayanan  Decimal  @default(0) @db.Decimal(15, 2)
+  saldoCompany  Decimal  @db.Decimal(15, 2)
+  tanggal       DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tagihan       Tagihan  @relation(fields: [tagihanId], references: [id])
+  company       Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([tanggal])
+  @@map("pendapatan")
 }
 
 

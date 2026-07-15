@@ -1,7 +1,7 @@
 import type { ScheduledJob } from '../types/scheduler'
 import prisma from '../libs/prisma'
 
-const FREE_PAKET_ID = 'paket-free-001'
+const FREE_PAKET_ID = 'cmkzpagu800015k6czrtvc7f4'
 
 /**
  * Job - Downgrade company yang paketnya sudah expired ke paket free
@@ -39,7 +39,9 @@ export const downgradeExpiredPaketJob: ScheduledJob = {
       where: { id: { in: ids } },
       data: {
         paketId: FREE_PAKET_ID,
-        isTrial: false
+        isTrial: false,
+        paketStartDate: null,
+        paketEndDate: null
       }
     })
 

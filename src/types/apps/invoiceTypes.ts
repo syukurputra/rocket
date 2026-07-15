@@ -15,6 +15,13 @@ export type InvoiceClient = {
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
   paymentUrl?: string | null
+  // Rekonsiliasi
+  statusRekon?: string | null
+  amountPembayaran?: number | string | null
+  amountFee?: number | string | null
+  typePembayaran?: string | null
+  paymentChannel?: string | null
+  paymentNo?: string | null
   createdAt: Date | string
   updatedAt: Date | string
   companyId: string

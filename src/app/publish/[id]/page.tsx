@@ -13,6 +13,7 @@ import InformationItemAset from '@/src/views/front-pages/publish/InformationItem
 
 // Lib Imports
 import prisma from '@/src/libs/prisma'
+import { getParameter } from '@/src/libs/getParameter'
 
 // Style Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
@@ -49,6 +50,9 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   `
   const syaratKetentuan = syaratRows[0]?.syaratKetentuan ?? null
 
+  const adminBookingValue = await getParameter('ADMIN_BOOKING')
+  const adminBooking = Number(adminBookingValue) || 0
+
   // Transform Decimal to number for serialization
   const sanitizedData = {
     ...data,
@@ -73,7 +77,7 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
         </Grid>
         {sanitizedData.ruangan.map(ruangan => (
           <Grid key={ruangan.id} size={{ xs: 12 }}>
-            <InformationItemAset data={ruangan as any} asetNama={sanitizedData.nama} />
+            <InformationItemAset data={ruangan as any} asetNama={sanitizedData.nama} adminBooking={adminBooking} />
           </Grid>
         ))}
       </Grid>

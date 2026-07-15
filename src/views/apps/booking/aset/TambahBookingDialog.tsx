@@ -77,10 +77,13 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const [success, setSuccess] = useState(false)
   const [nomorBooking, setNomorBooking] = useState('')
 
+  const [adminBooking, setAdminBooking] = useState(0)
+
   const selectedItemAset = itemAsetList.find(r => r.id === itemAsetId)
   const selectedHarga = selectedItemAset?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
+  const grandTotal = total + adminBooking
   const selesaiSewa = mulaiSewa && jenisHarga ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   useEffect(() => {
@@ -90,6 +93,9 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
       .catch(() => {})
     apiFetchClient<{ data: PenyewaItem[] }>('/api/penyewa/dp', undefined, { redirectOn401: '/login' })
       .then(res => setPenyewaList(res.data || []))
+      .catch(() => {})
+    apiFetchClient<{ data: { id: string; value: string } }>('/api/parameter?id=ADMIN_BOOKING', undefined, { redirectOn401: '/login' })
+      .then(res => setAdminBooking(Number(res.data?.value) || 0))
       .catch(() => {})
   }, [open])
 
@@ -121,6 +127,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
     setDurasi(1)
     setCatatan('')
     setStatusBooking('BELUM TERBAYAR')
+    setAdminBooking(0)
     setError('')
     setSuccess(false)
     setNomorBooking('')
@@ -151,6 +158,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
         durasi,
         hargaSatuan,
         total,
+        adminBooking,
         catatan,
         status: statusBooking
       }
@@ -369,8 +377,28 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <CustomTextField
                     fullWidth
-                    label='Total'
+                    label='Harga Sewa'
                     value={total > 0 ? formatCurrency(total) : '-'}
+                    InputLabelProps={{ shrink: true }}
+                    disabled
+                  />
+                </Grid>
+                {adminBooking > 0 && (
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Biaya Admin'
+                      value={formatCurrency(adminBooking)}
+                      InputLabelProps={{ shrink: true }}
+                      disabled
+                    />
+                  </Grid>
+                )}
+                <Grid size={{ xs: 12, sm: adminBooking > 0 ? 4 : 4 }}>
+                  <CustomTextField
+                    fullWidth
+                    label='Total'
+                    value={grandTotal > 0 ? formatCurrency(grandTotal) : '-'}
                     InputLabelProps={{ shrink: true }}
                     disabled
                     inputProps={{ style: { fontWeight: 700, color: '#6359e9' } }}

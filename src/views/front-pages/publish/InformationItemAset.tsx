@@ -22,9 +22,10 @@ import ScheduleDialog from './ScheduleDialog'
 interface InformationItemAsetProps {
   data: any
   asetNama?: string
+  adminBooking?: number
 }
 
-const InformationItemAset = ({ data, asetNama = '' }: InformationItemAsetProps) => {
+const InformationItemAset = ({ data, asetNama = '', adminBooking = 0 }: InformationItemAsetProps) => {
   const [openGallery, setOpenGallery] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
   const [openBooking, setOpenBooking] = useState(false)
@@ -262,6 +263,7 @@ const InformationItemAset = ({ data, asetNama = '' }: InformationItemAsetProps) 
           onClose={() => { setOpenBooking(false); setPendingBookingData(null) }}
           itemAset={{ id: data.id, nama: data.nama, hargaItemAset: data.hargaItemAset }}
           asetNama={asetNama}
+          adminBooking={adminBooking}
           initialData={pendingBookingData || undefined}
         />
       )}

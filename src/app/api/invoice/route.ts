@@ -5,6 +5,7 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEmail'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
+import { getParameter } from '@/src/libs/getParameter'
 
 // Generate invoice number: INV-YYYYMM-XXXXX
 async function generateNomorInvoice(): Promise<string> {
@@ -23,8 +24,6 @@ async function generateNomorInvoice(): Promise<string> {
   return `${prefix}${String(count + 1).padStart(5, '0')}`
 }
 
-const DEMO_COMPANY_ID = 'company-demo-001'
-
 // GET /api/invoice - List invoices for the current company
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
@@ -32,6 +31,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Tidak terhubung dengan perusahaan' }, { status: 400 })
     }
 
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -164,7 +164,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get('origin') ?? 'http://localhost:3000')
       
       const ipaymuResult = await createIpaymuPayment({
-        transactionId: nomorInvoice,
+        transactionId: invoice.id,
         amount: total,
         buyerName: user.name || user.username || 'Customer',
         buyerEmail: user.email || 'customer@example.com',

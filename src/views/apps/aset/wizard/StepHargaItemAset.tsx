@@ -63,17 +63,24 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [list, setList] = useState<HargaData[]>([])
   const [itemAsets, setItemAsets] = useState<ItemAsetData[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [biayaLayanan, setBiayaLayanan] = useState(0)
 
   // Form state
   const [selectedItemAsetId, setSelectedItemAsetId] = useState('')
   const [jenisHarga, setJenisHarga] = useState('HARIAN')
   const [harga, setHarga] = useState('')
 
+  const hargaNum = Number(parseNumber(harga)) || 0
+  const nilaiMerchant = Math.max(0, hargaNum - biayaLayanan)
+
   useEffect(() => {
     if (asetId) {
       fetchItemAsets()
       fetchHarga()
     }
+    apiFetchClient<{ data: { id: string; value: string } }>('/api/parameter?id=ADMIN_BOOKING')
+      .then(res => setBiayaLayanan(Number(res.data?.value) || 0))
+      .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asetId])
 
@@ -272,6 +279,26 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
           value={harga}
           onChange={e => setHarga(formatNumber(e.target.value))}
           inputProps={{ inputMode: 'numeric' }}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <CustomTextField
+          fullWidth
+          label='Biaya Layanan'
+          value={biayaLayanan > 0 ? formatNumber(String(biayaLayanan)) : '0'}
+          disabled
+          InputProps={{ readOnly: true }}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <CustomTextField
+          fullWidth
+          label='Harga Merchant'
+          value={hargaNum > 0 ? formatNumber(String(nilaiMerchant)) : '0'}
+          disabled
+          InputProps={{ readOnly: true }}
         />
       </Grid>
 

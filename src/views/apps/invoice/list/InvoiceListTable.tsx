@@ -97,8 +97,6 @@ const DebouncedInput = ({
 
 const columnHelper = createColumnHelper<InvoiceClient>()
 
-const DEMO_COMPANY_ID = 'company-demo-001'
-
 const InvoiceListTable = () => {
   const [data, setData] = useState<InvoiceClient[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -110,13 +108,26 @@ const InvoiceListTable = () => {
   const [isDemo, setIsDemo] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('userData')
-      if (raw) {
+    const checkDemo = async () => {
+      try {
+        const raw = localStorage.getItem('userData')
+
+        if (!raw) return
+
         const parsed = JSON.parse(raw)
-        setIsDemo(parsed?.companyId === DEMO_COMPANY_ID)
-      }
-    } catch { /* ignore */ }
+        const companyId = parsed?.companyId
+
+        if (!companyId) return
+
+        const result = await apiFetchClient<{ data: { id: string; value: string } }>(
+          '/api/parameter?id=COMPANY_SUPER', undefined, { redirectOn401: '/login' }
+        )
+
+        setIsDemo(companyId === result.data?.value)
+      } catch { /* ignore */ }
+    }
+
+    checkDemo()
   }, [])
 
   // Filter panel

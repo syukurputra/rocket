@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { getParameter } from '@/src/libs/getParameter'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -37,6 +38,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     if (!ruanganId || !jenisHarga || !mulaiSewa || !selesaiSewa || !total) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 })
     }
+
+    const adminBookingValue = await getParameter('ADMIN_BOOKING')
+    const adminBooking = Number(adminBookingValue) || 0
 
     const ruangan = await prisma.ruangan.findUnique({
       where: { id: ruanganId },
@@ -112,6 +116,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         updatedById: user.id
       }
     })
+
+    const hargaMerchant = Math.max(0, Number(total) - adminBooking)
+    await prisma.$executeRaw`UPDATE "tagihan" SET "adminBooking" = ${adminBooking}, "hargaMerchant" = ${hargaMerchant} WHERE id = ${tagihan.id}`
 
     const nomorBooking = `BK-${tagihan.id.slice(-8).toUpperCase()}`
 

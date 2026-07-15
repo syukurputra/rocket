@@ -3,6 +3,7 @@ import prisma from '@/src/libs/prisma'
 import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEmail'
 import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
 import { sendBookingPaymentOwnerEmail } from '@/src/mails/bookingPaymentOwnerEmail'
+import { createPendapatan } from '@/src/libs/pendapatanService'
 
 // iPaymu mengirim status dalam berbagai format — normalize ke lowercase
 const parseIpaymuStatus = (raw: string): 'berhasil' | 'gagal' | 'expired' | 'pending' | 'unknown' => {
@@ -75,14 +76,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`[iPaymu Notify] normalized status="${ipaymuStatus}"`)
 
-    // ─── TAGIHAN BOOKING (prefix BKG-) ────────────────────────────────────────
-    if (referenceId.startsWith('BKG-')) {
-      const tagihanId = referenceId.slice(4) // hapus prefix "BKG-"
-
-      console.log(`[iPaymu Notify] Tipe: TAGIHAN — tagihanId="${tagihanId}"`)
-
-      const tagihan = await prisma.tagihan.findUnique({
-        where: { id: tagihanId },
+    // ─── Cari tagihan dulu by ID, lalu invoice ───────────────────────────────
+    const tagihan = await prisma.tagihan.findUnique({
+      where: { id: referenceId },
         include: {
           penyewa: { select: { id: true, nama: true, email: true } },
           aset: { select: { nama: true } },
@@ -91,13 +87,10 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      if (!tagihan) {
-        console.error(`[iPaymu Notify] Tagihan "${tagihanId}" tidak ditemukan`)
+    if (tagihan) {
+      const tagihanId = tagihan.id
 
-        return new NextResponse('true', { status: 200 })
-      }
-
-      console.log(`[iPaymu Notify] Tagihan ditemukan: status saat ini="${tagihan.status}"`)
+      console.log(`[iPaymu Notify] Tipe: TAGIHAN — tagihanId="${tagihanId}" status="${tagihan.status}"`)
 
       if (ipaymuStatus === 'berhasil' && tagihan.status !== 'LUNAS') {
         await prisma.tagihan.update({
@@ -110,6 +103,12 @@ export async function POST(request: NextRequest) {
         })
 
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" → LUNAS ✓`)
+
+        // Catat pendapatan
+        if (tagihan.companyId) {
+          createPendapatan(tagihanId, tagihan.companyId, Number(tagihan.nominal))
+            .catch(err => console.error('[iPaymu Notify] Pendapatan error:', err))
+        }
 
         const nomorBooking = `BK-${tagihanId.slice(-8).toUpperCase()}`
 
@@ -188,8 +187,6 @@ export async function POST(request: NextRequest) {
             })
           }).catch(err => console.error('[iPaymu Notify] Super admin notif error:', err))
         }
-      } else if (ipaymuStatus === 'expired' || ipaymuStatus === 'gagal') {
-        console.log(`[iPaymu Notify] Tagihan "${tagihanId}" payment ${ipaymuStatus} — tidak diubah`)
       } else {
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" status "${ipaymuStatus}" — tidak ada aksi`)
       }
@@ -197,11 +194,11 @@ export async function POST(request: NextRequest) {
       return new NextResponse('true', { status: 200 })
     }
 
-    // ─── INVOICE PAKET (prefix INV-) ──────────────────────────────────────────
+    // ─── INVOICE PAKET (invoice.id sebagai referenceId) ───────────────────────
     console.log(`[iPaymu Notify] Tipe: INVOICE — referenceId="${referenceId}"`)
 
     const invoice = await prisma.invoice.findUnique({
-      where: { nomorInvoice: referenceId },
+      where: { id: referenceId },
       include: {
         createdBy: { select: { id: true, email: true, username: true } },
         paket: { select: { nama: true } }

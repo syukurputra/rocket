@@ -34,6 +34,7 @@ interface BookingDialogProps {
     hargaItemAset: HargaItem[]
   }
   asetNama: string
+  adminBooking?: number
   // pre-filled dari pendingBooking (setelah redirect login)
   initialData?: {
     jenisHarga?: string
@@ -65,7 +66,7 @@ const addDuration = (date: Date, durasi: number, jenis: string): Date => {
   return d
 }
 
-const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: BookingDialogProps) => {
+const BookingDialog = ({ open, onClose, itemAset, asetNama, adminBooking = 0, initialData }: BookingDialogProps) => {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -83,6 +84,7 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
   const selectedHarga = itemAset.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
+  const grandTotal = total + adminBooking
   const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   useEffect(() => {
@@ -148,6 +150,7 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
         catatan,
         hargaSatuan,
         total,
+        adminBooking,
         selesaiSewa: selesaiSewa?.toISOString(),
         returnTo: pathname
       }
@@ -172,7 +175,7 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ruanganId: itemAset.id,
-          namaPemesan: (user as any).username || (user as any).nama || '',
+          namaPemesan: (user as any).name || (user as any).nama || (user as any).username || '',
           email: (user as any).email || '',
           telepon: (user as any).nomorTelepon || '',
           jenisHarga,
@@ -181,6 +184,7 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
           durasi,
           hargaSatuan,
           total,
+          adminBooking,
           catatan,
           userId: (user as any).id || null
         })
@@ -190,12 +194,8 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
 
       if (!res.ok) throw new Error(data.message || 'Gagal membuat booking')
 
-      // Hapus pending booking jika ada
       localStorage.removeItem('pendingBooking')
-
-      setNomorBooking(data.data.nomorBooking || `BK-${data.data.tagihan?.id?.slice(-8).toUpperCase()}`)
-      setPaymentUrl(data.data.tagihan?.paymentUrl || null)
-      setSuccess(true)
+      router.push('/booking/saya')
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan, coba lagi.')
     } finally {
@@ -366,11 +366,6 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, initialData }: Booki
                   </Typography>
                 </div>
 
-                <Box sx={{ mt: 'auto' }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    * Harga di atas tidak termasuk biaya layanan pembayaran.
-                  </Typography>
-                </Box>
               </div>
             </Grid>
 

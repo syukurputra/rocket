@@ -235,22 +235,18 @@ const ViewTagihanListTable = ({ asetId, initialData = [] }: TagihanListTableProp
 
   const columns = useMemo<ColumnDef<TagihanClientWithAction, any>[]>(
     () => [
-      columnHelper.accessor('penyewaId', {
-        header: 'Penyewa',
-        cell: ({ row }) => {
-          const penyewa = row.original.penyewa
-
-          if (!penyewa) return <Typography color='text.secondary'>-</Typography>
-
-          return (
-            <div className='flex flex-col gap-0.5'>
-              <Typography fontWeight={500}>{penyewa.nama}</Typography>
-              <Typography variant='caption' color='text.secondary' sx={{ fontFamily: 'monospace' }}>
-                {penyewa.id}
-              </Typography>
-            </div>
-          )
-        }
+      columnHelper.accessor('id', {
+        header: 'No. Tagihan',
+        cell: ({ row }) => (
+          <div className='flex flex-col gap-0.5'>
+            <Typography variant='body2' color='primary.main' className='font-medium'>
+              {row.original.nomorTagihan || '-'}
+            </Typography>
+            <Typography variant='caption' color='text.secondary' sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+              {row.original.id}
+            </Typography>
+          </div>
+        )
       }),
       columnHelper.accessor('keterangan', {
         header: 'Keterangan',

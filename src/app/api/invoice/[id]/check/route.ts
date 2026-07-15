@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { checkIpaymuTransaction } from '@/src/libs/ipaymu'
-
-const DEMO_COMPANY_ID = 'company-demo-001'
+import { getParameter } from '@/src/libs/getParameter'
 
 async function handlePost(request: NextRequest, { params, user }: AuthContext & { params: { id: string } }) {
   try {
@@ -13,6 +12,7 @@ async function handlePost(request: NextRequest, { params, user }: AuthContext & 
       return NextResponse.json({ message: 'Tidak terhubung dengan perusahaan' }, { status: 400 })
     }
 
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
     const { id } = params
     
     // Find the invoice

@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
-
-const DEMO_COMPANY_ID = 'company-demo-001'
+import { getParameter } from '@/src/libs/getParameter'
 
 // GET /api/invoice/[id]
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
     const invoice = await prisma.invoice.findUnique({
       where: { id: params.id },
       include: {
@@ -54,6 +54,7 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
 // PATCH /api/invoice/[id] - Update status or buktiPembayaran invoice
 async function handlePatch(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
+    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
     const body = await request.json()
     const { status, buktiPembayaran } = body
 

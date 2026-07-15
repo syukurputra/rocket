@@ -33,13 +33,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get('origin') ?? 'http://localhost:3000')
 
-    // referenceId format: BKG-{tagihanId} agar notify route bisa parse
-    const referenceId = `BKG-${tagihanId}`
-
     const nominal = Number(tagihan.nominal)
 
     const ipaymuResult = await createIpaymuPayment({
-      transactionId: referenceId,
+      transactionId: tagihanId,
       amount: nominal,
       buyerName: tagihan.penyewa?.nama || user.username || 'Customer',
       buyerEmail: tagihan.penyewa?.email || user.email || 'customer@example.com',
@@ -66,7 +63,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       data: {
         paymentUrl: ipaymuResult.Data.Url,
         sessionId: ipaymuResult.Data.SessionID,
-        referenceId
+        referenceId: tagihanId
       },
       message: 'Payment link berhasil dibuat'
     })
