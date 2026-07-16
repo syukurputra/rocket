@@ -11,6 +11,7 @@ import Tooltip from '@mui/material/Tooltip'
 import MapPicker from '@/src/components/MapPicker'
 import CustomIconButton from '@core/components/mui/IconButton'
 import SyaratKetentuanDialog from './SyaratKetentuanDialog'
+import ChatKontakButton from './ChatKontakButton'
 
 interface InformationAsetProps {
   data: any
@@ -78,6 +79,7 @@ const InformationAset = ({ data }: InformationAsetProps) => {
               <div className='flex flex-col items-center gap-3 mbs-5'>
                 <Typography variant='h6' className='font-medium'>Kontak Kami</Typography>
                 <div className='flex gap-4'>
+                  {data.companyId && <ChatKontakButton companyId={data.companyId} asetId={data.id} />}
                   {data.nomorWaAktif && data.nomorWa && (
                     <Tooltip title='WhatsApp'>
                       <CustomIconButton
@@ -120,7 +122,7 @@ const InformationAset = ({ data }: InformationAsetProps) => {
                       </CustomIconButton>
                     </Tooltip>
                   )}
-                  {!data.nomorWaAktif && !data.instagramAktif && !data.facebookAktif && (
+                  {!data.companyId && !data.nomorWaAktif && !data.instagramAktif && !data.facebookAktif && (
                     <Typography variant='caption' color='text.secondary'>Tidak ada kontak tersedia</Typography>
                   )}
                 </div>

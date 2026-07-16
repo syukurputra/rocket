@@ -58,6 +58,7 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 
 type TagihanBooking = {
   id: string
+  nomorTagihan?: string | null
   keterangan: string
   nominal: number
   adminBooking?: number | null
@@ -155,6 +156,19 @@ const BookingList = () => {
 
   const columns = useMemo<ColumnDef<TagihanWithAction, any>[]>(
     () => [
+      columnHelper.accessor('id', {
+        header: 'No. Tagihan',
+        cell: ({ row }) => (
+          <div className='flex flex-col gap-0.5'>
+            <Typography variant='body2' color='primary.main' className='font-medium'>
+              {row.original.nomorTagihan || '-'}
+            </Typography>
+            <Typography variant='caption' color='text.secondary' sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+              {row.original.id}
+            </Typography>
+          </div>
+        )
+      }),
       columnHelper.accessor('penyewa', {
         id: 'aset',
         header: 'Aset',

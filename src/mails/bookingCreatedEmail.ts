@@ -118,7 +118,7 @@ export async function sendBookingCreatedEmail(to: string, params: BookingCreated
 
   return sendEmail({
     to,
-    subject: `Booking Berhasil - ${nomorBooking} | ${namaAset} — ${namaItemAset}`,
+    subject: `Booking Berhasil - ${nomorBooking}`,
     html
   })
 }

@@ -152,6 +152,11 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       // Send email notification if penyewa has email
       if (updatedTagihan.penyewa?.email) {
         try {
+          const nomorRows = await prisma.$queryRaw<{ nomorTagihan: string | null }[]>`
+            SELECT "nomorTagihan" FROM "tagihan" WHERE id = ${id}
+          `
+          const nomorTagihan = nomorRows[0]?.nomorTagihan || undefined
+
           await sendPaymentConfirmationEmail(
             updatedTagihan.penyewa.email,
             updatedTagihan.penyewa.nama,
@@ -159,13 +164,12 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
             updatedTagihan.mulaiSewa.toISOString(),
             updatedTagihan.selesaiSewa.toISOString(),
             Number(updatedTagihan.nominal),
-            updatedTagihan.metodeBayar || undefined
+            updatedTagihan.metodeBayar || undefined,
+            nomorTagihan
           )
           console.log('Payment confirmation email sent to:', updatedTagihan.penyewa.email)
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError)
-
-          // Don't fail the request if email fails
         }
       }
     }

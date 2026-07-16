@@ -6,6 +6,17 @@ import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
 import { getParameter } from '@/src/libs/getParameter'
 
+async function generateNomorTagihan(): Promise<string> {
+  const now = new Date()
+  const prefix = `TG-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-`
+  const rows = await prisma.$queryRawUnsafe<{ nomorTagihan: string }[]>(
+    `SELECT "nomorTagihan" FROM "tagihan" WHERE "nomorTagihan" LIKE $1 ORDER BY "nomorTagihan" DESC LIMIT 1`,
+    `${prefix}%`
+  )
+  const lastNum = rows.length > 0 ? parseInt(rows[0].nomorTagihan.slice(-5)) : 0
+  return `${prefix}${String(lastNum + 1).padStart(5, '0')}`
+}
+
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
   HARIAN: 'harian',
@@ -130,9 +141,10 @@ export async function POST(req: NextRequest) {
     })
 
     const hargaMerchant = Math.max(0, Number(total) - adminBooking)
-    await prisma.$executeRaw`UPDATE "tagihan" SET "adminBooking" = ${adminBooking}, "hargaMerchant" = ${hargaMerchant} WHERE id = ${tagihan.id}`
+    const nomorTagihan = await generateNomorTagihan()
+    await prisma.$executeRaw`UPDATE "tagihan" SET "adminBooking" = ${adminBooking}, "hargaMerchant" = ${hargaMerchant}, "nomorTagihan" = ${nomorTagihan} WHERE id = ${tagihan.id}`
 
-    const nomorBooking = `BK-${tagihan.id.slice(-8).toUpperCase()}`
+    const nomorBooking = nomorTagihan
 
     // Generate iPaymu payment URL
     let paymentUrl: string | null = null
@@ -149,8 +161,8 @@ export async function POST(req: NextRequest) {
         qty: ['1'],
         price: [String(Number(total))],
         description: [keterangan],
-        returnUrl: `${baseUrl}/booking`,
-        cancelUrl: `${baseUrl}/booking`,
+        returnUrl: `${baseUrl}/booking/saya`,
+        cancelUrl: `${baseUrl}/booking/saya`,
         notifyUrl: `${baseUrl}/api/ipaymu/notify`
       })
       paymentUrl = ipaymuResult.Data.Url

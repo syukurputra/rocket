@@ -35,7 +35,7 @@ const getEmailConfig = (type: InvoiceEmailType) => {
   switch (type) {
     case 'PENDING':
       return {
-        subject: (inv: string) => `📋 Invoice ${inv} - Menunggu Pembayaran`,
+        subject: (inv: string) => `Menunggu Pembayaran - ${inv}`,
         headerGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
         headerIcon: '⏳',
         headerTitle: 'Menunggu Pembayaran',
@@ -48,7 +48,7 @@ const getEmailConfig = (type: InvoiceEmailType) => {
       }
     case 'PAID':
       return {
-        subject: (inv: string) => `✅ Invoice ${inv} - Pembayaran Lunas`,
+        subject: (inv: string) => `Pembayaran Lunas - ${inv}`,
         headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
         headerIcon: '✅',
         headerTitle: 'Pembayaran Lunas',
@@ -61,7 +61,7 @@ const getEmailConfig = (type: InvoiceEmailType) => {
       }
     case 'CANCELLED':
       return {
-        subject: (inv: string) => `❌ Invoice ${inv} - Dibatalkan`,
+        subject: (inv: string) => `Dibatalkan - ${inv}`,
         headerGradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
         headerIcon: '❌',
         headerTitle: 'Invoice Dibatalkan',

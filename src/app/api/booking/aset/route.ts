@@ -58,7 +58,19 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const totalPages = Math.ceil(total / limit)
 
-    const mappedData = data.map(({ ruangan, ...rest }: any) => ({ ...rest, itemAset: ruangan }))
+    const ids = data.map((d: any) => d.id)
+    const nomorRows = ids.length > 0
+      ? await prisma.$queryRaw<{ id: string; nomorTagihan: string | null }[]>`
+          SELECT id, "nomorTagihan" FROM "tagihan" WHERE id = ANY(${ids}::text[])
+        `
+      : []
+    const nomorMap = new Map(nomorRows.map(r => [r.id, r.nomorTagihan]))
+
+    const mappedData = data.map(({ ruangan, ...rest }: any) => ({
+      ...rest,
+      itemAset: ruangan,
+      nomorTagihan: nomorMap.get(rest.id) ?? null
+    }))
 
     return NextResponse.json({
       data: mappedData,

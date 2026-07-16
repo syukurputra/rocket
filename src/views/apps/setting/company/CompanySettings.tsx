@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -39,11 +40,8 @@ type EarningItem = {
   progressColor: 'primary' | 'info' | 'error'
 }
 
-const earningData: EarningItem[] = [
-  { title: 'Pemasukan', stats: 'Rp 0', progress: 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-currency-dollar' },
-  { title: 'Keuntungan', stats: 'Rp 0', progress: 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-chart-pie-2' },
-  { title: 'Pengeluaran', stats: 'Rp 0', progress: 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-brand-paypal' }
-]
+const formatRupiah = (val: number) =>
+  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
 const earningChartSeries = [{ data: [0, 0, 0, 0, 0, 0, 0] }]
 
@@ -80,11 +78,19 @@ type Company = {
 }
 
 const CompanySettings = () => {
+  const router = useRouter()
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [totalTransaksi, setTotalTransaksi] = useState(0)
   const { snack, showSnack, closeSnack } = useSnackbar()
+
+  const earningData: EarningItem[] = [
+    { title: 'Total Transaksi', stats: formatRupiah(totalTransaksi), progress: totalTransaksi > 0 ? 100 : 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-receipt' },
+    { title: 'Saldo Belum Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-wallet' },
+    { title: 'Saldo Sudah Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-cash-banknote' }
+  ]
 
   // Form state
   const [formData, setFormData] = useState({
@@ -114,8 +120,19 @@ const CompanySettings = () => {
     }
   }
 
+  const fetchTotalTransaksi = async () => {
+    try {
+      const res = await apiFetchClient<{ data: { totalTransaksi: number } }>('/api/booking/transaksi-summary')
+
+      setTotalTransaksi(res.data?.totalTransaksi ?? 0)
+    } catch (error) {
+      console.error('Failed to fetch transaksi summary:', error)
+    }
+  }
+
   useEffect(() => {
     fetchCompany()
+    fetchTotalTransaksi()
   }, [])
 
   const handleEditClick = () => {
@@ -361,15 +378,44 @@ const CompanySettings = () => {
         {/* Laporan Pendapatan Card */}
         <Grid size={{ xs: 12 }}>
           <Card>
-            <CardHeader title='Laporan Pendapatan' subheader='Ringkasan Pendapatan Mingguan' className='pbe-0' />
+            <CardHeader
+              title='Laporan Pendapatan Booking'
+              subheader='Ringkasan Transaksi Booking'
+              className='pbe-0'
+              action={
+                <div className='flex flex-wrap gap-2'>
+                  <Button
+                    variant='contained'
+                    size='small'
+                    startIcon={<i className='tabler-cash-banknote' />}
+                    onClick={() => router.push('/tarik-saldo')}
+                  >
+                    Tarik Saldo
+                  </Button>
+                  <Button
+                    variant='tonal'
+                    color='secondary'
+                    size='small'
+                    startIcon={<i className='tabler-history' />}
+                    onClick={() => router.push('/tarik-saldo/history')}
+                  >
+                    History Tarik Saldo
+                  </Button>
+                </div>
+              }
+            />
             <CardContent className='flex flex-col gap-5'>
               <div className='flex flex-col sm:flex-row items-center justify-between gap-8'>
                 <div className='flex flex-col gap-3 is-full sm:is-[unset]'>
                   <div className='flex items-center gap-2.5'>
-                    <Typography variant='h2'>Rp 0</Typography>
-                    <Chip size='small' variant='tonal' color='secondary' label='Minggu ini' />
+                    <Typography variant='h2'>{formatRupiah(totalTransaksi)}</Typography>
+                    <Chip size='small' variant='tonal' color='secondary' label='Total Transaksi' />
                   </div>
-                  <Typography variant='body2'>Data pendapatan akan tampil setelah ada transaksi</Typography>
+                  <Typography variant='body2'>
+                    {totalTransaksi > 0
+                      ? 'Total transaksi dengan status rekonsiliasi sesuai'
+                      : 'Data pendapatan akan tampil setelah ada transaksi'}
+                  </Typography>
                 </div>
                 <AppReactApexCharts type='bar' height={163} width='100%' series={earningChartSeries} options={earningChartOptions} />
               </div>

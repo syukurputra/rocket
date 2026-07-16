@@ -45,8 +45,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       qty: ['1'],
       price: [nominal.toString()],
       description: [tagihan.keterangan],
-      returnUrl: `${baseUrl}/booking`,
-      cancelUrl: `${baseUrl}/booking`,
+      returnUrl: `${baseUrl}/booking/saya`,
+      cancelUrl: `${baseUrl}/booking/saya`,
       notifyUrl: `${baseUrl}/api/ipaymu/notify`
     })
 

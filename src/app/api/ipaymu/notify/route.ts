@@ -102,6 +102,9 @@ export async function POST(request: NextRequest) {
           }
         })
 
+        // Set tanggal pembayaran (kolom baru, Prisma Client belum di-regenerate)
+        await prisma.$executeRaw`UPDATE "tagihan" SET "tanggalBayar" = NOW() WHERE id = ${tagihanId}`
+
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" → LUNAS ✓`)
 
         // Catat pendapatan
@@ -110,7 +113,10 @@ export async function POST(request: NextRequest) {
             .catch(err => console.error('[iPaymu Notify] Pendapatan error:', err))
         }
 
-        const nomorBooking = `BK-${tagihanId.slice(-8).toUpperCase()}`
+        const nomorTagihanRows = await prisma.$queryRaw<{ nomorTagihan: string | null }[]>`
+          SELECT "nomorTagihan" FROM "tagihan" WHERE id = ${tagihanId}
+        `
+        const nomorBooking = nomorTagihanRows[0]?.nomorTagihan || `BK-${tagihanId.slice(-8).toUpperCase()}`
 
         const nominalFmt = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(tagihan.nominal))
 
@@ -123,7 +129,8 @@ export async function POST(request: NextRequest) {
             tagihan.mulaiSewa.toISOString(),
             tagihan.selesaiSewa.toISOString(),
             Number(tagihan.nominal),
-            'ipaymu'
+            'ipaymu',
+            nomorBooking
           ).catch(err => console.error('[iPaymu Notify] Email penyewa error:', err))
         }
 
@@ -272,7 +279,7 @@ export async function POST(request: NextRequest) {
           prisma.notifikasi.create({
             data: {
               title: notif.title,
-              subtitle: `${referenceId} — Rp ${Number(invoice.total).toLocaleString('id-ID')}`,
+              subtitle: `${invoice.nomorInvoice || referenceId} — Rp ${Number(invoice.total).toLocaleString('id-ID')}`,
               avatarIcon: notif.icon,
               avatarColor: notif.color,
               type: 'invoice',
@@ -286,7 +293,7 @@ export async function POST(request: NextRequest) {
 
           if (emailTo && (newStatus === 'PAID' || newStatus === 'CANCELLED')) {
             sendInvoiceNotificationEmail(emailTo, newStatus as 'PAID' | 'CANCELLED', {
-              nomorInvoice: referenceId,
+              nomorInvoice: invoice.nomorInvoice || referenceId,
               userName: invoice.createdBy.username || emailTo,
               paketName: invoice.paket?.nama || '-',
               billingCycle: invoice.billingCycle,

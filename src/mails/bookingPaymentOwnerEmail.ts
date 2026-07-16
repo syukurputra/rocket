@@ -111,7 +111,7 @@ export async function sendBookingPaymentOwnerEmail(to: string, params: BookingPa
 
   return sendEmail({
     to,
-    subject: `Pembayaran Booking Berhasil - ${nomorBooking} | ${namaPemesan}`,
+    subject: `Pembayaran Lunas - ${nomorBooking}`,
     html
   })
 }

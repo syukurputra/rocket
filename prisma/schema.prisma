@@ -32,6 +32,8 @@ model Company {
   ruangan          Ruangan[]
   tagihan          Tagihan[]
   users            User[]
+  conversations    Conversation[]
+  tarikSaldo       TarikSaldo[]
 
   @@map("company")
 }
@@ -133,6 +135,8 @@ model User {
   role                    Role?              @relation(fields: [roleId], references: [id])
   invoicesCreated         Invoice[]          @relation("InvoiceCreatedBy")
   notifikasi              Notifikasi[]
+  conversations           Conversation[]     @relation("UserConversations")
+  tarikSaldoCreated       TarikSaldo[]       @relation("TarikSaldoCreatedBy")
 
   // Self-relation for invitations
   invitedBy    User?  @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
@@ -184,6 +188,7 @@ model Aset {
   ruangan       Ruangan[]
   images        AsetImage[]
   fasilitasAset FasilitasAset[]
+  conversations Conversation[]
 
   @@index([companyId])
   @@map("aset")
@@ -472,6 +477,7 @@ model Tagihan {
   keterangan       String
   status           String   @default("BELUM TERBAYAR")
   metodeBayar      String?
+  tanggalBayar     DateTime?
   periodeSewa      String?  @db.VarChar(20)
   mulaiSewa        DateTime @default(now())
   selesaiSewa      DateTime @default(now())
@@ -498,16 +504,38 @@ model Tagihan {
   penyewaId   String
   asetId      String?
   ruanganId   String?
+  tarikSaldoId String?
   company     Company     @relation(fields: [companyId], references: [id])
   createdBy   User        @relation("TagihanCreatedBy", fields: [createdById], references: [id])
   penyewa     Penyewa     @relation(fields: [penyewaId], references: [id])
   updatedBy   User        @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
   aset        Aset?       @relation(fields: [asetId], references: [id])
   ruangan     Ruangan?    @relation(fields: [ruanganId], references: [id])
+  tarikSaldo  TarikSaldo? @relation(fields: [tarikSaldoId], references: [id])
   pendapatan  Pendapatan?
 
   @@index([companyId])
+  @@index([tarikSaldoId])
   @@map("tagihan")
+}
+
+model TarikSaldo {
+  id              String    @id @default(cuid())
+  companyId       String
+  jumlahTransaksi Int       @default(0)
+  jumlahNominal   Decimal   @default(0) @db.Decimal(15, 2)
+  status          String    @default("PENDING") @db.VarChar(20)
+  tanggalRequest  DateTime  @default(now())
+  createdById     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  company         Company   @relation(fields: [companyId], references: [id])
+  createdBy       User      @relation("TarikSaldoCreatedBy", fields: [createdById], references: [id])
+  tagihan         Tagihan[]
+
+  @@index([companyId])
+  @@index([tanggalRequest])
+  @@map("tarik_saldo")
 }
 
 model Pendapatan {
@@ -631,5 +659,46 @@ model SchedulerLog {
   @@index([status])
   @@index([startedAt])
   @@map("scheduler_log")
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  userId        String
+  companyId     String
+  asetId        String?
+  lastMessage   String?   @db.Text
+  lastMessageAt DateTime  @default(now())
+  unreadUser    Int       @default(0)
+  unreadCompany Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation("UserConversations", fields: [userId], references: [id])
+  company       Company   @relation(fields: [companyId], references: [id])
+  aset          Aset?     @relation(fields: [asetId], references: [id])
+  messages      Message[]
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([lastMessageAt])
+  @@map("conversation")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderType     String       @db.VarChar(20)
+  senderId       String
+  body           String       @db.Text
+  attachmentUrl  String?      @db.VarChar(500)
+  attachmentName String?      @db.VarChar(255)
+  attachmentType String?      @db.VarChar(100)
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("message")
 }
 

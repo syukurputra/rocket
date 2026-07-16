@@ -24,7 +24,8 @@ export const sendPaymentConfirmationEmail = async (
   mulaiSewa: string,
   selesaiSewa: string,
   nominal: number,
-  metodeBayar?: string
+  metodeBayar?: string,
+  nomorBooking?: string
 ) => {
   const formattedAmount = formatCurrency(nominal)
   const formattedStartDate = formatDate(mulaiSewa)
@@ -113,10 +114,10 @@ export const sendPaymentConfirmationEmail = async (
                   </p>
                   <p style="margin: 0; color: #6b7280; font-size: 14px;">
                     Jika Anda memerlukan bantuan, hubungi kami di
-                    <a href="mailto:${process.env.SUPPORT_EMAIL || 'support@example.com'}" style="color: #10b981; text-decoration: none;">${process.env.SUPPORT_EMAIL || 'support@example.com'}</a>
+                    <a href="mailto:notif@bantusewa.com" style="color: #10b981; text-decoration: none;">notif@bantusewa.com</a>
                   </p>
                   <p style="margin: 20px 0 0; color: #9ca3af; font-size: 12px;">
-                    © ${new Date().getFullYear()} Sistem Manajemen Kost. All rights reserved.
+                    © 2025 by Bantu Sewa. All rights reserved.
                   </p>
                 </td>
               </tr>
@@ -148,14 +149,14 @@ Jika Anda memiliki pertanyaan atau memerlukan bantuan, jangan ragu untuk menghub
 
 ---
 Email ini dikirim secara otomatis, mohon tidak membalas email ini.
-Jika Anda memerlukan bantuan, hubungi kami di ${process.env.SUPPORT_EMAIL || 'support@example.com'}
+Jika Anda memerlukan bantuan, hubungi kami di notif@bantusewa.com
 
-© ${new Date().getFullYear()} Sistem Manajemen Kost. All rights reserved.
+© 2025 by Bantu Sewa. All rights reserved.
   `
 
   return await sendEmail({
     to: email,
-    subject: `✅ Pembayaran Lunas - ${keterangan}`,
+    subject: `Pembayaran Lunas - ${nomorBooking || keterangan}`,
     html: htmlContent,
     text: textContent
   })

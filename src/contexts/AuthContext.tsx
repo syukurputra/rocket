@@ -163,10 +163,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           window.dispatchEvent(new Event('userMenusUpdated'))
         }
 
-        // Redirect ke publish page (returnTo) jika ada pendingBooking, otherwise /home
+        // Redirect ke returnTo jika ada pendingChat / pendingBooking, otherwise /home
         try {
-          const raw = localStorage.getItem('pendingBooking')
-          const returnTo = raw ? JSON.parse(raw).returnTo : null
+          const rawChat = localStorage.getItem('pendingChat')
+          const rawBooking = localStorage.getItem('pendingBooking')
+          const returnTo = rawChat
+            ? JSON.parse(rawChat).returnTo
+            : rawBooking
+              ? JSON.parse(rawBooking).returnTo
+              : null
 
           router.push(returnTo || '/home')
         } catch {
