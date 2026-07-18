@@ -31,7 +31,7 @@ async function handlePut(request: NextRequest, { params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { judul, deskripsi, periodeAwal, periodeAkhir, status } = body
+    const { judul, deskripsi, tampilkanPeriode, periodeAwal, periodeAkhir, status } = body
 
     const existing = await prisma.$queryRaw<any[]>`SELECT id FROM banner_promo WHERE id = ${id}`
 
@@ -49,16 +49,27 @@ async function handlePut(request: NextRequest, { params }: ParamCtx) {
       await prisma.$executeRaw`UPDATE banner_promo SET deskripsi = ${deskripsi || null}, "updatedAt" = ${now} WHERE id = ${id}`
     }
 
-    if (periodeAwal !== undefined) {
-      const awal = new Date(periodeAwal)
+    if (tampilkanPeriode !== undefined) {
+      if (tampilkanPeriode) {
+        const awal = periodeAwal ? new Date(periodeAwal) : null
+        const akhir = periodeAkhir ? new Date(periodeAkhir) : null
 
-      await prisma.$executeRaw`UPDATE banner_promo SET "periodeAwal" = ${awal}, "updatedAt" = ${now} WHERE id = ${id}`
-    }
+        await prisma.$executeRaw`UPDATE banner_promo SET "tampilkanPeriode" = true, "periodeAwal" = ${awal}, "periodeAkhir" = ${akhir}, "updatedAt" = ${now} WHERE id = ${id}`
+      } else {
+        await prisma.$executeRaw`UPDATE banner_promo SET "tampilkanPeriode" = false, "periodeAwal" = NULL, "periodeAkhir" = NULL, "updatedAt" = ${now} WHERE id = ${id}`
+      }
+    } else {
+      if (periodeAwal !== undefined) {
+        const awal = periodeAwal ? new Date(periodeAwal) : null
 
-    if (periodeAkhir !== undefined) {
-      const akhir = new Date(periodeAkhir)
+        await prisma.$executeRaw`UPDATE banner_promo SET "periodeAwal" = ${awal}, "updatedAt" = ${now} WHERE id = ${id}`
+      }
 
-      await prisma.$executeRaw`UPDATE banner_promo SET "periodeAkhir" = ${akhir}, "updatedAt" = ${now} WHERE id = ${id}`
+      if (periodeAkhir !== undefined) {
+        const akhir = periodeAkhir ? new Date(periodeAkhir) : null
+
+        await prisma.$executeRaw`UPDATE banner_promo SET "periodeAkhir" = ${akhir}, "updatedAt" = ${now} WHERE id = ${id}`
+      }
     }
 
     if (status !== undefined) {

@@ -1,7 +1,10 @@
 'use client'
 
 // React Imports
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+
+// Next Imports
+import { useRouter } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -14,9 +17,7 @@ import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 
-import BookingDialog from './BookingDialog'
 import ScheduleDialog from './ScheduleDialog'
 
 interface InformationItemAsetProps {
@@ -25,89 +26,27 @@ interface InformationItemAsetProps {
   adminBooking?: number
 }
 
-const InformationItemAset = ({ data, asetNama = '', adminBooking = 0 }: InformationItemAsetProps) => {
+const InformationItemAset = ({ data }: InformationItemAsetProps) => {
+  const router = useRouter()
   const [openGallery, setOpenGallery] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
-  const [openBooking, setOpenBooking] = useState(false)
   const [openSchedule, setOpenSchedule] = useState(false)
-  const [pendingBookingData, setPendingBookingData] = useState<any>(null)
-  const [autoProcessing, setAutoProcessing] = useState(false)
 
-  // Auto-proses booking setelah redirect dari login
-  useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken')
+  // Booking → arahkan ke halaman checkout (cek login dulu)
+  const handleBooking = () => {
+    const target = `/booking/checkout/${data.id}`
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
 
-    if (!accessToken) return
+    if (!accessToken) {
+      // Belum login → simpan tujuan lalu ke halaman login
+      localStorage.setItem('pendingBooking', JSON.stringify({ returnTo: target }))
+      router.push('/login')
 
-    try {
-      const raw = localStorage.getItem('pendingBooking')
-
-      if (!raw) return
-
-      const pending = JSON.parse(raw)
-
-      if (pending.ruanganId !== data.id) return
-
-      // Ada pendingBooking untuk item aset ini + user sudah login → proses otomatis
-      setAutoProcessing(true)
-
-      const userData = localStorage.getItem('user')
-      const user = userData ? JSON.parse(userData) : null
-
-      if (!user) {
-        setAutoProcessing(false)
-        setPendingBookingData(pending)
-        setOpenBooking(true)
-
-        return
-      }
-
-      fetch('/api/public/booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ruanganId: pending.ruanganId,
-          namaPemesan: user.username || user.nama || '',
-          email: user.email || '',
-          telepon: user.nomorTelepon || '',
-          jenisHarga: pending.jenisHarga,
-          mulaiSewa: pending.mulaiSewa,
-          selesaiSewa: pending.selesaiSewa,
-          durasi: pending.durasi,
-          hargaSatuan: pending.hargaSatuan,
-          total: pending.total,
-          catatan: pending.catatan || '',
-          userId: user.id
-        })
-      })
-        .then(res => res.json().then(d => ({ ok: res.ok, data: d })))
-        .then(({ ok, data: bookingData }) => {
-          localStorage.removeItem('pendingBooking')
-
-          if (ok) {
-            const paymentUrl = bookingData.data?.tagihan?.paymentUrl
-
-            if (paymentUrl) {
-              window.location.href = paymentUrl
-            } else {
-              window.location.href = '/booking'
-            }
-          } else {
-            // Gagal → buka dialog dengan error
-            setPendingBookingData({ ...pending, errorMessage: bookingData.message || 'Gagal memproses booking' })
-            setAutoProcessing(false)
-            setOpenBooking(true)
-          }
-        })
-        .catch(() => {
-          setPendingBookingData({ ...pending, errorMessage: 'Terjadi kesalahan jaringan, silakan coba lagi.' })
-          setAutoProcessing(false)
-          setOpenBooking(true)
-        })
-    } catch {
-      setAutoProcessing(false)
+      return
     }
-  }, [])
+
+    router.push(target)
+  }
 
   const images = data.images && data.images.length > 0 ? data.images : []
 
@@ -130,22 +69,6 @@ const InformationItemAset = ({ data, asetNama = '', adminBooking = 0 }: Informat
 
   const handlePrev = () => setActiveIdx(i => (i - 1 + images.length) % images.length)
   const handleNext = () => setActiveIdx(i => (i + 1) % images.length)
-
-  if (autoProcessing) {
-    return (
-      <Card>
-        <CardContent>
-          <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' gap={3} py={6}>
-            <CircularProgress size={48} />
-            <Typography variant='h6'>Memproses booking Anda...</Typography>
-            <Typography color='text.secondary' align='center'>
-              Mohon tunggu, kami sedang menyiapkan pembayaran untuk {data.nama}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <>
@@ -245,7 +168,7 @@ const InformationItemAset = ({ data, asetNama = '', adminBooking = 0 }: Informat
                     variant='contained'
                     fullWidth
                     startIcon={<i className='tabler-calendar-check' />}
-                    onClick={() => setOpenBooking(true)}
+                    onClick={handleBooking}
                   >
                     Booking
                   </Button>
@@ -255,18 +178,6 @@ const InformationItemAset = ({ data, asetNama = '', adminBooking = 0 }: Informat
           </Grid>
         </Grid>
       </Card>
-
-      {/* Booking Dialog */}
-      {data.hargaItemAset && data.hargaItemAset.length > 0 && (
-        <BookingDialog
-          open={openBooking}
-          onClose={() => { setOpenBooking(false); setPendingBookingData(null) }}
-          itemAset={{ id: data.id, nama: data.nama, hargaItemAset: data.hargaItemAset }}
-          asetNama={asetNama}
-          adminBooking={adminBooking}
-          initialData={pendingBookingData || undefined}
-        />
-      )}
 
       {/* Schedule Dialog */}
       <ScheduleDialog

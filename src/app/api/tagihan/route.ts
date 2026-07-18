@@ -144,7 +144,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     if (ruanganId) {
       const konflik = await prisma.tagihan.findFirst({
         where: {
-          ruanganId,
+          itemAsetId: ruanganId,
           status: 'LUNAS',
           AND: [
             { mulaiSewa: { lte: selesaiSewaDate } },
@@ -168,7 +168,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nominal: nominal || 0,
         penyewaId: penyewaId,
         asetId: asetId || null,
-        ruanganId: ruanganId || null,
+        itemAsetId: ruanganId || null,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId

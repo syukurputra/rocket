@@ -299,12 +299,6 @@ const InvoicePreview = ({ invoiceId }: InvoicePreviewProps) => {
                           {formatRupiah(invoice.subtotal)}
                         </Typography>
                       </div>
-                      <div className='flex items-center justify-between'>
-                        <Typography color='text.secondary'>PPN (11%):</Typography>
-                        <Typography className='font-medium' color='text.primary'>
-                          {formatRupiah(invoice.pajak)}
-                        </Typography>
-                      </div>
                       <Divider className='mlb-2' />
                       <div className='flex items-center justify-between'>
                         <Typography className='font-semibold' color='text.primary'>Total:</Typography>

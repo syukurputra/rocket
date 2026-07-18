@@ -19,6 +19,7 @@ import User from '@assets/svg/front-pages/landing-page/User'
 import LaptopCharging from '@assets/svg/front-pages/landing-page/LaptopCharging'
 import Rocket from '@assets/svg/front-pages/landing-page/Rocket'
 import Document from '@assets/svg/front-pages/landing-page/Document'
+import Diamond from '@assets/svg/front-pages/landing-page/Diamond'
 
 // Styles Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
@@ -38,6 +39,12 @@ const feature = [
       'Atur setiap unit atau item sewaan lengkap dengan harga, foto, dan status ketersediaan secara real-time.'
   },
   {
+    icon: <i className='tabler-calendar-check' style={{ fontSize: 54, color: 'var(--mui-palette-primary-main)' }} />,
+    title: 'Atur Jadwal Sewa',
+    description:
+      'Kelola jadwal ketersediaan dan pemesanan lewat kalender. Penyewa dapat mengecek slot kosong dan booking langsung tanpa bentrok tanggal.'
+  },
+  {
     icon: <User color='var(--mui-palette-primary-main)' />,
     title: 'Data Pelanggan',
     description:
@@ -48,6 +55,18 @@ const feature = [
     title: 'Tagihan Otomatis',
     description:
       'Buat dan kirim tagihan otomatis ke penyewa. Lacak status pembayaran dan kirim pengingat via WhatsApp atau email.'
+  },
+  {
+    icon: <Diamond color='var(--mui-palette-primary-main)' />,
+    title: 'Tagihan & Pembayaran Online',
+    description:
+      'Kirim tagihan online ke penyewa dan terima pembayaran secara online — transfer bank, e-wallet, kartu, hingga gerai retail, langsung terkonfirmasi otomatis.'
+  },
+  {
+    icon: <i className='tabler-cash-banknote' style={{ fontSize: 54, color: 'var(--mui-palette-primary-main)' }} />,
+    title: 'Penarikan Pembayaran Online',
+    description:
+      'Tarik saldo hasil pembayaran online Anda dengan mudah. Pilih transaksi, ajukan penarikan, dan pantau riwayatnya dalam satu halaman.'
   },
   {
     icon: <Paper color='var(--mui-palette-primary-main)' />,

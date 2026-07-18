@@ -32,7 +32,6 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       tanggalInvoice: invoice.tanggalInvoice,
       tanggalBayar: invoice.tanggalBayar,
       subtotal: Number(invoice.subtotal),
-      pajak: Number(invoice.pajak),
       total: Number(invoice.total),
       billingCycle: invoice.billingCycle,
       paket: invoice.paket,

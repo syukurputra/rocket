@@ -33,7 +33,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
       FROM "tagihan" t
       LEFT JOIN "penyewa" p ON p.id = t."penyewaId"
       LEFT JOIN "aset" a ON a.id = t."asetId"
-      LEFT JOIN "item_aset" r ON r.id = t."ruanganId"
+      LEFT JOIN "item_aset" r ON r.id = t."itemAsetId"
       WHERE t."companyId" = ${user.companyId}
         AND t."statusRekon" = 'SESUAI'
         AND t."tarikSaldoId" IS NULL

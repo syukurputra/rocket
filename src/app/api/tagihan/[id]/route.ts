@@ -107,7 +107,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(metodeBayar !== undefined && { metodeBayar }),
         ...(buktiPembayaran !== undefined && { buktiPembayaran }),
         ...(asetId !== undefined && { asetId: asetId || null }),
-        ...(ruanganId !== undefined && { ruanganId: ruanganId || null }),
+        ...(ruanganId !== undefined && { itemAsetId: ruanganId || null }),
         updatedById: user.id
       },
       include: {

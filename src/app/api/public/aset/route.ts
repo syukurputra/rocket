@@ -68,13 +68,13 @@ export async function GET(req: NextRequest) {
     const slugMap = Object.fromEntries(slugRows.map(r => [r.id, r.publishId]))
 
     // Sanitize Decimal fields
-    const sanitizedData = data.map(item => ({
+    const sanitizedData = data.map(({ ruangan, ...item }) => ({
       ...item,
       publishId: slugMap[item.id] ?? null,
       nominal: Number(item.nominal),
       latitude: item.latitude ?? null,
       longitude: item.longitude ?? null,
-      ruangan: item.ruangan.map(r => ({ ...r }))
+      itemAsets: ruangan.map(r => ({ ...r }))
     }))
 
     return NextResponse.json({

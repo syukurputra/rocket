@@ -83,12 +83,12 @@ const HubungiView = ({ mode }: { mode: SystemMode }) => {
                   <Typography variant='h6' color='text.primary' className='font-semibold'>
                     Email
                   </Typography>
-                  <Typography color='text.secondary'>notif@bantusewa.com</Typography>
+                  <Typography color='text.secondary'>support@bantusewa.com</Typography>
                   <Button
                     variant='tonal'
                     color='info'
                     size='small'
-                    href='mailto:notif@bantusewa.com'
+                    href='mailto:support@bantusewa.com'
                     startIcon={<i className='tabler-external-link' />}
                     className='mbs-2'
                   >

@@ -24,23 +24,40 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'Tagihan tidak ditemukan' }, { status: 404 })
     }
 
-    if (user.companyId !== DEMO_COMPANY_ID && tagihan.companyId !== user.companyId) {
+    const isSuper = !!DEMO_COMPANY_ID && user.companyId === DEMO_COMPANY_ID
+    const isOwnerCompany = !!user.companyId && tagihan.companyId === user.companyId
+    const isPenyewa = tagihan.penyewaId === user.id
+
+    if (!isSuper && !isOwnerCompany && !isPenyewa) {
       return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
+    }
+
+    // Ambil syarat & ketentuan aset (kolom Text, tidak ikut di select relasi)
+    let syaratKetentuan: string | null = null
+
+    if (tagihan.asetId) {
+      const syaratRows = await prisma.$queryRaw<{ syaratKetentuan: string | null }[]>`
+        SELECT "syaratKetentuan" FROM "aset" WHERE id = ${tagihan.asetId}
+      `
+
+      syaratKetentuan = syaratRows[0]?.syaratKetentuan ?? null
     }
 
     const buffer = generateBookingPdf({
       id: tagihan.id,
+      nomorTagihan: tagihan.nomorTagihan,
       keterangan: tagihan.keterangan,
       nominal: Number(tagihan.nominal),
       periodeSewa: tagihan.periodeSewa,
       mulaiSewa: tagihan.mulaiSewa,
       selesaiSewa: tagihan.selesaiSewa,
+      syaratKetentuan,
       penyewa: tagihan.penyewa,
       itemAset: tagihan.ruangan,
       aset: tagihan.aset
     })
 
-    const filename = `bukti-booking-${tagihan.id.slice(-8).toUpperCase()}.pdf`
+    const filename = `booking-${tagihan.nomorTagihan || tagihan.id.slice(-8).toUpperCase()}.pdf`
 
     return new NextResponse(buffer, {
       headers: {

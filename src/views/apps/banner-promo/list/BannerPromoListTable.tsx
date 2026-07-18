@@ -31,13 +31,14 @@ import tableStyles from '@core/styles/table.module.css'
 const EMPTY_FORM = {
   judul: '',
   deskripsi: '',
+  tampilkanPeriode: true,
   periodeAwal: '',
   periodeAkhir: '',
   status: true
 }
 
 const toInputDate = (iso: string) => (iso ? iso.slice(0, 10) : '')
-const formatDate = (iso: string) =>
+const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
 
 const BannerPromoListTable = () => {
@@ -96,8 +97,9 @@ const BannerPromoListTable = () => {
     setForm({
       judul: item.judul,
       deskripsi: item.deskripsi || '',
-      periodeAwal: toInputDate(item.periodeAwal),
-      periodeAkhir: toInputDate(item.periodeAkhir),
+      tampilkanPeriode: item.tampilkanPeriode ?? true,
+      periodeAwal: toInputDate(item.periodeAwal || ''),
+      periodeAkhir: toInputDate(item.periodeAkhir || ''),
       status: item.status
     })
     setImageFile(null)
@@ -149,8 +151,11 @@ const BannerPromoListTable = () => {
 
   const handleSave = async () => {
     if (!form.judul.trim()) { showSnack('Judul harus diisi', 'error'); return }
-    if (!form.periodeAwal) { showSnack('Periode awal harus diisi', 'error'); return }
-    if (!form.periodeAkhir) { showSnack('Periode akhir harus diisi', 'error'); return }
+
+    if (form.tampilkanPeriode) {
+      if (!form.periodeAwal) { showSnack('Periode awal harus diisi', 'error'); return }
+      if (!form.periodeAkhir) { showSnack('Periode akhir harus diisi', 'error'); return }
+    }
 
     setSaving(true)
     try {
@@ -162,8 +167,9 @@ const BannerPromoListTable = () => {
           body: JSON.stringify({
             judul: form.judul,
             deskripsi: form.deskripsi || null,
-            periodeAwal: form.periodeAwal,
-            periodeAkhir: form.periodeAkhir,
+            tampilkanPeriode: form.tampilkanPeriode,
+            periodeAwal: form.tampilkanPeriode ? form.periodeAwal : null,
+            periodeAkhir: form.tampilkanPeriode ? form.periodeAkhir : null,
             status: form.status
           })
         })
@@ -174,8 +180,9 @@ const BannerPromoListTable = () => {
           body: JSON.stringify({
             judul: form.judul,
             deskripsi: form.deskripsi || null,
-            periodeAwal: form.periodeAwal,
-            periodeAkhir: form.periodeAkhir,
+            tampilkanPeriode: form.tampilkanPeriode,
+            periodeAwal: form.tampilkanPeriode ? form.periodeAwal : null,
+            periodeAkhir: form.tampilkanPeriode ? form.periodeAkhir : null,
             status: form.status
           })
         })
@@ -297,7 +304,9 @@ const BannerPromoListTable = () => {
                     </td>
                     <td>
                       <Typography variant='body2'>
-                        {formatDate(item.periodeAwal)} – {formatDate(item.periodeAkhir)}
+                        {item.tampilkanPeriode
+                          ? `${formatDate(item.periodeAwal)} – ${formatDate(item.periodeAkhir)}`
+                          : 'Selalu aktif'}
                       </Typography>
                     </td>
                     <td>
@@ -371,28 +380,49 @@ const BannerPromoListTable = () => {
                 placeholder='Deskripsi promo (opsional)'
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Periode Awal'
-                type='date'
-                required
-                value={form.periodeAwal}
-                onChange={e => setForm(f => ({ ...f, periodeAwal: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
+            <Grid size={{ xs: 12 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={form.tampilkanPeriode}
+                    onChange={e => setForm(f => ({ ...f, tampilkanPeriode: e.target.checked }))}
+                    color='primary'
+                  />
+                }
+                label='Tampilkan Periode'
               />
+              {!form.tampilkanPeriode && (
+                <Typography variant='caption' color='text.secondary' className='block'>
+                  Banner akan selalu aktif tanpa batas periode.
+                </Typography>
+              )}
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Periode Akhir'
-                type='date'
-                required
-                value={form.periodeAkhir}
-                onChange={e => setForm(f => ({ ...f, periodeAkhir: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
+            {form.tampilkanPeriode && (
+              <>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField
+                    fullWidth
+                    label='Periode Awal'
+                    type='date'
+                    required
+                    value={form.periodeAwal}
+                    onChange={e => setForm(f => ({ ...f, periodeAwal: e.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField
+                    fullWidth
+                    label='Periode Akhir'
+                    type='date'
+                    required
+                    value={form.periodeAkhir}
+                    onChange={e => setForm(f => ({ ...f, periodeAkhir: e.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+              </>
+            )}
             <Grid size={{ xs: 12 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>
                 Upload Gambar Banner

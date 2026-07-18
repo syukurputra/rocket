@@ -15,7 +15,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const searchPattern = `%${search}%`
 
     const rows = await prisma.$queryRaw<any[]>`
-      SELECT id, judul, deskripsi, "imageUrl", "periodeAwal", "periodeAkhir", status, "createdAt", "updatedAt"
+      SELECT id, judul, deskripsi, "imageUrl", "tampilkanPeriode", "periodeAwal", "periodeAkhir", status, "createdAt", "updatedAt"
       FROM banner_promo
       WHERE (${search} = '' OR judul ILIKE ${searchPattern} OR deskripsi ILIKE ${searchPattern})
       ORDER BY "createdAt" DESC
@@ -52,24 +52,25 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { judul, deskripsi, periodeAwal, periodeAkhir, status = true } = body
+    const { judul, deskripsi, tampilkanPeriode = true, periodeAwal, periodeAkhir, status = true } = body
 
     if (!judul) {
       return NextResponse.json({ message: 'Judul promo harus diisi' }, { status: 400 })
     }
 
-    if (!periodeAwal || !periodeAkhir) {
+    // Periode wajib hanya jika "Tampilkan Periode" aktif
+    if (tampilkanPeriode && (!periodeAwal || !periodeAkhir)) {
       return NextResponse.json({ message: 'Periode promo harus diisi' }, { status: 400 })
     }
 
     const id = `bp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const now = new Date()
-    const awal = new Date(periodeAwal)
-    const akhir = new Date(periodeAkhir)
+    const awal = tampilkanPeriode && periodeAwal ? new Date(periodeAwal) : null
+    const akhir = tampilkanPeriode && periodeAkhir ? new Date(periodeAkhir) : null
 
     await prisma.$executeRaw`
-      INSERT INTO banner_promo (id, judul, deskripsi, "imageUrl", "periodeAwal", "periodeAkhir", status, "createdAt", "updatedAt")
-      VALUES (${id}, ${judul}, ${deskripsi || null}, NULL, ${awal}, ${akhir}, ${status}, ${now}, ${now})
+      INSERT INTO banner_promo (id, judul, deskripsi, "imageUrl", "tampilkanPeriode", "periodeAwal", "periodeAkhir", status, "createdAt", "updatedAt")
+      VALUES (${id}, ${judul}, ${deskripsi || null}, NULL, ${tampilkanPeriode}, ${awal}, ${akhir}, ${status}, ${now}, ${now})
     `
 
     const rows = await prisma.$queryRaw<any[]>`

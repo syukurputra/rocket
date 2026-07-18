@@ -125,7 +125,7 @@ const termData: FaqType[] = [
         id: 'proses-refund',
         question: 'Proses Pengajuan Refund',
         answer:
-          'Hubungi tim support melalui WhatsApp +62 856-4334-4041 atau email notif@bantusewa.com dengan menyertakan nomor invoice, bukti pembayaran, dan alasan pengajuan. Proses 3–5 hari kerja, pengembalian dana 7–14 hari kerja ke metode pembayaran asal.'
+          'Hubungi tim support melalui WhatsApp +62 856-4334-4041 atau email support@bantusewa.com dengan menyertakan nomor invoice, bukti pembayaran, dan alasan pengajuan. Proses 3–5 hari kerja, pengembalian dana 7–14 hari kerja ke metode pembayaran asal.'
       },
       {
         id: 'tidak-bisa-refund',
@@ -183,7 +183,7 @@ const termData: FaqType[] = [
         id: 'kontak-legal',
         question: 'Hubungi Kami',
         answer:
-          'Jika ada pertanyaan tentang syarat dan ketentuan ini, hubungi kami: WhatsApp +62 856-4334-4041 atau email notif@bantusewa.com. Alamat: Aryana Karawaci Cluster Flora Blok E6-08, Kab. Tangerang.'
+          'Jika ada pertanyaan tentang syarat dan ketentuan ini, hubungi kami: WhatsApp +62 856-4334-4041 atau email support@bantusewa.com. Alamat: Aryana Karawaci Cluster Flora Blok E6-08, Kab. Tangerang.'
       }
     ]
   }

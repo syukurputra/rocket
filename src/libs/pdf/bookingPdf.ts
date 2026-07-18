@@ -1,13 +1,18 @@
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export type TagihanForPdf = {
   id: string
+  nomorTagihan?: string | null
   keterangan: string
   nominal: number | string
   periodeSewa?: string | null
   mulaiSewa: Date | string
   selesaiSewa: Date | string
+  syaratKetentuan?: string | null
   penyewa?: {
     nama: string
     nomorTelepon?: string | null
@@ -15,6 +20,24 @@ export type TagihanForPdf = {
   } | null
   itemAset?: { nama: string } | null
   aset?: { nama: string } | null
+}
+
+// Baca logo Bantu Sewa sekali lalu cache sebagai data URI (server-side)
+let logoDataUrl: string | null | undefined
+
+const getLogoDataUrl = (): string | null => {
+  if (logoDataUrl !== undefined) return logoDataUrl
+
+  try {
+    const logoPath = join(process.cwd(), 'public', 'images', 'bantu-sewa', 'Logo_Bantu_Sewa_512.png')
+    const buffer = readFileSync(logoPath)
+
+    logoDataUrl = `data:image/png;base64,${buffer.toString('base64')}`
+  } catch {
+    logoDataUrl = null
+  }
+
+  return logoDataUrl
 }
 
 const formatRupiah = (num: number | string): string => {
@@ -49,14 +72,27 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   // Header card
   doc.setFillColor(...lightGray)
   doc.roundedRect(margin, 15, contentW, 30, 2, 2, 'F')
+
+  // Logo Bantu Sewa
+  const logo = getLogoDataUrl()
+  const textX = logo ? margin + 22 : margin + 5
+
+  if (logo) {
+    try {
+      doc.addImage(logo, 'PNG', margin + 5, 22, 14, 14)
+    } catch {
+      /* abaikan jika gagal memuat logo */
+    }
+  }
+
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
   doc.setTextColor(...darkText)
-  doc.text('Bantu Sewa', margin + 5, 27)
+  doc.text('Bantu Sewa', textX, 27)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...grayText)
-  doc.text('Platform Manajemen Sewa', margin + 5, 34)
+  doc.text('Platform Manajemen Sewa', textX, 34)
 
   // LUNAS badge
   const rightX = pageW - margin - 5
@@ -79,7 +115,15 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   doc.text('ID Pemesanan', labelX, y)
   doc.setTextColor(...darkText)
   doc.setFont('helvetica', 'bold')
-  doc.text(tagihan.id.slice(-10).toUpperCase(), valueX, y)
+  doc.text(tagihan.nomorTagihan || '-', valueX, y)
+
+  y += 7
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...grayText)
+  doc.text('ID Transaksi', labelX, y)
+  doc.setTextColor(...darkText)
+  doc.setFont('helvetica', 'bold')
+  doc.text(tagihan.id, valueX, y)
 
   y += 7
   doc.setFont('helvetica', 'normal')
@@ -158,8 +202,78 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   doc.setFontSize(13)
   doc.text(formatRupiah(Number(tagihan.nominal)), totalValX, y, { align: 'right' })
 
-  // Footer
   const footerY = doc.internal.pageSize.getHeight() - 15
+
+  // Syarat & Ketentuan
+  const syarat = (tagihan.syaratKetentuan || '').trim()
+
+  if (syarat) {
+    y += 16
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(...darkText)
+    doc.text('Syarat & Ketentuan', margin, y)
+    y += 6
+
+    // Helper: tulis teks dengan wrapping + pindah halaman bila perlu
+    const writeWrapped = (text: string, x: number, maxWidth: number, lineHeight = 4.5) => {
+      const wrapped: string[] = doc.splitTextToSize(text, maxWidth)
+
+      for (const line of wrapped) {
+        if (y > footerY - 8) {
+          doc.addPage()
+          y = 20
+        }
+
+        doc.text(line, x, y)
+        y += lineHeight
+      }
+    }
+
+    // Coba parse sebagai poin terstruktur (JSON), fallback ke teks biasa
+    type SKPoint = { text?: string; subPoin?: { text?: string }[] }
+    let points: SKPoint[] | null = null
+
+    try {
+      const parsed = JSON.parse(syarat)
+
+      if (Array.isArray(parsed)) points = parsed as SKPoint[]
+    } catch {
+      points = null
+    }
+
+    if (points) {
+      points.forEach((poin, i) => {
+        // Judul poin (1. 2. 3.)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(8.5)
+        doc.setTextColor(...darkText)
+        writeWrapped(`${i + 1}. ${poin.text || ''}`, margin, contentW)
+
+        // Sub poin (a. b. c.)
+        if (Array.isArray(poin.subPoin) && poin.subPoin.length > 0) {
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(8)
+          doc.setTextColor(...grayText)
+          poin.subPoin.forEach((sub, j) => {
+            const letter = String.fromCharCode(97 + (j % 26))
+
+            writeWrapped(`${letter}. ${sub.text || ''}`, margin + 6, contentW - 6, 4.2)
+          })
+        }
+
+        y += 2
+      })
+    } else {
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(...grayText)
+      writeWrapped(syarat, margin, contentW)
+    }
+  }
+
+  // Footer
 
   doc.setDrawColor(...borderColor)
   doc.setLineWidth(0.3)

@@ -159,9 +159,10 @@ const PublishedAsetList = (props: Props) => {
     return prices.length > 0 ? Math.min(...prices) : 0
   }
 
-  const getAvailableRoomCount = (itemAsets: ItemAset[]): number => {
+  const getActiveItemCount = (itemAsets: ItemAset[]): number => {
     if (!itemAsets) return 0
-    return itemAsets.filter(r => r.status === 'non aktif').length
+
+    return itemAsets.filter(r => r.status === 'aktif').length
   }
 
   // Skeleton card for loading state
@@ -264,7 +265,7 @@ const PublishedAsetList = (props: Props) => {
                       <div className='flex items-center gap-1'>
                         <i className='tabler-box text-lg text-textSecondary' />
                         <Typography variant='body2' color='text.secondary'>
-                          {getAvailableRoomCount(item.itemAsets)}/{item.itemAsets?.length ?? 0} Item Aset
+                          {getActiveItemCount(item.itemAsets)} Item Aset
                         </Typography>
                       </div>
                     </div>

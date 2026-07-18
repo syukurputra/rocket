@@ -19,7 +19,6 @@ export type InvoiceForPdf = {
   tanggalInvoice: Date | string
   tanggalBayar?: Date | string | null
   subtotal: number | string
-  pajak: number | string
   total: number | string
   billingCycle: string
   paket?: { nama: string } | null
@@ -160,8 +159,7 @@ export function generateInvoicePdf(invoice: InvoiceForPdf): ArrayBuffer {
   doc.rect(summaryX, y, pageW / 2 - margin, 36, 'F')
 
   const rows = [
-    { label: 'Subtotal', val: formatRupiah(invoice.subtotal) },
-    { label: 'PPN (11%)', val: formatRupiah(invoice.pajak) }
+    { label: 'Subtotal', val: formatRupiah(invoice.subtotal) }
   ]
 
   doc.setFont('helvetica', 'normal')

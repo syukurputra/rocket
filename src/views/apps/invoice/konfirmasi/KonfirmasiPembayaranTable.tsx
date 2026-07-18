@@ -943,10 +943,6 @@ const KonfirmasiPembayaranTable = () => {
                   <Typography color='text.secondary'>Paket {detailDialog.invoice.paket?.nama || '-'} ({detailDialog.invoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'})</Typography>
                   <Typography>{formatRupiah(detailDialog.invoice.subtotal)}</Typography>
                 </Box>
-                <Box className='flex justify-between'>
-                  <Typography color='text.secondary'>PPN (11%)</Typography>
-                  <Typography>{formatRupiah(detailDialog.invoice.pajak)}</Typography>
-                </Box>
                 <Divider className='my-1' />
                 <Box className='flex justify-between'>
                   <Typography className='font-semibold'>Total</Typography>

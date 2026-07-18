@@ -3,8 +3,9 @@ export type BannerPromoClient = {
   judul: string
   deskripsi?: string | null
   imageUrl?: string | null
-  periodeAwal: string
-  periodeAkhir: string
+  tampilkanPeriode?: boolean
+  periodeAwal?: string | null
+  periodeAkhir?: string | null
   status: boolean
   createdAt: string
   updatedAt: string

@@ -6,7 +6,6 @@ export type InvoiceClient = {
   status: InvoiceStatus
   billingCycle: 'monthly' | 'annually'
   subtotal: number | string
-  pajak: number | string
   total: number | string
   catatan?: string | null
   tanggalInvoice: Date | string

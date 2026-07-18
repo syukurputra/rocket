@@ -118,8 +118,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       : Number(paket.hargaBulanan)
 
     const subtotal = harga
-    const pajak = Math.round(subtotal * 0.11) // PPN 11%
-    const total = subtotal + pajak
+    const total = subtotal // tanpa pajak
 
     // Due date: match billing cycle
     const tanggalJatuhTempo = new Date()
@@ -140,7 +139,6 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         status: 'PENDING',
         billingCycle,
         subtotal,
-        pajak,
         total,
         catatan: catatan || null,
         tanggalJatuhTempo,
@@ -223,7 +221,6 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         paketName: paket.nama,
         billingCycle,
         subtotal,
-        pajak,
         total,
         tanggalInvoice: invoice.tanggalInvoice.toISOString(),
         tanggalJatuhTempo: tanggalJatuhTempo.toISOString(),

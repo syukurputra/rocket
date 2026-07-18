@@ -51,12 +51,8 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
     return billingCycle === 'annually' ? total / 12 : total
   }
 
-  const getTax = (): number => {
-    return Math.round(getPrice() * 0.11) // 11% PPN
-  }
-
   const getTotal = (): number => {
-    return getPrice() + getTax()
+    return getPrice()
   }
 
   const today = new Date()
@@ -269,12 +265,6 @@ const CheckoutCard = ({ paket, loading, billingCycle, company }: CheckoutCardPro
                   <Typography color='text.secondary'>Diskon:</Typography>
                   <Typography className='font-medium' color='text.primary'>
                     {formatRupiah(0)}
-                  </Typography>
-                </div>
-                <div className='flex items-center justify-between'>
-                  <Typography color='text.secondary'>PPN (11%):</Typography>
-                  <Typography className='font-medium' color='text.primary'>
-                    {formatRupiah(getTax())}
                   </Typography>
                 </div>
                 <Divider className='mlb-2' />

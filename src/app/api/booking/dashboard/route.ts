@@ -69,7 +69,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     // Cek konflik tanggal
     const konflik = await prisma.tagihan.findFirst({
       where: {
-        ruanganId,
+        itemAsetId: ruanganId,
         status: 'LUNAS',
         AND: [
           { mulaiSewa: { lte: selesaiSewaDate } },
@@ -121,7 +121,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         nominal: Number(total),
         penyewaId: penyewa.id,
         asetId: ruangan.asetId,
-        ruanganId,
+        itemAsetId: ruanganId,
         companyId: user.companyId,
         createdById: user.id,
         updatedById: user.id

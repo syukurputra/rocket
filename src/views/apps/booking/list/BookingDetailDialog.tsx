@@ -22,6 +22,7 @@ import { downloadPdfFromApi } from '@/src/utils/downloadPdf'
 
 type TagihanBooking = {
   id: string
+  nomorTagihan?: string | null
   keterangan: string
   nominal: number
   adminBooking?: number | null
@@ -193,16 +194,34 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                     </div>
                   </Box>
 
-                  {/* Pemesan */}
-                  <div className='flex flex-col gap-2 mb-4'>
-                    <Typography variant='body2' color='text.secondary' fontWeight={600}>PEMESAN</Typography>
-                    <Typography fontWeight={500}>{tagihan.penyewa?.nama || '-'}</Typography>
-                    {tagihan.penyewa?.nomorTelepon && (
-                      <Typography variant='body2' color='text.secondary'>{tagihan.penyewa.nomorTelepon}</Typography>
-                    )}
-                    {tagihan.penyewa?.email && (
-                      <Typography variant='body2' color='text.secondary'>{tagihan.penyewa.email}</Typography>
-                    )}
+                  {/* Informasi Booking */}
+                  <div className='flex flex-col gap-2 mb-4 px-4'>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>ID Transaksi</Typography>
+                      <Typography variant='body2' fontWeight={500}>{tagihan.id}</Typography>
+                    </div>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>ID Tagihan</Typography>
+                      <Typography variant='body2' fontWeight={500}>{tagihan.nomorTagihan || '-'}</Typography>
+                    </div>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>Nama</Typography>
+                      <Typography variant='body2' fontWeight={500}>{tagihan.penyewa?.nama || '-'}</Typography>
+                    </div>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>Email</Typography>
+                      <Typography variant='body2' fontWeight={500}>{tagihan.penyewa?.email || '-'}</Typography>
+                    </div>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>Nomor Telepon</Typography>
+                      <Typography variant='body2' fontWeight={500}>{tagihan.penyewa?.nomorTelepon || '-'}</Typography>
+                    </div>
+                    <div className='flex justify-between gap-4'>
+                      <Typography variant='body2' color='text.secondary'>Periode Booking</Typography>
+                      <Typography variant='body2' fontWeight={500}>
+                        {formatDate(tagihan.mulaiSewa)} - {formatDate(tagihan.selesaiSewa)}
+                      </Typography>
+                    </div>
                   </div>
 
                   <Divider sx={{ my: 3 }} />
@@ -241,10 +260,10 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         </tr>
                         <tr style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
                           <td style={{ padding: '12px 16px' }}>
-                            <Typography variant='h6' fontWeight={600}>Total</Typography>
+                            <Typography fontWeight={600}>Total</Typography>
                           </td>
                           <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                            <Typography variant='h5' color='primary.main' fontWeight={700}>
+                            <Typography fontWeight={600} color='primary.main'>
                               {formatCurrency(Number(tagihan.nominal))}
                             </Typography>
                           </td>
@@ -290,7 +309,7 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         if (downloading) return
                         try {
                           setDownloading(true)
-                          await downloadPdfFromApi(`/api/tagihan/${tagihan.id}/pdf`, `bukti-booking-${tagihan.id.slice(-8).toUpperCase()}.pdf`)
+                          await downloadPdfFromApi(`/api/tagihan/${tagihan.id}/pdf`, `booking-${tagihan.nomorTagihan || tagihan.id.slice(-8).toUpperCase()}.pdf`)
                         } catch {
                           showSnack('Gagal mengunduh bukti pembayaran', 'error')
                         } finally {

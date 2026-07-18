@@ -50,7 +50,6 @@ type LastInvoice = {
   nomorInvoice: string
   billingCycle: string
   subtotal: number
-  pajak: number
   total: number
   tanggalBayar: string | null
   tanggalInvoice: string
@@ -301,7 +300,30 @@ const CompanySettings = () => {
         {/* Package Information Card - CurrentPlan style */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card>
-            <CardHeader title='Informasi Paket' />
+            <CardHeader
+              title='Informasi Paket'
+              action={
+                <div className='flex flex-wrap gap-2'>
+                  <Button
+                    variant='contained'
+                    size='small'
+                    startIcon={<i className='tabler-arrow-up-circle' />}
+                    onClick={() => router.push('/paket')}
+                  >
+                    Upgrade Paket
+                  </Button>
+                  <Button
+                    variant='tonal'
+                    color='secondary'
+                    size='small'
+                    startIcon={<i className='tabler-history' />}
+                    onClick={() => router.push('/setting/invoice')}
+                  >
+                    History Pembayaran
+                  </Button>
+                </div>
+              }
+            />
             <CardContent>
               {company.paket || company.lastInvoice ? (
                 <Grid container spacing={6}>
@@ -362,12 +384,6 @@ const CompanySettings = () => {
                     )}
                   </Grid>
 
-                  {/* Bottom: Actions */}
-                  <Grid size={{ xs: 12 }} className='flex gap-4 flex-wrap'>
-                    <Button variant='contained' color='primary' href='/paket'>
-                      Upgrade Paket
-                    </Button>
-                  </Grid>
                 </Grid>
               ) : (
                 <Alert severity='info'>Tidak ada paket aktif</Alert>

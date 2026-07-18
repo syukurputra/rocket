@@ -51,7 +51,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
                 <div className='flex items-start gap-2'>
                   <i className='tabler-mail text-white opacity-70 mbs-[2px]' />
                   <Typography color='white' variant='body2' className='opacity-[0.78]'>
-                    notif@bantusewa.com
+                    support@bantusewa.com
                   </Typography>
                 </div>
                 <div className='flex items-start gap-2'>

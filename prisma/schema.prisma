@@ -350,7 +350,6 @@ model Invoice {
   status          String      @default("PENDING") // PENDING | PAID | CANCELLED | EXPIRED
   billingCycle    String      @default("annually") // monthly | annually
   subtotal        Decimal     @db.Decimal(15, 2)
-  pajak           Decimal     @default(0) @db.Decimal(15, 2)
   total           Decimal     @db.Decimal(15, 2)
   catatan         String?     @db.Text
   tanggalInvoice  DateTime    @default(now())
@@ -503,14 +502,14 @@ model Tagihan {
   companyId   String
   penyewaId   String
   asetId      String?
-  ruanganId   String?
+  itemAsetId  String?
   tarikSaldoId String?
   company     Company     @relation(fields: [companyId], references: [id])
   createdBy   User        @relation("TagihanCreatedBy", fields: [createdById], references: [id])
   penyewa     Penyewa     @relation(fields: [penyewaId], references: [id])
   updatedBy   User        @relation("TagihanUpdatedBy", fields: [updatedById], references: [id])
   aset        Aset?       @relation(fields: [asetId], references: [id])
-  ruangan     Ruangan?    @relation(fields: [ruanganId], references: [id])
+  ruangan     Ruangan?    @relation(fields: [itemAsetId], references: [id])
   tarikSaldo  TarikSaldo? @relation(fields: [tarikSaldoId], references: [id])
   pendapatan  Pendapatan?
 
@@ -630,13 +629,14 @@ model MasterKelurahan {
 }
 
 model BannerPromo {
-  id           String   @id @default(cuid())
-  judul        String
-  deskripsi    String?  @db.Text
-  imageUrl     String?
-  periodeAwal  DateTime
-  periodeAkhir DateTime
-  status       Boolean  @default(true)
+  id               String    @id @default(cuid())
+  judul            String
+  deskripsi        String?   @db.Text
+  imageUrl         String?
+  tampilkanPeriode Boolean   @default(true)
+  periodeAwal      DateTime?
+  periodeAkhir     DateTime?
+  status           Boolean   @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

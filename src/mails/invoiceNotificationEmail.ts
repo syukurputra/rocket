@@ -24,7 +24,6 @@ interface InvoiceEmailData {
   paketName: string
   billingCycle: string
   subtotal: number
-  pajak: number
   total: number
   tanggalInvoice: string | Date
   tanggalJatuhTempo: string | Date
@@ -148,14 +147,6 @@ export async function sendInvoiceNotificationEmail(
                           <span style="background-color: ${config.statusBadgeBg}; color: ${config.statusBadgeColor}; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">${config.statusLabel}</span>
                         </td>
                       </tr>
-                      <tr style="border-top: 1px solid #e5e7eb;">
-                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Subtotal:</td>
-                        <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">${formatCurrency(data.subtotal)}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">PPN (11%):</td>
-                        <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">${formatCurrency(data.pajak)}</td>
-                      </tr>
                       <tr style="border-top: 2px solid #e5e7eb;">
                         <td style="padding: 16px 0 8px; color: #1f2937; font-size: 16px; font-weight: 600;">Total:</td>
                         <td style="padding: 16px 0 8px; color: #6366f1; font-size: 20px; font-weight: 700; text-align: right;">${formatCurrency(data.total)}</td>
@@ -218,8 +209,6 @@ Tanggal: ${formatDate(data.tanggalInvoice)}
 Jatuh Tempo: ${formatDate(data.tanggalJatuhTempo)}
 Status: ${config.statusLabel}
 
-Subtotal: ${formatCurrency(data.subtotal)}
-PPN (11%): ${formatCurrency(data.pajak)}
 Total: ${formatCurrency(data.total)}
 ---
 Email ini dikirim secara otomatis.

@@ -130,9 +130,6 @@ const InvoiceDetailDialog = ({ open, invoiceId, onClose, onUpdated }: Props) => 
               </div>
               <div>
                 <Typography variant='h5'>Detail Invoice</Typography>
-                <Typography variant='caption' color='text.secondary'>
-                  {invoice?.nomorInvoice || '—'}
-                </Typography>
               </div>
             </div>
             <IconButton onClick={onClose}>
@@ -162,32 +159,30 @@ const InvoiceDetailDialog = ({ open, invoiceId, onClose, onUpdated }: Props) => 
                           <Typography variant='body2' color='text.secondary'>Platform Manajemen Sewa</Typography>
                         </div>
                         <div className='flex flex-col items-end gap-1'>
-                          <div className='flex items-center gap-2'>
-                            <Typography variant='body2' fontWeight={600}>{invoice.nomorInvoice}</Typography>
-                            <Chip label={statusLabels[status] ?? status} color={statusColors[status] ?? 'default'} size='small' variant='tonal' />
-                          </div>
-                          <Typography variant='caption' color='text.secondary'>
-                            {dayjs(invoice.tanggalInvoice).format('DD MMMM YYYY')}
+                          <Chip label={statusLabels[status] ?? status} color={statusColors[status] ?? 'default'} size='small' variant='tonal' />
+                          <Typography variant='caption' color={invoice.tanggalBayar ? 'success.main' : 'text.secondary'}>
+                            {invoice.tanggalBayar ? dayjs(invoice.tanggalBayar).format('DD MMMM YYYY') : '-'}
                           </Typography>
-                          {invoice.tanggalBayar && (
-                            <Typography variant='caption' color='success.main'>
-                              Dibayar: {dayjs(invoice.tanggalBayar).format('DD MMMM YYYY')}
-                            </Typography>
-                          )}
                         </div>
                       </div>
                     </Box>
 
-                    {/* Ditagihkan kepada */}
-                    <div className='flex flex-col gap-1 mb-4'>
-                      <Typography variant='body2' color='text.secondary' fontWeight={600}>DITAGIHKAN KEPADA</Typography>
-                      <Typography fontWeight={500}>{(invoice as any).company?.nama || '-'}</Typography>
-                      {(invoice as any).company?.alamat && (
-                        <Typography variant='body2' color='text.secondary'>{(invoice as any).company.alamat}</Typography>
-                      )}
-                      {(invoice as any).company?.email && (
-                        <Typography variant='body2' color='text.secondary'>{(invoice as any).company.email}</Typography>
-                      )}
+                    {/* Informasi Invoice */}
+                    <div className='flex flex-col gap-2 mb-4 px-4'>
+                      <div className='flex justify-between gap-4'>
+                        <Typography variant='body2' color='text.secondary'>ID Transaksi</Typography>
+                        <Typography variant='body2' fontWeight={500}>{invoice.id}</Typography>
+                      </div>
+                      <div className='flex justify-between gap-4'>
+                        <Typography variant='body2' color='text.secondary'>No. Invoice</Typography>
+                        <Typography variant='body2' fontWeight={500}>{invoice.nomorInvoice}</Typography>
+                      </div>
+                      <div className='flex justify-between gap-4'>
+                        <Typography variant='body2' color='text.secondary'>Periode Paket</Typography>
+                        <Typography variant='body2' fontWeight={500}>
+                          {dayjs(invoice.tanggalInvoice).format('DD MMM YYYY')} - {dayjs(invoice.tanggalJatuhTempo).format('DD MMM YYYY')}
+                        </Typography>
+                      </div>
                     </div>
 
                     <Divider sx={{ my: 3 }} />
@@ -217,30 +212,21 @@ const InvoiceDetailDialog = ({ open, invoiceId, onClose, onUpdated }: Props) => 
                               <Chip label={invoice.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'} color='primary' size='small' variant='tonal' />
                             </td>
                             <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                              <Typography fontWeight={600} color='primary.main'>{formatRupiah(invoice.subtotal)}</Typography>
+                              <Typography fontWeight={600} color='primary.main'>{formatRupiah(invoice.total)}</Typography>
                             </td>
                           </tr>
                         </tbody>
+                        <tfoot>
+                          <tr style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                            <td style={{ padding: '12px 16px' }} colSpan={2}>
+                              <Typography fontWeight={600}>Total</Typography>
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                              <Typography fontWeight={600} color='primary.main'>{formatRupiah(invoice.total)}</Typography>
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
-                    </div>
-
-                    {/* Summary */}
-                    <div className='flex justify-end'>
-                      <div style={{ minWidth: 220 }}>
-                        <div className='flex justify-between'>
-                          <Typography color='text.secondary'>Subtotal</Typography>
-                          <Typography>{formatRupiah(invoice.subtotal)}</Typography>
-                        </div>
-                        <div className='flex justify-between'>
-                          <Typography color='text.secondary'>PPN (11%)</Typography>
-                          <Typography>{formatRupiah(invoice.pajak)}</Typography>
-                        </div>
-                        <Divider sx={{ my: 1 }} />
-                        <div className='flex justify-between items-center'>
-                          <Typography variant='h6' fontWeight={600}>Total</Typography>
-                          <Typography variant='h5' color='primary.main' fontWeight={700}>{formatRupiah(invoice.total)}</Typography>
-                        </div>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

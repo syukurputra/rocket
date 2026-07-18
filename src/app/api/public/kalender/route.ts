@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const tagihanList = await prisma.tagihan.findMany({
       where: {
-        ruanganId,
+        itemAsetId: ruanganId,
         status: 'LUNAS',
         selesaiSewa: { gte: today },
         mulaiSewa: { lte: maxDate }

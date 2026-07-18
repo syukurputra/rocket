@@ -34,7 +34,7 @@ const FaqFooter = () => {
               <i className='tabler-mail text-[26px]' />
             </CustomAvatar>
             <div className='flex items-center flex-col gap-1'>
-              <Typography variant='h5'>notif@bantusewa.com</Typography>
+              <Typography variant='h5'>support@bantusewa.com</Typography>
               <Typography>Cara tercepat mendapatkan jawaban!</Typography>
             </div>
           </div>

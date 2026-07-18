@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Cek konflik tanggal pada ruangan yang sama dengan status LUNAS
     const konflik = await prisma.tagihan.findFirst({
       where: {
-        ruanganId,
+        itemAsetId: ruanganId,
         status: 'LUNAS',
         AND: [
           { mulaiSewa: { lte: selesaiSewaDate } },
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
         nominal: Number(total),
         penyewaId: penyewa.id,
         asetId: ruangan.asetId,
-        ruanganId,
+        itemAsetId: ruanganId,
         companyId: ruangan.companyId,
         createdById: companyUser.id,
         updatedById: companyUser.id

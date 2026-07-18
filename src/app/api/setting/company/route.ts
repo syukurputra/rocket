@@ -28,7 +28,6 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
           nomorInvoice: true,
           billingCycle: true,
           subtotal: true,
-          pajak: true,
           total: true,
           tanggalBayar: true,
           tanggalInvoice: true,

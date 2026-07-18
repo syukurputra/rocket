@@ -112,7 +112,7 @@ const ContactUs = () => {
                   <Typography variant='h6' color='text.primary' className='font-semibold'>
                     Email
                   </Typography>
-                  <Typography color='text.secondary'>notif@bantusewa.com</Typography>
+                  <Typography color='text.secondary'>support@bantusewa.com</Typography>
                 </div>
               </CardContent>
             </Card>

@@ -25,8 +25,9 @@ type BannerPromo = {
   judul: string
   deskripsi?: string | null
   imageUrl?: string | null
-  periodeAwal: string
-  periodeAkhir: string
+  tampilkanPeriode?: boolean
+  periodeAwal?: string | null
+  periodeAkhir?: string | null
 }
 
 const formatDate = (iso: string) => {
@@ -150,12 +151,14 @@ const PromoSection = () => {
                             {promo.deskripsi}
                           </Typography>
                         )}
-                        <div className='flex items-center gap-1 mt-auto'>
-                          <i className='tabler-calendar text-sm text-textSecondary' />
-                          <Typography variant='caption' color='text.secondary'>
-                            {formatDate(promo.periodeAwal)} – {formatDate(promo.periodeAkhir)}
-                          </Typography>
-                        </div>
+                        {promo.tampilkanPeriode && promo.periodeAwal && promo.periodeAkhir && (
+                          <div className='flex items-center gap-1 mt-auto'>
+                            <i className='tabler-calendar text-sm text-textSecondary' />
+                            <Typography variant='caption' color='text.secondary'>
+                              {formatDate(promo.periodeAwal)} – {formatDate(promo.periodeAkhir)}
+                            </Typography>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>

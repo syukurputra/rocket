@@ -10,12 +10,14 @@ export async function GET(request: NextRequest) {
     const now = new Date()
 
     const rows = await prisma.$queryRaw<any[]>`
-      SELECT id, judul, deskripsi, "imageUrl", "periodeAwal", "periodeAkhir", status
+      SELECT id, judul, deskripsi, "imageUrl", "tampilkanPeriode", "periodeAwal", "periodeAkhir", status
       FROM banner_promo
       WHERE status = true
-        AND "periodeAwal" <= ${now}
-        AND "periodeAkhir" >= ${now}
-      ORDER BY "periodeAwal" ASC
+        AND (
+          "tampilkanPeriode" = false
+          OR ("periodeAwal" <= ${now} AND "periodeAkhir" >= ${now})
+        )
+      ORDER BY "createdAt" DESC
     `
 
     return NextResponse.json({ data: rows })

@@ -298,7 +298,6 @@ export async function POST(request: NextRequest) {
               paketName: invoice.paket?.nama || '-',
               billingCycle: invoice.billingCycle,
               subtotal: Number(invoice.subtotal),
-              pajak: Number(invoice.pajak),
               total: Number(invoice.total),
               tanggalInvoice: invoice.tanggalInvoice.toISOString(),
               tanggalJatuhTempo: invoice.tanggalJatuhTempo.toISOString(),
