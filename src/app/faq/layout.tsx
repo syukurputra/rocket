@@ -14,8 +14,10 @@ import { IntersectionProvider } from '@/src/contexts/intersectionContext'
 import { getSystemMode } from '@core/utils/serverHelpers'
 
 export const metadata = {
-  title: 'FAQ - Bantu Sewa',
-  description: 'Pertanyaan yang sering diajukan seputar Bantu Sewa'
+  title: 'FAQ — Pertanyaan Umum Seputar Aplikasi Bantu Sewa',
+  description:
+    'Jawaban pertanyaan umum tentang Bantu Sewa: cara memulai, mengelola aset & penyewa, tagihan otomatis, pembayaran online, keamanan data, dan refund untuk bisnis sewa Anda.',
+  alternates: { canonical: '/faq' }
 }
 
 const Layout = async ({ children }: ChildrenType) => {

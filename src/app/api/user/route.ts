@@ -3,14 +3,17 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { getParameter } from '@/src/libs/getParameter'
 
 // GET /api/user - List users in company
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
-    // Check if user is super admin by role name
-    const isSuperAdmin = user.role?.nama === 'Super Admin'
+    // Hanya platform super (company = COMPANY_SUPER) yang melihat semua user;
+    // selainnya hanya melihat user dalam company-nya sendiri
+    const superCompanyId = await getParameter('COMPANY_SUPER')
+    const isPlatformSuper = !!superCompanyId && user.companyId === superCompanyId
 
-    const where = isSuperAdmin ? {} : { companyId: user.companyId! }
+    const where = isPlatformSuper ? {} : { companyId: user.companyId! }
 
     const users = await prisma.user.findMany({
       where,

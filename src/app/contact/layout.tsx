@@ -7,8 +7,10 @@ import { IntersectionProvider } from '@/src/contexts/intersectionContext'
 import { getSystemMode } from '@core/utils/serverHelpers'
 
 export const metadata = {
-  title: 'Hubungi Kami - Bantu Sewa',
-  description: 'Hubungi tim Bantu Sewa melalui WhatsApp, email, atau kunjungi kantor kami.'
+  title: 'Hubungi Kami — Bantuan & Kontak Bantu Sewa',
+  description:
+    'Butuh bantuan soal aplikasi manajemen sewa Bantu Sewa? Hubungi tim kami via WhatsApp +62 856-4334-4041, email support@bantusewa.com, atau kunjungi kantor kami di Tangerang.',
+  alternates: { canonical: '/contact' }
 }
 
 const Layout = async ({ children }: ChildrenType) => {

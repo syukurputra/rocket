@@ -88,11 +88,11 @@ const FrontMenu = (props: Props) => {
     <Wrapper isBelowLgScreen={isBelowLgScreen} isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen}>
       {!isPublishPage && (
         <>
-          <Typography color='text.primary' component={Link} href='/landing#features'
+          <Typography color='text.primary' component={Link} href='/#features'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
             Fitur Unggulan
           </Typography>
-          <Typography color='text.primary' component={Link} href='/landing#pricing-plans'
+          <Typography color='text.primary' component={Link} href='/#pricing-plans'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
             Paket Harga
           </Typography>

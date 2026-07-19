@@ -35,6 +35,17 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
               username: true
             }
           },
+          // Tagihan LUNAS terakhir (untuk item aset & periode booking)
+          tagihan: {
+            where: { status: 'LUNAS' },
+            orderBy: { updatedAt: 'desc' },
+            take: 1,
+            select: {
+              mulaiSewa: true,
+              selesaiSewa: true,
+              ruangan: { select: { nama: true } }
+            }
+          }
         },
         skip: (page - 1) * limit,
         take: limit,

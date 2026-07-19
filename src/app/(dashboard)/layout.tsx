@@ -20,6 +20,11 @@ import ScrollToTop from '@core/components/scroll-to-top'
 // Util Imports
 import { getMode, getSystemMode } from '@core/utils/serverHelpers'
 
+// Halaman aplikasi (butuh login) — jangan diindeks mesin pencari
+export const metadata = {
+  robots: { index: false, follow: false }
+}
+
 const Layout = async (props: ChildrenType) => {
   const { children } = props
 

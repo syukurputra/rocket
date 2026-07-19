@@ -15,8 +15,9 @@ const nextConfig: NextConfig = {
   redirects: async () => {
     return [
       {
-        source: '/',
-        destination: '/landing',
+        // Landing kini di root; arahkan URL lama /landing ke /
+        source: '/landing',
+        destination: '/',
         permanent: true,
         locale: false
       }

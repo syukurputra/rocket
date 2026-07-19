@@ -7,6 +7,11 @@ import BlankLayout from '@layouts/BlankLayout'
 // Util Imports
 import { getSystemMode } from '@core/utils/serverHelpers'
 
+// Halaman auth (login/register/reset) — jangan diindeks
+export const metadata = {
+  robots: { index: false, follow: false }
+}
+
 type Props = ChildrenType
 
 const Layout = async (props: Props) => {

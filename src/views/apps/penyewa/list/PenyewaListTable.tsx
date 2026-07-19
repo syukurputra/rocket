@@ -208,8 +208,47 @@ const PenyewaListTable = ({ initialData = [] }: PenyewaListTableProps) => {
         cell: ({ row }) => <Typography>{row.original.nomorTelepon || '-'}</Typography>
       }),
       columnHelper.accessor('nomorKtp', {
-        header: 'Nomor KTP',
-        cell: ({ row }) => <Typography>{row.original.nomorKtp || '-'}</Typography>
+        id: 'itemAset',
+        header: 'Item Aset Terakhir',
+        cell: ({ row }) => {
+          const last = (row.original as any).tagihan?.[0]
+
+          return <Typography>{last?.ruangan?.nama || '-'}</Typography>
+        }
+      }),
+      columnHelper.accessor('nomorKtp', {
+        id: 'periodeBooking',
+        header: 'Periode Booking',
+        cell: ({ row }) => {
+          const last = (row.original as any).tagihan?.[0]
+
+          if (!last?.mulaiSewa || !last?.selesaiSewa) return <Typography>-</Typography>
+
+          const fmt = (d: string) =>
+            new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+
+          return <Typography>{fmt(last.mulaiSewa)} – {fmt(last.selesaiSewa)}</Typography>
+        }
+      }),
+      columnHelper.accessor('nomorKtp', {
+        id: 'statusPeriode',
+        header: 'Status Periode',
+        cell: ({ row }) => {
+          const last = (row.original as any).tagihan?.[0]
+
+          if (!last?.selesaiSewa) return <Typography>-</Typography>
+
+          const habis = new Date(last.selesaiSewa) < new Date()
+
+          return (
+            <Chip
+              label={habis ? 'Sudah Habis' : 'Masa Sewa'}
+              color={habis ? 'error' : 'success'}
+              size='small'
+              variant='tonal'
+            />
+          )
+        }
       }),
       columnHelper.accessor('action', {
         header: 'Action',

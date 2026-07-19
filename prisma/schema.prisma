@@ -661,6 +661,24 @@ model SchedulerLog {
   @@map("scheduler_log")
 }
 
+model Ulasan {
+  id         String   @id @default(cuid())
+  companyId  String
+  asetId     String
+  itemAsetId String?
+  penyewaId  String?
+  tagihanId  String?  @unique
+  nama       String
+  rating     Int
+  komentar   String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([asetId])
+  @@index([companyId])
+  @@map("ulasan")
+}
+
 model Conversation {
   id            String    @id @default(cuid())
   userId        String

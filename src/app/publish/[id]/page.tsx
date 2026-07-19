@@ -10,6 +10,7 @@ import classnames from 'classnames'
 import GalleryAset from '@/src/views/front-pages/publish/GalleryAset'
 import InformationAset from '@/src/views/front-pages/publish/InformationAset'
 import InformationItemAset from '@/src/views/front-pages/publish/InformationItemAset'
+import UlasanPanel from '@/src/views/front-pages/publish/UlasanPanel'
 
 // Lib Imports
 import prisma from '@/src/libs/prisma'
@@ -75,11 +76,24 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
         <Grid size={{ xs: 12 }}>
           <InformationAset data={sanitizedData as any} />
         </Grid>
-        {sanitizedData.ruangan.map(ruangan => (
-          <Grid key={ruangan.id} size={{ xs: 12 }}>
-            <InformationItemAset data={ruangan as any} asetNama={sanitizedData.nama} adminBooking={adminBooking} />
+        <Grid size={{ xs: 12 }}>
+          <Grid container spacing={6}>
+            {/* Kiri: daftar item aset */}
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Grid container spacing={6}>
+                {sanitizedData.ruangan.map(ruangan => (
+                  <Grid key={ruangan.id} size={{ xs: 12 }}>
+                    <InformationItemAset data={ruangan as any} asetNama={sanitizedData.nama} adminBooking={adminBooking} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Grid>
+            {/* Kanan: panel ulasan (posisi normal, tidak sticky) */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <UlasanPanel asetId={resolvedId} />
+            </Grid>
           </Grid>
-        ))}
+        </Grid>
       </Grid>
     </div>
   )

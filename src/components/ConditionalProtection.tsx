@@ -33,9 +33,9 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
 
       const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
       const isAuth = authRoutes.some(route => pathname.startsWith(route))
-      const isPublic = publicRoutes.some(route => pathname.startsWith(route))
+      const isPublic = pathname === '/' || publicRoutes.some(route => pathname.startsWith(route))
 
-      // Allow public routes immediately
+      // Allow public routes immediately (termasuk root / = landing)
       if (isPublic) {
         setIsAllowed(true)
         setIsChecking(false)
@@ -44,13 +44,6 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
       }
 
       const token = localStorage.getItem('accessToken')
-
-      // Handle root path - always redirect to landing
-      if (pathname === '/') {
-        window.location.href = '/landing'
-
-        return
-      }
 
       // Handle protected routes
       if (isProtected) {

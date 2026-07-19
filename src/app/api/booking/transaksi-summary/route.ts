@@ -5,7 +5,7 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 // GET /api/booking/transaksi-summary
-// Total transaksi = jumlah nominal tagihan milik company ini dengan statusRekon = 'SESUAI'
+// Total transaksi = jumlah nominal tagihan pada item aset milik company login dengan status LUNAS
 async function handleGet(_request: NextRequest, { user }: AuthContext) {
   try {
     if (!user.companyId) {
@@ -13,7 +13,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
     }
 
     const agg = await prisma.tagihan.aggregate({
-      where: { companyId: user.companyId, statusRekon: 'SESUAI' },
+      where: { status: 'LUNAS', ruangan: { companyId: user.companyId } },
       _sum: { nominal: true },
       _count: true
     })

@@ -206,7 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/home'
     ]
 
-    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+    const isPublicRoute = pathname === '/' || publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth initialization for public routes
     if (isPublicRoute) {
@@ -244,7 +244,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       '/home'
     ]
 
-    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+    const isPublicRoute = pathname === '/' || publicRoutes.some(route => pathname.startsWith(route))
 
     // Skip auth check for public routes
     if (isPublicRoute) {

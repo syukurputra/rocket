@@ -29,7 +29,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
           <Grid container spacing={8}>
             <Grid size={{ xs: 12, md: 4 }}>
               <div className='flex flex-col gap-4'>
-                <Link href='/landing'>
+                <Link href='/'>
                   <Logo color='var(--mui-palette-common-white)' />
                 </Link>
                 <Typography color='white' variant='body2' className='opacity-[0.78] max-is-[300px]'>

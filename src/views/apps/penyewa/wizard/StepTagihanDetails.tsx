@@ -179,7 +179,12 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
       const res = await apiFetchClient<{ data: TagihanClient[] }>(`/api/tagihan?penyewaId=${penyewaId}`)
 
       if (res.data) {
-        setTagihan(res.data)
+        // Hanya tampilkan yang LUNAS, urutkan selesai sewa terbaru paling atas (desc)
+        const lunas = res.data
+          .filter(t => t.status === 'LUNAS')
+          .sort((a, b) => new Date(b.selesaiSewa).getTime() - new Date(a.selesaiSewa).getTime())
+
+        setTagihan(lunas)
       }
     } catch (error) {
       console.error('Error fetching tagihan:', error)

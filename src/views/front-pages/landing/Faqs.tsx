@@ -115,7 +115,7 @@ const Faqs = () => {
                 <span className='relative z-[1] font-extrabold'>
                   <img
                     src='/images/front-pages/landing-page/bg-shape.png'
-                    alt='bg-shape'
+                    alt='' aria-hidden='true'
                     className='absolute block-end-0 z-[1] bs-[40%] is-[132%] -inline-start-[8%] block-start-[17px]'
                   />{' '}
                   Diajukan

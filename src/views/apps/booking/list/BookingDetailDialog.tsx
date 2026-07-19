@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 import DialogTitle from '@mui/material/DialogTitle'
+import TextField from '@mui/material/TextField'
 import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
@@ -62,10 +64,65 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [checking, setChecking] = useState(false)
+
+  // Ulasan
+  const [reviewOpen, setReviewOpen] = useState(false)
+  const [existingReview, setExistingReview] = useState<{ rating: number; komentar: string | null } | null>(null)
+  const [rating, setRating] = useState(5)
+  const [komentar, setKomentar] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   const isLunas = tagihan?.status === 'LUNAS'
   const isCancelled = tagihan?.status === 'DIBATALKAN'
+
+  // Cek ulasan yang sudah ada untuk booking ini
+  useEffect(() => {
+    if (!open || !tagihan?.id || !isLunas) {
+      setExistingReview(null)
+
+      return
+    }
+
+    apiFetchClient<{ data: { rating: number; komentar: string | null } | null }>(
+      `/api/ulasan?tagihanId=${tagihan.id}`,
+      undefined,
+      { redirectOn401: false }
+    )
+      .then(res => {
+        if (res.data) {
+          setExistingReview(res.data)
+          setRating(res.data.rating)
+          setKomentar(res.data.komentar || '')
+        } else {
+          setExistingReview(null)
+          setRating(5)
+          setKomentar('')
+        }
+      })
+      .catch(() => setExistingReview(null))
+  }, [open, tagihan?.id, isLunas])
+
+  const handleSubmitReview = async () => {
+    if (!tagihan?.id) return
+
+    setSubmittingReview(true)
+
+    try {
+      await apiFetchClient(`/api/ulasan`, {
+        method: 'POST',
+        body: JSON.stringify({ tagihanId: tagihan.id, rating, komentar })
+      })
+      setExistingReview({ rating, komentar })
+      setReviewOpen(false)
+      showSnack('Terima kasih atas ulasan Anda', 'success')
+    } catch (err: any) {
+      showSnack(err?.message || 'Gagal mengirim ulasan', 'error')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   const handleBayar = async () => {
     try {
@@ -325,6 +382,17 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
                         {downloading ? 'Menyiapkan...' : 'Download Bukti'}
                       </Typography>
                     </Box>
+
+                    <Box
+                      className='p-2 rounded flex items-center gap-3 cursor-pointer'
+                      sx={{ bgcolor: 'warning.main' }}
+                      onClick={() => setReviewOpen(true)}
+                    >
+                      <i className='tabler-star text-white text-2xl' />
+                      <Typography color='white' fontWeight={600}>
+                        {existingReview ? 'Ubah Ulasan' : 'Beri Ulasan'}
+                      </Typography>
+                    </Box>
                   </>
                 )}
 
@@ -425,6 +493,43 @@ const BookingDetailDialog = ({ open, onClose, tagihan, onPaid }: Props) => {
             </Grid>
           </Grid>
         </DialogContent>
+      </Dialog>
+
+      {/* Dialog Beri Ulasan */}
+      <Dialog open={reviewOpen} onClose={() => !submittingReview && setReviewOpen(false)} maxWidth='xs' fullWidth>
+        <DialogTitle>{existingReview ? 'Ubah Ulasan' : 'Beri Ulasan'}</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' color='text.secondary' className='mbe-3'>
+            Bagaimana pengalaman booking Anda?
+          </Typography>
+          <div className='flex items-center gap-1 mbe-4'>
+            {[1, 2, 3, 4, 5].map(i => (
+              <IconButton key={i} size='small' onClick={() => setRating(i)} sx={{ p: 0.5 }}>
+                <i
+                  className={i <= rating ? 'tabler-star-filled' : 'tabler-star'}
+                  style={{ fontSize: 30, color: i <= rating ? '#ffb400' : '#d1d5db' }}
+                />
+              </IconButton>
+            ))}
+          </div>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label='Komentar (opsional)'
+            placeholder='Ceritakan pengalaman Anda...'
+            value={komentar}
+            onChange={e => setKomentar(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button color='secondary' onClick={() => setReviewOpen(false)} disabled={submittingReview}>
+            Batal
+          </Button>
+          <Button variant='contained' onClick={handleSubmitReview} disabled={submittingReview}>
+            {submittingReview ? <CircularProgress size={20} /> : 'Kirim'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <AppSnackbar snack={snack} onClose={closeSnack} />

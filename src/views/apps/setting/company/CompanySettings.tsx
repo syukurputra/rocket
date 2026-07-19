@@ -82,11 +82,11 @@ const CompanySettings = () => {
   const [loading, setLoading] = useState(true)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [totalTransaksi, setTotalTransaksi] = useState(0)
+  const [jumlahTransaksi, setJumlahTransaksi] = useState(0)
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   const earningData: EarningItem[] = [
-    { title: 'Total Transaksi', stats: formatRupiah(totalTransaksi), progress: totalTransaksi > 0 ? 100 : 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-receipt' },
+    { title: 'Total Transaksi', stats: `${jumlahTransaksi} Transaksi`, progress: jumlahTransaksi > 0 ? 100 : 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-receipt' },
     { title: 'Saldo Belum Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-wallet' },
     { title: 'Saldo Sudah Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-cash-banknote' }
   ]
@@ -121,9 +121,9 @@ const CompanySettings = () => {
 
   const fetchTotalTransaksi = async () => {
     try {
-      const res = await apiFetchClient<{ data: { totalTransaksi: number } }>('/api/booking/transaksi-summary')
+      const res = await apiFetchClient<{ data: { jumlahTransaksi: number } }>('/api/booking/transaksi-summary')
 
-      setTotalTransaksi(res.data?.totalTransaksi ?? 0)
+      setJumlahTransaksi(res.data?.jumlahTransaksi ?? 0)
     } catch (error) {
       console.error('Failed to fetch transaksi summary:', error)
     }
@@ -424,13 +424,13 @@ const CompanySettings = () => {
               <div className='flex flex-col sm:flex-row items-center justify-between gap-8'>
                 <div className='flex flex-col gap-3 is-full sm:is-[unset]'>
                   <div className='flex items-center gap-2.5'>
-                    <Typography variant='h2'>{formatRupiah(totalTransaksi)}</Typography>
+                    <Typography variant='h2'>{jumlahTransaksi}</Typography>
                     <Chip size='small' variant='tonal' color='secondary' label='Total Transaksi' />
                   </div>
                   <Typography variant='body2'>
-                    {totalTransaksi > 0
-                      ? 'Total transaksi dengan status rekonsiliasi sesuai'
-                      : 'Data pendapatan akan tampil setelah ada transaksi'}
+                    {jumlahTransaksi > 0
+                      ? 'Jumlah transaksi lunas pada item aset Anda'
+                      : 'Data transaksi akan tampil setelah ada transaksi'}
                   </Typography>
                 </div>
                 <AppReactApexCharts type='bar' height={163} width='100%' series={earningChartSeries} options={earningChartOptions} />

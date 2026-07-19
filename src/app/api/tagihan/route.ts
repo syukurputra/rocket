@@ -21,6 +21,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     if (penyewaId) {
       whereClause.penyewaId = penyewaId
+
+      // Hanya tagihan yang terhubung ke item aset milik company user login
+      if (user.companyId) {
+        whereClause.ruangan = { companyId: user.companyId }
+      }
     } else {
       whereClause.createdById = user.id
     }
