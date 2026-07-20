@@ -45,7 +45,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
                 <div className='flex items-start gap-2'>
                   <i className='tabler-brand-whatsapp text-white opacity-70 mbs-[2px]' />
                   <Typography color='white' variant='body2' className='opacity-[0.78]'>
-                    +62 856-4334-4041
+                    +62 851-1054-4041
                   </Typography>
                 </div>
                 <div className='flex items-start gap-2'>

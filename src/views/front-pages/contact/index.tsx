@@ -28,7 +28,7 @@ const ContactView = ({ mode }: { mode: SystemMode }) => {
             color='primary'
             size='large'
             startIcon={<i className='tabler-brand-whatsapp' />}
-            href='https://wa.me/6285643344041'
+            href='https://wa.me/6285110544041'
             target='_blank'
             rel='noopener noreferrer'
             className='mbs-2'
@@ -45,7 +45,7 @@ const ContactView = ({ mode }: { mode: SystemMode }) => {
                 </CustomAvatar>
                 <div className='flex flex-col gap-1'>
                   <Typography variant='h6' color='text.primary' className='font-semibold'>WhatsApp</Typography>
-                  <Typography color='text.secondary'>+62 856-4334-4041</Typography>
+                  <Typography color='text.secondary'>+62 851-1054-4041</Typography>
                 </div>
               </CardContent>
             </Card>

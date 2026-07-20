@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
@@ -41,7 +43,6 @@ import CustomTextField from '@core/components/mui/TextField'
 import tableStyles from '@core/styles/table.module.css'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import BookingDetailDialog from './BookingDetailDialog'
 
 declare module '@tanstack/table-core' {
   interface FilterFns { fuzzy: FilterFn<unknown> }
@@ -88,6 +89,7 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
 const BookingList = () => {
+  const router = useRouter()
   const [data, setData] = useState<TagihanWithAction[]>([])
   const [filteredData, setFilteredData] = useState<TagihanWithAction[]>([])
   const [globalFilter, setGlobalFilter] = useState('')
@@ -102,8 +104,6 @@ const BookingList = () => {
   const [activeSearch, setActiveSearch] = useState('')
   const filterOpen = Boolean(filterAnchor)
 
-  const [selectedTagihan, setSelectedTagihan] = useState<TagihanBooking | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
 
   const { snack, showSnack, closeSnack } = useSnackbar()
 
@@ -221,10 +221,7 @@ const BookingList = () => {
         header: 'Aksi',
         cell: ({ row }) => (
           <Tooltip title='Detail & Bayar'>
-            <IconButton
-              size='small'
-              onClick={() => { setSelectedTagihan(row.original); setDetailOpen(true) }}
-            >
+            <IconButton size='small' onClick={() => router.push(`/booking/saya/${row.original.id}`)}>
               <i className='tabler-eye text-textSecondary' />
             </IconButton>
           </Tooltip>
@@ -436,13 +433,6 @@ const BookingList = () => {
 
         <AppSnackbar snack={snack} onClose={closeSnack} />
       </Card>
-
-      <BookingDetailDialog
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        tagihan={selectedTagihan}
-        onPaid={() => fetchData(currentPage, pageSize, activeSearch)}
-      />
     </>
   )
 }

@@ -31,7 +31,7 @@ const jsonLd = {
       email: 'support@bantusewa.com',
       contactPoint: {
         '@type': 'ContactPoint',
-        telephone: '+62-856-4334-4041',
+        telephone: '+62-851-1054-4041',
         contactType: 'customer support',
         areaServed: 'ID',
         availableLanguage: ['Indonesian']
@@ -94,7 +94,7 @@ const jsonLd = {
           name: 'Bagaimana cara menghubungi tim support Bantu Sewa?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Hubungi tim kami melalui WhatsApp +62 856-4334-4041 atau email support@bantusewa.com pada hari kerja pukul 08.00–17.00 WIB.'
+            text: 'Hubungi tim kami melalui WhatsApp +62 851-1054-4041 atau email support@bantusewa.com pada hari kerja pukul 08.00–17.00 WIB.'
           }
         }
       ]
