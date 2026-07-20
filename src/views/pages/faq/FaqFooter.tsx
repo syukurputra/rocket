@@ -23,7 +23,7 @@ const FaqFooter = () => {
               <i className='tabler-phone text-[26px]' />
             </CustomAvatar>
             <div className='flex items-center flex-col gap-1'>
-              <Typography variant='h5'>+62 851-1054-4041</Typography>
+              <Typography variant='h5'>+62 851-1054-4040</Typography>
               <Typography>WhatsApp — hari kerja 08.00–17.00 WIB</Typography>
             </div>
           </div>

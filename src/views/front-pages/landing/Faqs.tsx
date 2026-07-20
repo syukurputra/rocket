@@ -55,7 +55,7 @@ const FaqsData: FaqsDataTypes[] = [
     id: 'panel5',
     question: 'Bagaimana cara menghubungi tim support Bantu Sewa?',
     answer:
-      'Anda dapat menghubungi tim kami melalui WhatsApp di +62 851-1054-4041 atau email ke support@bantusewa.com. Tim kami siap membantu Anda pada hari kerja pukul 08.00–17.00 WIB.'
+      'Anda dapat menghubungi tim kami melalui WhatsApp di +62 851-1054-4040 atau email ke support@bantusewa.com. Tim kami siap membantu Anda pada hari kerja pukul 08.00–17.00 WIB.'
   },
   {
     id: 'panel6',
@@ -67,7 +67,7 @@ const FaqsData: FaqsDataTypes[] = [
     id: 'panel7',
     question: 'Bagaimana proses pengajuan refund?',
     answer:
-      'Untuk mengajukan refund, hubungi tim support kami melalui WhatsApp +62 851-1054-4041 atau email support@bantusewa.com dengan menyertakan: nomor invoice, bukti pembayaran, dan alasan pengajuan refund. Tim kami akan memproses permintaan dalam 3–5 hari kerja dan dana akan dikembalikan ke metode pembayaran asal dalam 7–14 hari kerja.'
+      'Untuk mengajukan refund, hubungi tim support kami melalui WhatsApp +62 851-1054-4040 atau email support@bantusewa.com dengan menyertakan: nomor invoice, bukti pembayaran, dan alasan pengajuan refund. Tim kami akan memproses permintaan dalam 3–5 hari kerja dan dana akan dikembalikan ke metode pembayaran asal dalam 7–14 hari kerja.'
   },
   {
     id: 'panel8',
