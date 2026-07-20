@@ -33,7 +33,7 @@ const Footer = ({ mode }: { mode: Mode }) => {
                   <Logo color='var(--mui-palette-common-white)' />
                 </Link>
                 <Typography color='white' variant='body2' className='opacity-[0.78] max-is-[300px]'>
-                  Platform manajemen sewa yang membantu pemilik properti mengelola aset, penyewa, dan pembayaran secara digital.
+                  Platform manajemen sewa yang membantu mengelola aset, penyewa, dan pembayaran secara digital.
                 </Typography>
               </div>
             </Grid>
@@ -44,13 +44,27 @@ const Footer = ({ mode }: { mode: Mode }) => {
               <div className='flex flex-col gap-3'>
                 <div className='flex items-start gap-2'>
                   <i className='tabler-brand-whatsapp text-white opacity-70 mbs-[2px]' />
-                  <Typography color='white' variant='body2' className='opacity-[0.78]'>
+                  <Typography
+                    component='a'
+                    href='https://wa.me/6285110544040'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    color='white'
+                    variant='body2'
+                    className='opacity-[0.78] hover:opacity-100'
+                  >
                     +62 851-1054-4040
                   </Typography>
                 </div>
                 <div className='flex items-start gap-2'>
                   <i className='tabler-mail text-white opacity-70 mbs-[2px]' />
-                  <Typography color='white' variant='body2' className='opacity-[0.78]'>
+                  <Typography
+                    component='a'
+                    href='mailto:support@bantusewa.com'
+                    color='white'
+                    variant='body2'
+                    className='opacity-[0.78] hover:opacity-100'
+                  >
                     support@bantusewa.com
                   </Typography>
                 </div>

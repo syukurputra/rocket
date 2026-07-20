@@ -15,7 +15,7 @@ const faqData: FaqType[] = [
         id: 'apa-itu',
         question: 'Apa itu Bantu Sewa?',
         answer:
-          'Bantu Sewa adalah platform manajemen properti sewa yang membantu pemilik properti mengelola aset, kamar/unit, penyewa, pembayaran, dan laporan secara digital. Dengan Bantu Sewa, proses pengelolaan kos atau properti sewa menjadi lebih mudah, terorganisir, dan efisien.'
+          'Bantu Sewa adalah platform manajemen sewa yang membantu mengelola aset, unit/item, penyewa, pembayaran, dan laporan secara digital. Dengan Bantu Sewa, proses pengelolaan bisnis sewa menjadi lebih mudah, terorganisir, dan efisien.'
       },
       {
         id: 'daftar-properti',
