@@ -661,6 +661,46 @@ model SchedulerLog {
   @@map("scheduler_log")
 }
 
+model KategoriTiket {
+  id        String   @id @default(cuid())
+  nama      String
+  deskripsi String?  @db.Text
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kategori_tiket")
+}
+
+model Tiket {
+  id              String    @id @default(cuid())
+  nomorTiket      String    @unique
+  userId          String
+  companyId       String?
+  kategoriTiketId String
+  deskripsi       String    @db.Text
+  status          String    @default("OPEN") @db.VarChar(20)
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("tiket")
+}
+
+model TiketPesan {
+  id         String   @id @default(cuid())
+  tiketId    String
+  senderId   String
+  senderType String   @db.VarChar(20)
+  pesan      String   @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([tiketId])
+  @@map("tiket_pesan")
+}
+
 model Ulasan {
   id         String   @id @default(cuid())
   companyId  String

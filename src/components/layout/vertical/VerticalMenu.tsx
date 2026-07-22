@@ -110,10 +110,12 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     menus.forEach(menu => {
       const menuWithChildren = menuMap.get(menu.id)!
 
-      if (menu.parentId && menuMap.has(menu.parentId)) {
-        const parent = menuMap.get(menu.parentId)!
-
-        parent.children!.push(menuWithChildren)
+      if (menu.parentId) {
+        // Submenu: hanya tampil jika parent-nya juga dimiliki user.
+        // Jika parent tidak ada (yatim), submenu tidak ditampilkan (bukan jadi menu root).
+        if (menuMap.has(menu.parentId)) {
+          menuMap.get(menu.parentId)!.children!.push(menuWithChildren)
+        }
       } else {
         roots.push(menuWithChildren)
       }
