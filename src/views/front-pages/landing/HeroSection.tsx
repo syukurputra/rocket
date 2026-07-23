@@ -70,6 +70,16 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
                 >
                   Coba Gratis
                 </Button>
+                <Button
+                  component={Link}
+                  href='/home'
+                  variant='tonal'
+                  color='primary'
+                  size='large'
+                  startIcon={<i className='tabler-search' />}
+                >
+                  Cari Sewa
+                </Button>
               </div>
             </div>
           </Grid>
