@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 
 import { usePathname } from 'next/navigation'
 
+import { clearSession, getAccessToken, markActivity, saveSession } from '@/src/utils/tokenStore'
+
 interface ConditionalProtectionProps {
   children: ReactNode
 }
@@ -43,31 +45,31 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
         return
       }
 
-      const token = localStorage.getItem('accessToken')
+      const token = getAccessToken()
 
       // Handle protected routes
       if (isProtected) {
-        if (!token) {
-          window.location.href = '/login'
-
-          return
-        }
-
-        // Verify token
+        // Jangan langsung tendang ke /login kalau localStorage kosong —
+        // cookie refresh_token httpOnly masih bisa memulihkan sesi
         try {
           const response = await fetch('/api/auth/check', {
-            headers: { Authorization: `Bearer ${token}` },
-            credentials: 'include'
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            credentials: 'include',
+            cache: 'no-store'
           })
 
           if (response.ok) {
+            // /api/auth/check ikut merotasi token saat access token kadaluarsa;
+            // sinkronkan supaya localStorage tidak menyimpan token basi
+            const data = await response.json().catch(() => null)
+
+            if (data?.accessToken) saveSession(data)
+            markActivity()
+
             setIsAllowed(true)
           } else {
-            // Clear all auth data immediately
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('user')
-            localStorage.removeItem('userMenus')
+            // 401 = sesi benar-benar habis (idle melewati jendela refresh)
+            clearSession()
 
             // Redirect to login
             window.location.href = '/login'
@@ -75,16 +77,10 @@ export default function ConditionalProtection({ children }: ConditionalProtectio
             return
           }
         } catch (error) {
+          // Gangguan jaringan bukan berarti sesi habis — jangan hapus token,
+          // cukup tampilkan halamannya dan biarkan request berikutnya menilai
           console.error('Auth check error:', error)
-
-          // On network error, clear tokens and redirect
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          localStorage.removeItem('user')
-          localStorage.removeItem('userMenus')
-          window.location.href = '/login'
-
-          return
+          setIsAllowed(true)
         }
       }
 

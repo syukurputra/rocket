@@ -21,6 +21,12 @@ import Chip from '@mui/material/Chip'
 import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import {
+  BIAYA_LAYANAN_PARAM_IDS,
+  hitungBiayaLayanan,
+  tierBiayaLayanan,
+  type TarifBiayaLayanan
+} from '@/src/libs/biayaLayanan'
 
 type Props = {
   activeStep: number
@@ -63,7 +69,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [list, setList] = useState<HargaData[]>([])
   const [itemAsets, setItemAsets] = useState<ItemAsetData[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [biayaLayanan, setBiayaLayanan] = useState(0)
+  const [tarifLayanan, setTarifLayanan] = useState<TarifBiayaLayanan>({})
 
   // Form state
   const [selectedItemAsetId, setSelectedItemAsetId] = useState('')
@@ -71,6 +77,10 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [harga, setHarga] = useState('')
 
   const hargaNum = Number(parseNumber(harga)) || 0
+
+  // Biaya layanan mengikuti jenjang harga di Master Parameter, jadi ikut berubah
+  // begitu harga diketik
+  const biayaLayanan = hitungBiayaLayanan(hargaNum, tarifLayanan)
   const nilaiMerchant = Math.max(0, hargaNum - biayaLayanan)
 
   useEffect(() => {
@@ -78,8 +88,9 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
       fetchItemAsets()
       fetchHarga()
     }
-    apiFetchClient<{ data: { id: string; value: string } }>('/api/parameter?id=ADMIN_BOOKING')
-      .then(res => setBiayaLayanan(Number(res.data?.value) || 0))
+
+    apiFetchClient<{ data: Record<string, string> }>(`/api/parameter?ids=${BIAYA_LAYANAN_PARAM_IDS.join(',')}`)
+      .then(res => setTarifLayanan(res.data || {}))
       .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asetId])
@@ -289,6 +300,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
           value={biayaLayanan > 0 ? formatNumber(String(biayaLayanan)) : '0'}
           disabled
           InputProps={{ readOnly: true }}
+          helperText={hargaNum > 0 ? `Jenjang harga ${tierBiayaLayanan(hargaNum).label}` : ' '}
         />
       </Grid>
 

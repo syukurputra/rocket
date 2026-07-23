@@ -10,15 +10,27 @@ function ensure<T>(v: T, name: string): asserts v is NonNullable<T> {
   if (!v) throw new Error(`${name} is not set`)
 }
 
-// Helper: resolve expiresIn dari ENV → number detik (atau pakai string pola ms)
-function resolveExpires(v: string | undefined, fallbackSec: number): SignOptions['expiresIn'] {
-  if (!v) return fallbackSec
+// Helper: resolve TTL dari ENV → number detik
+function resolveTtlSec(v: string | undefined, fallbackSec: number): number {
   const n = Number(v)
-  return Number.isFinite(n) ? n : (v as unknown as SignOptions['expiresIn'])
+  return Number.isFinite(n) && n > 0 ? n : fallbackSec
 }
 
-const ACCESS_TOKEN_EXPIRES = resolveExpires(process.env.ACCESS_TOKEN_TTL, 60 * 60 * 24)    // 1 hari
-const REFRESH_TOKEN_EXPIRES = resolveExpires(process.env.REFRESH_TOKEN_TTL, 60 * 60 * 24 * 7) // 7 hari
+/**
+ * Access token = kredensial jangka pendek. Sengaja pendek supaya perubahan
+ * hak akses / revoke cepat terasa, dan diperpanjang otomatis lewat refresh.
+ */
+export const ACCESS_TTL_SEC = resolveTtlSec(process.env.ACCESS_TOKEN_TTL, 60 * 15) // 15 menit
+
+/**
+ * Refresh token = jendela idle. Selama user masih mengakses sistem, token ini
+ * dirotasi dan masa berlakunya diperpanjang (sliding session). Jadi user baru
+ * dipaksa login ulang kalau benar-benar tidak ada akses selama 1 hari penuh.
+ */
+export const REFRESH_TTL_SEC = resolveTtlSec(process.env.REFRESH_TOKEN_TTL, 60 * 60 * 24) // 1 hari idle
+
+const ACCESS_TOKEN_EXPIRES: SignOptions['expiresIn'] = ACCESS_TTL_SEC
+const REFRESH_TOKEN_EXPIRES: SignOptions['expiresIn'] = REFRESH_TTL_SEC
 
 export type AccessPayload = { userId: string; username: string; email: string }
 export type RefreshPayload = { userId: string; tokenVersion: number }

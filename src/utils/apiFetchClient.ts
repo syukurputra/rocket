@@ -1,5 +1,8 @@
 // src/utils/apiFetchClient.ts
+import { clearSession, ensureFreshToken, getAccessToken, markActivity, refreshSession } from './tokenStore'
+
 type FetchClientOpts = {
+
   /** redirect path saat 401; set false utk tidak redirect */
   redirectOn401?: string | false
 
@@ -19,15 +22,19 @@ export async function apiFetchClient<T>(
     headers.set('Content-Type', 'application/json')
   }
 
-  // Inject Bearer token dari localStorage (kalau ada)
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  // Setiap panggilan API = tanda user masih aktif, jadi jendela idle digeser
+  markActivity()
+
+  // Perpanjang duluan kalau access token sudah mau habis, supaya tidak perlu
+  // menunggu 401 dulu baru refresh
+  const token = opts.skipTokenRefresh ? getAccessToken() : await ensureFreshToken()
 
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
   const makeRequest = async () => {
-    return fetch(input, { ...init, headers, cache: init?.cache ?? 'no-store' })
+    return fetch(input, { ...init, headers, credentials: init?.credentials ?? 'include', cache: init?.cache ?? 'no-store' })
   }
 
   let res = await makeRequest()
@@ -43,36 +50,24 @@ export async function apiFetchClient<T>(
 
   // Handle token expired (401) with automatic refresh
   if (res.status === 401 && !opts.skipTokenRefresh && typeof window !== 'undefined') {
-    try {
-      console.log('Token expired, attempting refresh...')
+    // refreshSession() single-flight: request paralel yang sama-sama kena 401
+    // akan berbagi satu panggilan refresh
+    const refreshed = await refreshSession()
 
-      // Try to refresh token
-      const refreshSuccess = await refreshAccessToken()
+    if (refreshed) {
+      headers.set('Authorization', `Bearer ${refreshed.accessToken}`)
 
-      if (refreshSuccess) {
-        console.log('Token refreshed successfully, retrying request...')
+      // Retry the original request
+      res = await makeRequest()
 
-        // Update headers with new token
-        const newToken = localStorage.getItem('accessToken')
+      // Re-parse body for the new response
+      body = null
 
-        if (newToken) {
-          headers.set('Authorization', `Bearer ${newToken}`)
-        }
-
-        // Retry the original request
-        res = await makeRequest()
-
-        // Re-parse body for the new response
-        try {
-          body = await res.clone().json()
-        } catch {
-          /* ignore */
-        }
+      try {
+        body = await res.clone().json()
+      } catch {
+        /* ignore */
       }
-    } catch (refreshError) {
-      console.error('Token refresh failed:', refreshError)
-
-      // If refresh fails, proceed to redirect logic below
     }
   }
 
@@ -86,9 +81,7 @@ export async function apiFetchClient<T>(
       console.log('Authentication failed, redirecting to login...')
 
       // Clear tokens before redirect
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      localStorage.removeItem('user')
+      clearSession()
 
       // pakai replace agar tidak menambah history stack
       window.location.replace(target)
@@ -103,73 +96,4 @@ export async function apiFetchClient<T>(
   if (res.status === 204) return undefined as unknown as T
 
   return (body ?? (await res.json())) as T
-}
-
-// Function to refresh access token
-async function refreshAccessToken(): Promise<boolean> {
-  try {
-    const refreshToken = localStorage.getItem('refreshToken')
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available')
-    }
-
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ refreshToken }),
-      cache: 'no-store'
-    })
-
-    if (!response.ok) {
-      // Try to get error message from response body
-      let errorMessage = `Refresh failed: ${response.status}`
-
-      try {
-        const errorData = await response.json()
-
-        if (errorData.error) {
-          errorMessage = errorData.error
-        }
-      } catch {
-        // If JSON parsing fails, use default error message
-      }
-
-      throw new Error(errorMessage)
-    }
-
-    const data = await response.json()
-
-    if (data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken)
-
-      // Update refresh token if provided
-      if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken)
-      }
-
-      // Update user menus if provided
-      if (data.menus && Array.isArray(data.menus)) {
-        localStorage.setItem('userMenus', JSON.stringify(data.menus))
-        window.dispatchEvent(new Event('userMenusUpdated'))
-      }
-
-      console.log('Tokens refreshed successfully')
-
-      return true
-    }
-
-    return false
-  } catch (error) {
-    console.error('Token refresh error:', error)
-
-    // Clear invalid tokens
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('user')
-
-    return false
-  }
 }

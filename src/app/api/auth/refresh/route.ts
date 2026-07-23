@@ -1,13 +1,17 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import { verifyRefreshToken, signAccessToken, signRefreshToken } from '@/src/libs/jwt'
+import { verifyRefreshToken, signAccessToken, signRefreshToken, ACCESS_TTL_SEC, REFRESH_TTL_SEC } from '@/src/libs/jwt'
 import prisma from '@/src/libs/prisma'
+import { getRefreshTokenFromCookies, setSessionCookies } from '@/src/libs/session'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { refreshToken } = body
+    // Terima dari body (client localStorage) atau cookie httpOnly
+    const body = await request.json().catch(() => ({}) as Record<string, unknown>)
+    const refreshToken = (body?.refreshToken as string | undefined) || getRefreshTokenFromCookies(request)
 
     if (!refreshToken) {
       return NextResponse.json({ error: 'Refresh token required' }, { status: 400 })
@@ -79,16 +83,26 @@ export async function POST(request: NextRequest) {
         parentId: mr.menu.parentId
       })) || []
 
-    return NextResponse.json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email
+    const res = NextResponse.json(
+      {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: ACCESS_TTL_SEC,
+        refreshExpiresIn: REFRESH_TTL_SEC,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        },
+        menus
       },
-      menus
-    })
+      { headers: { 'Cache-Control': 'no-store' } }
+    )
+
+    // Perpanjang cookie httpOnly juga, kalau tidak umurnya tetap terpaku ke waktu login
+    setSessionCookies(res, { accessToken: newAccessToken, refreshToken: newRefreshToken })
+
+    return res
   } catch (error) {
     console.error('Refresh token error:', error)
     

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
-import { getParameter } from '@/src/libs/getParameter'
+import { getBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 
 async function generateNomorTagihan(): Promise<string> {
   const now = new Date()
@@ -50,8 +50,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 })
     }
 
-    const adminBookingValue = await getParameter('ADMIN_BOOKING')
-    const adminBooking = Number(adminBookingValue) || 0
+    // Biaya layanan mengikuti jenjang total booking, dihitung di server
+    const adminBooking = await getBiayaLayanan(Number(total))
 
     const ruangan = await prisma.ruangan.findUnique({
       where: { id: ruanganId },

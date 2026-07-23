@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
-import { getParameter } from '@/src/libs/getParameter'
+import { getTarifBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 
 // GET /api/public/item-aset/[id] — detail item aset (ruangan) untuk halaman checkout booking
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -21,8 +21,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
 
-    const adminBookingValue = await getParameter('ADMIN_BOOKING')
-    const adminBooking = Number(adminBookingValue) || 0
+    // Nominalnya bergantung pada total booking yang baru diketahui setelah user
+    // memilih jenis harga & durasi, jadi yang dikirim seluruh jenjangnya
+    const tarifBiayaLayanan = await getTarifBiayaLayanan()
 
     return NextResponse.json({
       data: {
@@ -32,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         companyId: ruangan.companyId,
         asetId: ruangan.asetId,
         asetNama: ruangan.aset?.nama || '',
-        adminBooking,
+        tarifBiayaLayanan,
         hargaItemAset: ruangan.hargaItemAset.map(h => ({
           id: h.id,
           jenisHarga: h.jenisHarga,

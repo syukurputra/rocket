@@ -5,6 +5,15 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 
 import { useRouter, usePathname } from 'next/navigation'
 
+import {
+  clearSession,
+  getAccessToken,
+  getAccessTokenExpiresAt,
+  markActivity,
+  refreshSession,
+  saveSession
+} from '@/src/utils/tokenStore'
+
 interface User {
   id: string
   username: string
@@ -38,79 +47,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout function
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
       setUser(null)
       setAccessToken(null)
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('userMenus')
+      clearSession()
       router.push('/login')
     }
   }, [router])
 
-  // Refresh access token
+  // Refresh access token (rotasi + perpanjang jendela idle)
   const refreshToken = useCallback(async () => {
-    try {
-      const storedRefreshToken = localStorage.getItem('refreshToken')
+    const result = await refreshSession()
 
-      if (!storedRefreshToken) {
-        console.error('No refresh token available')
-        logout()
+    if (result) {
+      setAccessToken(result.accessToken)
 
-        return
-      }
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refreshToken: storedRefreshToken })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-
-        setAccessToken(data.accessToken)
-        localStorage.setItem('accessToken', data.accessToken)
-
-        // Update refresh token if provided
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken)
-        }
-
-        // Update user menus if provided
-        if (data.menus && Array.isArray(data.menus)) {
-          localStorage.setItem('userMenus', JSON.stringify(data.menus))
-          window.dispatchEvent(new Event('userMenusUpdated'))
-        }
-
-        // checkAuth will be triggered by useEffect when accessToken changes
-      } else {
-        // Refresh failed, user needs to login again
-        logout()
-      }
-    } catch (error) {
-      console.error('Token refresh error:', error)
-      logout()
+      // checkAuth akan terpicu oleh useEffect saat accessToken berubah
+      return
     }
+
+    // Refresh gagal → refresh token benar-benar habis / dicabut
+    logout()
   }, [logout])
 
   // Check if user is authenticated
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        credentials: 'include',
+        cache: 'no-store'
       })
 
       if (response.ok) {
         const data = await response.json()
 
         setUser(data.user)
+        markActivity()
 
         // Store user menus and notify listeners
         if (data.menus && Array.isArray(data.menus)) {
@@ -142,13 +118,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json()
 
       if (response.ok) {
+        // simpan accessToken + refreshToken + waktu kadaluarsa + menus
+        saveSession(data)
         setAccessToken(data.accessToken)
-        localStorage.setItem('accessToken', data.accessToken)
-
-        // Store refresh token
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken)
-        }
 
         setUser(data.user)
 
@@ -157,16 +129,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem('user', JSON.stringify(data.user))
         }
 
-        // Store user menus
-        if (data.menus && Array.isArray(data.menus)) {
-          localStorage.setItem('userMenus', JSON.stringify(data.menus))
-          window.dispatchEvent(new Event('userMenusUpdated'))
-        }
-
         // Redirect ke returnTo jika ada pendingChat / pendingBooking, otherwise /home
         try {
           const rawChat = localStorage.getItem('pendingChat')
           const rawBooking = localStorage.getItem('pendingBooking')
+
           const returnTo = rawChat
             ? JSON.parse(rawChat).returnTo
             : rawBooking
@@ -216,7 +183,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Get token from localStorage on mount
-    const storedToken = localStorage.getItem('accessToken')
+    const storedToken = getAccessToken()
 
     if (storedToken) {
       setAccessToken(storedToken)
@@ -255,6 +222,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkAuth()
     }
   }, [accessToken, checkAuth, pathname])
+
+  // Perpanjang access token sebelum kadaluarsa, selama tab masih dibuka.
+  // Tanpa ini user hanya bertahan selama umur access token walaupun refresh
+  // token-nya masih berlaku.
+  useEffect(() => {
+    if (!accessToken) return
+
+    const expiresAt = getAccessTokenExpiresAt()
+
+    if (!expiresAt) return
+
+    // refresh 1 menit sebelum kadaluarsa, minimal 5 detik dari sekarang
+    const delay = Math.max(expiresAt - Date.now() - 60 * 1000, 5000)
+
+    const timer = setTimeout(() => {
+      refreshSession().then(result => {
+        if (result) setAccessToken(result.accessToken)
+      })
+    }, delay)
+
+    return () => clearTimeout(timer)
+  }, [accessToken])
+
+  // Tab yang lama tidak aktif (atau laptop yang di-sleep) melewatkan timer di
+  // atas — perpanjang lagi begitu user kembali, selagi jendela idle belum habis.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible') return
+
+      markActivity()
+
+      const expiresAt = getAccessTokenExpiresAt()
+
+      if (!getAccessToken() || !expiresAt) return
+
+      if (Date.now() >= expiresAt - 60 * 1000) {
+        const result = await refreshSession()
+
+        if (result) setAccessToken(result.accessToken)
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, refreshToken, isAuthenticated: !!user }}>

@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 
 import { usePathname, useRouter } from 'next/navigation'
 
+import { clearSession, markActivity, saveSession } from '@/src/utils/tokenStore'
+
 interface ClientProtectionProps {
   children: React.ReactNode
 }
@@ -35,18 +37,17 @@ export default function ClientProtection({ children }: ClientProtectionProps) {
         })
 
         if (!res.ok) {
-          // Clear all auth data on 401
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('user')
-            localStorage.removeItem('userMenus')
-          }
+          // 401 = sesi habis. Error lain (5xx) bukan alasan membuang token.
+          if (res.status === 401) clearSession()
 
           return null
         }
 
         const data = await res.json().catch(() => null)
+
+        // check bisa merotasi token — simpan yang baru
+        if (data?.accessToken) saveSession(data)
+        markActivity()
 
         return data?.user ?? null
       } catch (error) {

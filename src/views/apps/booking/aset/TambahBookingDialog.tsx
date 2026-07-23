@@ -21,6 +21,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import { BIAYA_LAYANAN_PARAM_IDS, hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
 
 type AsetItem = { id: string; nama: string; jenis?: string }
 type ItemAsetItem = { id: string; nama: string; asetId: string; hargaItemAset: { id: string; jenisHarga: string; harga: number }[] }
@@ -77,12 +78,15 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   const [success, setSuccess] = useState(false)
   const [nomorBooking, setNomorBooking] = useState('')
 
-  const [adminBooking, setAdminBooking] = useState(0)
+  const [tarifLayanan, setTarifLayanan] = useState<TarifBiayaLayanan>({})
 
   const selectedItemAset = itemAsetList.find(r => r.id === itemAsetId)
   const selectedHarga = selectedItemAset?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
+
+  // Biaya layanan mengikuti jenjang total booking
+  const adminBooking = hitungBiayaLayanan(total, tarifLayanan)
   const grandTotal = total + adminBooking
   const selesaiSewa = mulaiSewa && jenisHarga ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
@@ -94,8 +98,12 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
     apiFetchClient<{ data: PenyewaItem[] }>('/api/penyewa/dp', undefined, { redirectOn401: '/login' })
       .then(res => setPenyewaList(res.data || []))
       .catch(() => {})
-    apiFetchClient<{ data: { id: string; value: string } }>('/api/parameter?id=ADMIN_BOOKING', undefined, { redirectOn401: '/login' })
-      .then(res => setAdminBooking(Number(res.data?.value) || 0))
+    apiFetchClient<{ data: Record<string, string> }>(
+      `/api/parameter?ids=${BIAYA_LAYANAN_PARAM_IDS.join(',')}`,
+      undefined,
+      { redirectOn401: '/login' }
+    )
+      .then(res => setTarifLayanan(res.data || {}))
       .catch(() => {})
   }, [open])
 
@@ -127,7 +135,6 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
     setDurasi(1)
     setCatatan('')
     setStatusBooking('BELUM TERBAYAR')
-    setAdminBooking(0)
     setError('')
     setSuccess(false)
     setNomorBooking('')

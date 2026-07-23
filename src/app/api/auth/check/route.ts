@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
-import { verifyAccessToken, verifyRefreshToken, signAccessToken, signRefreshToken, isJwtExpired } from '@/src/libs/jwt'
+import {
+  verifyAccessToken,
+  verifyRefreshToken,
+  signAccessToken,
+  signRefreshToken,
+  isJwtExpired,
+  ACCESS_TTL_SEC,
+  REFRESH_TTL_SEC
+} from '@/src/libs/jwt'
 import {
   extractTokenFromRequest,
   getAccessTokenFromCookies,
@@ -88,7 +96,18 @@ export async function GET(req: NextRequest) {
     const newRT = signRefreshToken({ userId: user.id, tokenVersion: user.tokenVersion })
 
     const res = NextResponse.json(
-      { authenticated: true, source: 'refresh', user },
+      {
+        authenticated: true,
+        source: 'refresh',
+        user,
+
+        // dikembalikan supaya client bisa sinkronkan localStorage-nya, kalau tidak
+        // client tetap memegang access token kadaluarsa dan selalu kena 401
+        accessToken: newAT,
+        refreshToken: newRT,
+        expiresIn: ACCESS_TTL_SEC,
+        refreshExpiresIn: REFRESH_TTL_SEC
+      },
       { headers: { 'Cache-Control': 'no-store', Vary: 'Cookie' } }
     )
     setSessionCookies(res, { accessToken: newAT, refreshToken: newRT })

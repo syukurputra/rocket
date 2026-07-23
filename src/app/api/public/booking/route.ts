@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
-import { getParameter } from '@/src/libs/getParameter'
+import { getBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 
 async function generateNomorTagihan(): Promise<string> {
   const now = new Date()
@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Company tidak valid' }, { status: 400 })
     }
 
-    const adminBookingValue = await getParameter('ADMIN_BOOKING')
-    const adminBooking = Number(adminBookingValue) || 0
+    // Biaya layanan mengikuti jenjang total booking. Dihitung ulang di server —
+    // nilai adminBooking dari client sengaja diabaikan.
+    const adminBooking = await getBiayaLayanan(Number(total))
 
     const mulaiSewaDate = new Date(mulaiSewa)
     const selesaiSewaDate = new Date(selesaiSewa)

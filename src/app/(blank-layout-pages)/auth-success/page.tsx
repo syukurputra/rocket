@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 
 import PhoneNumberModal from '@/src/components/dialogs/auth/PhoneNumberModal'
+import { saveSession } from '@/src/utils/tokenStore'
 
 export default function AuthSuccessPage() {
   const router = useRouter()
@@ -38,21 +41,19 @@ export default function AuthSuccessPage() {
   }, [searchParams])
 
   const completeLogin = (token: string, refreshToken: string, menusParam: string | null) => {
-    // Store tokens to localStorage
-    localStorage.setItem('accessToken', token)
-    localStorage.setItem('refreshToken', refreshToken)
+    let menus: unknown = undefined
 
-    // Store menus if provided
     if (menusParam) {
       try {
-        const menus = JSON.parse(menusParam)
-
-        localStorage.setItem('userMenus', JSON.stringify(menus))
-        window.dispatchEvent(new Event('userMenusUpdated'))
+        menus = JSON.parse(menusParam)
       } catch (error) {
         console.error('Error parsing menus:', error)
       }
     }
+
+    // Simpan token + waktu kadaluarsa (dibaca dari klaim exp) supaya penjadwal
+    // refresh di AuthContext ikut jalan untuk login via Google
+    saveSession({ accessToken: token, refreshToken, menus })
 
     // Redirect to home
     router.replace('/home')

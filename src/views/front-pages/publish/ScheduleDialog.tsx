@@ -9,7 +9,6 @@ import DialogActions from '@mui/material/DialogActions'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Button from '@mui/material/Button'
 
@@ -43,16 +42,6 @@ type KalenderEvent = {
   }
 }
 
-type SelectedEvent = KalenderEvent & { startStr: string; endStr: string }
-
-const colorMap: Record<string, 'primary' | 'success' | 'warning' | 'error' | 'info'> = {
-  primary: 'primary',
-  success: 'success',
-  warning: 'warning',
-  error: 'error',
-  info: 'info'
-}
-
 // Semua event di schedule public ditampilkan merah
 const toCalendarEvent = (e: KalenderEvent) => ({
   ...e,
@@ -64,7 +53,6 @@ const toCalendarEvent = (e: KalenderEvent) => ({
 const ScheduleDialog = ({ open, onClose, itemAsetId, itemAsetNama }: ScheduleDialogProps) => {
   const [events, setEvents] = useState<KalenderEvent[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<SelectedEvent | null>(null)
   const calendarRef = useRef<any>(null)
 
   useEffect(() => {
@@ -87,122 +75,62 @@ const ScheduleDialog = ({ open, onClose, itemAsetId, itemAsetNama }: ScheduleDia
     }
   }
 
-  const handleEventClick = ({ event }: any) => {
-    setSelectedEvent({
-      id: event.id,
-      title: event.title,
-      start: event.start,
-      end: event.end,
-      startStr: event.startStr,
-      endStr: event.endStr,
-      allDay: event.allDay,
-      extendedProps: event.extendedProps
-    })
-  }
-
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
-  }
-
   const calendarEvents = events.map(toCalendarEvent)
 
   return (
-    <>
-      <Dialog open={open} onClose={onClose} maxWidth='lg' fullWidth>
-        <DialogTitle>
-          <Box display='flex' alignItems='center' justifyContent='space-between'>
-            <Box>
-              <Typography variant='h5'>Jadwal Booking</Typography>
-              <Typography variant='body2' color='text.secondary'>{itemAsetNama}</Typography>
-            </Box>
-            <IconButton onClick={onClose}>
-              <i className='tabler-x' />
-            </IconButton>
+    <Dialog open={open} onClose={onClose} maxWidth='lg' fullWidth>
+      <DialogTitle>
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
+          <Box>
+            <Typography variant='h5'>Jadwal Booking</Typography>
+            <Typography variant='body2' color='text.secondary'>{itemAsetNama}</Typography>
           </Box>
-        </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          {loading ? (
-            <Box display='flex' justifyContent='center' alignItems='center' minHeight='400px'>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <AppFullCalendar sx={{ width: '100%' }}>
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-                initialView='dayGridMonth'
-                initialDate={new Date()}
-                locale='id'
-                buttonText={{
-                  today: 'Hari Ini',
-                  month: 'Bulan',
-                  week: 'Minggu',
-                  day: 'Hari',
-                  list: 'Daftar'
-                }}
-                headerToolbar={{
-                  start: 'prev,next today',
-                  center: 'title',
-                  end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-                }}
-                events={calendarEvents}
-                eventClick={handleEventClick}
-                dayMaxEvents={3}
-                navLinks
-                height='auto'
-                expandRows
-                eventClassNames={({ event }: any) => [`event-bg-${event.extendedProps.color}`]}
-              />
-            </AppFullCalendar>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} variant='tonal' color='secondary'>
-            Tutup
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Detail Event Dialog */}
-      <Dialog open={!!selectedEvent} onClose={() => setSelectedEvent(null)} maxWidth='xs' fullWidth>
-        {selectedEvent && (
-          <>
-            <DialogTitle>
-              <Typography variant='h6'>Detail Booking</Typography>
-            </DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-                <Box sx={{ display: 'flex', gap: 4 }}>
-                  <Box>
-                    <Typography variant='caption' color='text.secondary'>Mulai Sewa</Typography>
-                    <Typography variant='body2'>{formatDate(selectedEvent.start)}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant='caption' color='text.secondary'>Selesai Sewa</Typography>
-                    <Typography variant='body2'>{formatDate(selectedEvent.end)}</Typography>
-                  </Box>
-                </Box>
-                {selectedEvent.extendedProps.periodeSewa && (
-                  <Chip
-                    size='small'
-                    label={selectedEvent.extendedProps.periodeSewa}
-                    color='info'
-                    variant='outlined'
-                    sx={{ alignSelf: 'flex-start' }}
-                  />
-                )}
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setSelectedEvent(null)} variant='tonal' color='secondary'>
-                Tutup
-              </Button>
-            </DialogActions>
-          </>
+          <IconButton onClick={onClose}>
+            <i className='tabler-x' />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 1 }}>
+        {loading ? (
+          <Box display='flex' justifyContent='center' alignItems='center' minHeight='400px'>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <AppFullCalendar sx={{ width: '100%' }}>
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+              initialView='dayGridMonth'
+              initialDate={new Date()}
+              locale='id'
+              buttonText={{
+                today: 'Hari Ini',
+                month: 'Bulan',
+                week: 'Minggu',
+                day: 'Hari',
+                list: 'Daftar'
+              }}
+              headerToolbar={{
+                start: 'prev,next today',
+                center: 'title',
+                end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+              }}
+              events={calendarEvents}
+              dayMaxEvents={3}
+              navLinks
+              height='auto'
+              expandRows
+              eventClassNames={({ event }: any) => [`event-bg-${event.extendedProps.color}`]}
+            />
+          </AppFullCalendar>
         )}
-      </Dialog>
-    </>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} variant='tonal' color='secondary'>
+          Tutup
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 

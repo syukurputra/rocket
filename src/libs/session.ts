@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { ACCESS_TTL_SEC, REFRESH_TTL_SEC } from './jwt'
+
 const ACCESS_COOKIE = 'access_token'
 const REFRESH_COOKIE = 'refresh_token'
 const isProd = process.env.NODE_ENV === 'production'
@@ -11,10 +13,15 @@ const baseCookie = {
   path: '/',
 }
 
+/**
+ * Selalu tulis ulang kedua cookie dengan maxAge penuh. Dipanggil setiap kali
+ * token dirotasi, sehingga umur cookie ikut bergeser mengikuti aktivitas user
+ * (sliding window) — bukan terpaku pada waktu login pertama.
+ */
 export function setSessionCookies(
   res: NextResponse,
   tokens: { accessToken: string; refreshToken: string },
-  maxAge = { accessSec: 60 * 60 * 24, refreshSec: 60 * 60 * 24 * 7 } // 15m / 7d
+  maxAge = { accessSec: ACCESS_TTL_SEC, refreshSec: REFRESH_TTL_SEC }
 ) {
   res.cookies.set(ACCESS_COOKIE, tokens.accessToken, { ...baseCookie, maxAge: maxAge.accessSec })
   res.cookies.set(REFRESH_COOKIE, tokens.refreshToken, { ...baseCookie, maxAge: maxAge.refreshSec })

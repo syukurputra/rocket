@@ -19,6 +19,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import ScheduleDialog from '@/src/views/front-pages/publish/ScheduleDialog'
+import { hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
 
 interface HargaItem {
   id: string
@@ -32,7 +33,7 @@ interface ItemAset {
   status: string
   companyId: string
   asetNama: string
-  adminBooking: number
+  tarifBiayaLayanan: TarifBiayaLayanan
   hargaItemAset: HargaItem[]
 }
 
@@ -45,6 +46,27 @@ const JENIS_LABEL: Record<string, string> = {
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
+
+/** Sewa per jam memakai datetime-local, jenis lain cukup tanggal. */
+const pakaiJam = (jenis: string) => jenis === 'JAM'
+
+/** `YYYY-MM-DD` waktu lokal — bukan toISOString() yang memakai UTC. */
+const toLocalDateValue = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** Pilihan jam mulai 00:00 – 23:00. Menit selalu 00, jadi tidak perlu dipilih. */
+const JAM_OPTIONS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+
+const formatTanggal = (d: Date, withTime: boolean) =>
+  d.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {})
+  })
 
 const addDuration = (date: Date, durasi: number, jenis: string): Date => {
   const d = new Date(date)
@@ -65,7 +87,8 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
   const [notFound, setNotFound] = useState(false)
 
   const [jenisHarga, setJenisHarga] = useState('')
-  const [mulaiSewa, setMulaiSewa] = useState('')
+  const [tanggalMulai, setTanggalMulai] = useState('')
+  const [jamMulai, setJamMulai] = useState('00')
   const [durasi, setDurasi] = useState(1)
   const [catatan, setCatatan] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -129,7 +152,10 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
   const selectedHarga = item?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
-  const adminBooking = item?.adminBooking || 0
+  const adminBooking = hitungBiayaLayanan(total, item?.tarifBiayaLayanan)
+
+  // Tanggal & jam disimpan terpisah lalu digabung — menit dikunci 00
+  const mulaiSewa = tanggalMulai ? (pakaiJam(jenisHarga) ? `${tanggalMulai}T${jamMulai}:00` : tanggalMulai) : ''
   const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   const handleBooking = async () => {
@@ -237,15 +263,34 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
                 ))}
               </CustomTextField>
 
-              <CustomTextField
-                fullWidth
-                label='Tanggal Mulai *'
-                type={jenisHarga === 'JAM' ? 'datetime-local' : 'date'}
-                value={mulaiSewa}
-                onChange={e => setMulaiSewa(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: new Date().toISOString().split('T')[0] }}
-              />
+              {/* Tanggal & jam dipisah supaya picker menit bawaan browser tidak muncul */}
+              <div className='flex flex-col sm:flex-row gap-4'>
+                <CustomTextField
+                  fullWidth
+                  label='Tanggal Mulai *'
+                  type='date'
+                  value={tanggalMulai}
+                  onChange={e => setTanggalMulai(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: toLocalDateValue(new Date()) }}
+                />
+
+                {pakaiJam(jenisHarga) && (
+                  <CustomTextField
+                    select
+                    label='Jam Mulai *'
+                    value={jamMulai}
+                    onChange={e => setJamMulai(e.target.value)}
+                    className='sm:is-[160px] shrink-0'
+                  >
+                    {JAM_OPTIONS.map(j => (
+                      <MenuItem key={j} value={j}>
+                        {j}:00
+                      </MenuItem>
+                    ))}
+                  </CustomTextField>
+                )}
+              </div>
 
               <CustomTextField
                 fullWidth
@@ -299,16 +344,14 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
                 <div className='flex justify-between'>
                   <Typography color='text.secondary'>Mulai</Typography>
                   <Typography fontWeight={500}>
-                    {new Date(mulaiSewa).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {formatTanggal(new Date(mulaiSewa), pakaiJam(jenisHarga))}
                   </Typography>
                 </div>
               )}
               {selesaiSewa && (
                 <div className='flex justify-between'>
                   <Typography color='text.secondary'>Selesai</Typography>
-                  <Typography fontWeight={500}>
-                    {selesaiSewa.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </Typography>
+                  <Typography fontWeight={500}>{formatTanggal(selesaiSewa, pakaiJam(jenisHarga))}</Typography>
                 </div>
               )}
             </div>
