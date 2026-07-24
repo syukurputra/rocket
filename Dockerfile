@@ -24,11 +24,9 @@ COPY . .
 # build = prisma generate && build:icons && next build (output: standalone)
 RUN npm run build
 
-# Verifikasi: standalone HARUS terbentuk. Kalau tidak, tampilkan isi .next
-# supaya penyebabnya kelihatan (config tidak terpakai / next build gagal diam-diam).
-RUN echo "== isi .next ==" && ls -la .next && echo "== isi .next/standalone ==" \
-  && ls -la .next/standalone \
-  || (echo "!! .next/standalone TIDAK ADA — output:'standalone' tidak diterapkan" && exit 1)
+# Guard: pastikan output standalone benar-benar terbentuk sebelum lanjut.
+RUN test -f .next/standalone/server.js \
+  || (echo "!! .next/standalone/server.js TIDAK ADA — next.config tidak diterapkan saat build" && ls -la .next && exit 1)
 
 # ---- Runner -------------------------------------------------------------
 FROM base AS runner
