@@ -39,15 +39,6 @@ RUN npm run build
 RUN test -f .next/standalone/server.js \
   || (echo "!! standalone tidak terbentuk — cek log next build (kemungkinan OOM/env)" && ls -la .next && exit 1)
 
-# ---- Migrator -----------------------------------------------------------
-# Prisma CLI TIDAK fully-bundled (butuh 'effect' dkk sebagai dep runtime).
-# Install bersih & terisolasi di sini supaya seluruh closure dependency-nya
-# lengkap, lalu disalin utuh ke runner untuk `migrate deploy`.
-FROM base AS migrator
-WORKDIR /migrator
-RUN npm init -y >/dev/null 2>&1 \
-  && npm install prisma@6.19.3 --no-save --no-audit --no-fund
-
 # ---- Runner -------------------------------------------------------------
 FROM base AS runner
 ENV NODE_ENV=production
@@ -63,17 +54,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Prisma Client + query engine → untuk APP runtime (query DB).
+# CATATAN: migrasi TIDAK dijalankan otomatis. Skema DB dikelola manual di luar app.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Prisma CLI terisolasi (lengkap dgn deps) + schema → untuk `migrate deploy`.
-COPY --from=migrator --chown=nextjs:nodejs /migrator/node_modules ./migrate-tools/node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
-
 USER nextjs
 EXPOSE 3000
-ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "server.js"]
