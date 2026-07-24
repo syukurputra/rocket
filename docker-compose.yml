@@ -11,6 +11,8 @@ services:
     env_file:
       - .env.production
     ports:
-      - "80:3000"   # akses via http://IP (port 80), container tetap listen :3000
+      # Container di belakang Nginx: hanya bisa diakses dari localhost (127.0.0.1),
+      # tidak diekspos publik. Nginx (host) yang pegang port 80/443 + SSL.
+      - "127.0.0.1:3000:3000"
     # Postgres sudah ada di luar (Nevacloud managed / server lain),
     # koneksinya lewat DATABASE_URL & DIRECT_URL di .env.production.
