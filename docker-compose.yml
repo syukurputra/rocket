@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bantusewa:production
+    container_name: bantusewa
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    # Postgres sudah ada di luar (Nevacloud managed / server lain),
+    # koneksinya lewat DATABASE_URL & DIRECT_URL di .env.production.
