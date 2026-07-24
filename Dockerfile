@@ -24,9 +24,16 @@ COPY . .
 # build = prisma generate && build:icons && next build (output: standalone)
 RUN npm run build
 
-# Guard: pastikan output standalone benar-benar terbentuk sebelum lanjut.
-RUN test -f .next/standalone/server.js \
-  || (echo "!! .next/standalone/server.js TIDAK ADA — next.config tidak diterapkan saat build" && ls -la .next && exit 1)
+# DIAGNOSTIK: tampilkan config yang benar-benar dipakai Next, lalu guard.
+RUN echo "===== config files di /app =====" && ls -la next.config* 2>&1; \
+  echo "===== next version =====" && ./node_modules/.bin/next --version 2>&1; \
+  echo "===== output di required-server-files.json =====" \
+  && (grep -o '\"output\":\"[^\"]*\"' .next/required-server-files.json 2>&1 || echo "field output TIDAK ADA / file tak ada"); \
+  echo "===== cari server.js standalone di mana pun =====" \
+  && (find . -path ./node_modules -prune -o -name server.js -print 2>/dev/null | head); \
+  echo "===== isi .next =====" && ls -la .next; \
+  test -f .next/standalone/server.js \
+  || (echo "!! GUARD FAIL: standalone tidak terbentuk" && exit 1)
 
 # ---- Runner -------------------------------------------------------------
 FROM base AS runner
