@@ -15,6 +15,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # Wajib: secret SSH_* / GHCR_PAT / PROD_* disimpan sebagai Environment secrets
+    # di environment "production", jadi job harus mendeklarasikannya di sini.
+    environment: production
     permissions:
       contents: read
       packages: write        # untuk push image ke GHCR
