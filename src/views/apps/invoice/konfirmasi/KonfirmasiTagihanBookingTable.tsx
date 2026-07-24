@@ -50,6 +50,8 @@ type TagihanRow = {
   mulaiSewa: string
   selesaiSewa: string
   nominal: number
+  adminBooking?: number | string | null
+  hargaMerchant?: number | string | null
   createdAt: string
   statusRekon?: string | null
   amountPembayaran?: number | string | null
@@ -309,6 +311,14 @@ const KonfirmasiTagihanBookingTable = () => {
     columnHelper.accessor('nominal', {
       header: 'Nominal',
       cell: ({ row }) => <Typography variant='body2' className='font-medium'>{formatRupiah(row.original.nominal)}</Typography>
+    }),
+    columnHelper.accessor('adminBooking' as any, {
+      header: 'Admin Booking',
+      cell: ({ row }) => <Typography variant='body2'>{formatRupiah(row.original.adminBooking ?? 0)}</Typography>
+    }),
+    columnHelper.accessor('hargaMerchant' as any, {
+      header: 'Harga Merchant',
+      cell: ({ row }) => <Typography variant='body2'>{formatRupiah(row.original.hargaMerchant ?? 0)}</Typography>
     }),
     columnHelper.accessor('status', {
       header: 'Status',

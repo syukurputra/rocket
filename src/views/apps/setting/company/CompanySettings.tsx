@@ -83,12 +83,14 @@ const CompanySettings = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [jumlahTransaksi, setJumlahTransaksi] = useState(0)
+  const [saldoBelumDitarik, setSaldoBelumDitarik] = useState(0)
+  const [saldoSudahDitarik, setSaldoSudahDitarik] = useState(0)
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   const earningData: EarningItem[] = [
     { title: 'Total Transaksi', stats: `${jumlahTransaksi} Transaksi`, progress: jumlahTransaksi > 0 ? 100 : 0, avatarColor: 'primary', progressColor: 'primary', avatarIcon: 'tabler-receipt' },
-    { title: 'Saldo Belum Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-wallet' },
-    { title: 'Saldo Sudah Ditarik', stats: 'Rp 0', progress: 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-cash-banknote' }
+    { title: 'Saldo Belum Ditarik', stats: formatRupiah(saldoBelumDitarik), progress: saldoBelumDitarik > 0 ? 100 : 0, avatarColor: 'info', progressColor: 'info', avatarIcon: 'tabler-wallet' },
+    { title: 'Saldo Sudah Ditarik', stats: formatRupiah(saldoSudahDitarik), progress: saldoSudahDitarik > 0 ? 100 : 0, avatarColor: 'error', progressColor: 'error', avatarIcon: 'tabler-cash-banknote' }
   ]
 
   // Form state
@@ -129,9 +131,26 @@ const CompanySettings = () => {
     }
   }
 
+  // Saldo Belum Ditarik  = SUM(hargaMerchant) tagihan SESUAI & tarikSaldoId NULL (/eligible)
+  // Saldo Sudah Ditarik  = SUM(jumlahNominal) dari riwayat penarikan (/tarik-saldo)
+  const fetchSaldo = async () => {
+    try {
+      const [eligibleRes, historyRes] = await Promise.all([
+        apiFetchClient<{ total: { jumlahNominal: number } }>('/api/tarik-saldo/eligible'),
+        apiFetchClient<{ data: { jumlahNominal: number }[] }>('/api/tarik-saldo')
+      ])
+
+      setSaldoBelumDitarik(eligibleRes.total?.jumlahNominal ?? 0)
+      setSaldoSudahDitarik((historyRes.data ?? []).reduce((s, r) => s + Number(r.jumlahNominal ?? 0), 0))
+    } catch (error) {
+      console.error('Failed to fetch saldo:', error)
+    }
+  }
+
   useEffect(() => {
     fetchCompany()
     fetchTotalTransaksi()
+    fetchSaldo()
   }, [])
 
   const handleEditClick = () => {

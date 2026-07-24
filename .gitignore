@@ -29,7 +29,10 @@ yarn-error.log*
 .env
 .env*.local
 .env.production
+<<<<<<< HEAD
 .env.development
+=======
+>>>>>>> ba2ae9688204ec0e2d8ae9d0eec4b58982b1c325
 !.env.production.example
 
 # vercel
