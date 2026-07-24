@@ -29,7 +29,9 @@ jobs:
         run: npm ci
 
       - name: Copy development environment
-        run: cp .env.development .env
+        # Non-fatal: .env.development tidak di-commit (secret). Env build diambil
+        # dari `env:` block di step Build. Jangan bikin workflow gagal di sini.
+        run: cp .env.development .env || echo "no .env.development in repo, skipping"
 
       - name: Generate Prisma Client
         run: npx prisma generate

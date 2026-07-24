@@ -32,20 +32,23 @@ function createTransporter(): Transporter {
 }
 
 /**
- * Singleton transporter
+ * Singleton transporter — dibuat LAZY (saat pertama dipakai), bukan saat import.
+ * Penting: kalau dibuat saat import, `next build` (tahap "Collecting page data")
+ * akan meng-evaluate modul ini dan throw kalau env mail belum ada → build gagal.
+ * Env mail hanya divalidasi saat benar-benar mengirim email (runtime).
  */
-export const transporter: Transporter =
-  globalThis._mailer ?? createTransporter();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis._mailer = transporter;
+export function getTransporter(): Transporter {
+  if (!globalThis._mailer) {
+    globalThis._mailer = createTransporter();
+  }
+  return globalThis._mailer;
 }
 
 /**
  * Cek koneksi (opsional)
  */
 export async function verifyMailer() {
-  return transporter.verify();
+  return getTransporter().verify();
 }
 
 type SendArgs = {
@@ -67,7 +70,7 @@ export async function sendEmail({
                                   from = process.env.EMAIL_USER,
                                 }: SendArgs) {
   try {
-    const info = await transporter.sendMail({
+    const info = await getTransporter().sendMail({
       from,
       to,
       subject,
