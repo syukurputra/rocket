@@ -1,27 +1,28 @@
-# Deployment — Bantu Sewa (Nevacloud, Docker via GitHub Actions)
+# Deployment — Bantu Sewa (Nevacloud)
 
-Deploy branch **`production`** ke server **Nevacloud** dengan alur CI/CD:
-**GitHub build image → push ke GHCR → server pull & run.**
+Deploy branch **`production`** ke server **Nevacloud** dengan CI/CD:
+**GitHub Actions build image → push ke GHCR → server pull & run.**
 
 - **App:** Next.js 15 + Prisma (PostgreSQL), `output: 'standalone'`
-- **Build:** dilakukan di **GitHub Actions** (RAM besar) — server **tidak pernah build**
-- **Kenapa begini:** server 1 GB **tidak kuat** `next build` (OOM → `.next/standalone` gagal terbentuk). Build dipindah ke GitHub, server cukup menjalankan image jadi.
-- **Database:** PostgreSQL yang **sudah ada** (eksternal) — di-migrate otomatis saat container start (`prisma migrate deploy`).
-- **Storage:** Nevacloud Object Storage (`s3.nevaobjects.id`).
+- **Build:** di **GitHub Actions** (RAM besar) — server **tidak pernah build** (server 1 GB tidak kuat `next build`)
+- **Registry:** GitHub Container Registry (`ghcr.io/syukurputra/bantusewa`)
+- **Database:** PostgreSQL **eksternal** yang sudah ada — di-migrate otomatis saat container start
+- **Storage:** Nevacloud Object Storage (`s3.nevaobjects.id`)
 
 ```
-git push ke branch production
+push ke branch production
         │
         ▼
-GitHub Actions (runner RAM besar, tidak OOM)
-  1. docker build  →  2. push ke ghcr.io/syukurputra/bantusewa:production
+GitHub Actions (environment: production)
+  1. docker build  →  2. push ghcr.io/syukurputra/bantusewa:production
+  3. SSH ke server  →  docker compose pull && up -d
         │
         ▼
-SSH ke server Nevacloud  →  docker compose pull && up -d
-        │
-        ▼
-Server 1 GB hanya MENJALANKAN image (tidak build) ✅
+Server Nevacloud 1 GB: hanya MENJALANKAN image ✅
 ```
+
+> **development → Koyeb**, **production → Nevacloud**. Workflow terpisah:
+> `deploy-development.yml` (branch development) vs `deploy-nevacloud.yml` (branch production).
 
 ---
 
@@ -29,55 +30,65 @@ Server 1 GB hanya MENJALANKAN image (tidak build) ✅
 
 | File | Fungsi |
 |------|--------|
-| `.github/workflows/deploy-nevacloud.yml` | Build image di GitHub → push GHCR → SSH deploy |
-| `Dockerfile` | Multi-stage (deps → builder → runner), Debian slim + OpenSSL, output standalone, build-args untuk env build |
-| `docker-entrypoint.sh` | `prisma migrate deploy` lalu start app |
+| `.github/workflows/deploy-nevacloud.yml` | Build → push GHCR → SSH deploy (trigger: push ke `production`) |
+| `Dockerfile` | Multi-stage, Debian slim + OpenSSL, output standalone, build-args env |
+| `docker-entrypoint.sh` | `prisma migrate deploy` lalu start app (LF line-ending) |
 | `docker-compose.yml` | Pakai `image:` GHCR — server **pull**, bukan build |
 | `.dockerignore` | Exclude `node_modules`, `.env`, `.git`, `.next`, dll |
 | `.env.production.example` | Template env produksi |
-
-> `docker-entrypoint.sh` **harus** ber-line-ending **LF** (bukan CRLF) agar jalan di Linux.
 
 ---
 
 ## Setup awal (sekali saja)
 
-### 1. GitHub Secrets
+### 1. Environment secrets di GitHub
 
-Repo → **Settings → Secrets and variables → Actions → New repository secret**:
+Repo → **Settings → Environments → `production`** → **Environment secrets**.
+(Wajib environment `production`, karena workflow pakai `environment: production`.)
 
-| Secret | Isi | Untuk |
-|--------|-----|-------|
-| `SSH_HOST` | IP server Nevacloud | SSH deploy |
-| `SSH_USER` | `root` (atau user deploy) | SSH deploy |
-| `SSH_KEY` | **private key** SSH ke server (isi lengkap, termasuk header/footer) | SSH deploy |
-| `SSH_PORT` | opsional, default `22` | SSH deploy |
-| `GHCR_PAT` | Personal Access Token scope **`read:packages`** | server pull image |
-| `PROD_DATABASE_URL` | connection string Postgres (pooled) | build-time |
-| `PROD_DIRECT_URL` | connection string Postgres (direct) | build-time |
-| `PROD_SITE_URL` | `https://domain-produksi-kamu.com` | build-time |
+| Secret | Isi |
+|--------|-----|
+| `SSH_HOST` | IP server Nevacloud |
+| `SSH_USER` | `root` (harus cocok dgn pemilik `authorized_keys`) |
+| `SSH_KEY` | **private key** SSH (utuh, `-----BEGIN…-----END-----`) |
+| `SSH_PORT` | opsional, default `22` |
+| `GHCR_PAT` | PAT **classic** scope **`read:packages`** (server pull image) |
+| `PROD_DATABASE_URL` | Postgres URL (build-time) |
+| `PROD_DIRECT_URL` | Postgres URL direct (build-time) |
+| `PROD_SITE_URL` | `https://domain-produksi-kamu.com` (build-time) |
 
-> `PROD_*` biasanya **sudah ada** dari workflow lama — cukup dipakai ulang.
-> `GHCR_PAT` dibuat di https://github.com/settings/tokens (classic, centang `read:packages`).
+### 2. SSH key untuk deploy
 
-### 2. Provisi server Nevacloud
+Di server (sebagai user `SSH_USER`, mis. `root`):
 
-Dashboard → **Apps → DOCKER** → buat Cloud Server (1 GB cukup untuk runtime). Catat **IP** & pasang **SSH key**.
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/gh_deploy -N ""
 
-### 3. Siapkan server
+# daftarkan PUBLIC key ke server ini
+cat ~/.ssh/gh_deploy.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# tampilkan PRIVATE key → copy UTUH ke secret SSH_KEY
+cat ~/.ssh/gh_deploy
+```
+
+> `SSH_KEY` = isi file **`gh_deploy`** (private), BUKAN `gh_deploy.pub`.
+> Kalau `SSH_USER=root`, pastikan `PermitRootLogin` di `/etc/ssh/sshd_config` bukan `no`.
+
+### 3. Provisi & siapkan server
+
+Nevacloud → **Apps → DOCKER** → buat Cloud Server (1 GB cukup untuk runtime).
 
 ```bash
 ssh root@IP_SERVER
-
-# Clone repo (untuk docker-compose.yml + Dockerfile + prisma)
 git clone -b production https://github.com/syukurputra/rocket.git
 cd rocket
 
-# Buat env produksi, isi nilainya
 cp .env.production.example .env.production
-nano .env.production        # DATABASE_URL, JWT, S3, iPaymu, dll
+nano .env.production        # isi DATABASE_URL, JWT, S3, iPaymu, dll
 
-# Test login GHCR (pakai PAT read:packages)
+# login GHCR (biar bisa pull image private)
 echo "GHCR_PAT_KAMU" | docker login ghcr.io -u syukurputra --password-stdin
 ```
 
@@ -85,19 +96,41 @@ echo "GHCR_PAT_KAMU" | docker login ghcr.io -u syukurputra --password-stdin
 
 ## Deploy
 
-Tiap **push ke branch `production`** otomatis build + deploy. Trigger manual juga bisa via tab **Actions → Build & Deploy to Nevacloud → Run workflow**.
+Tiap **push ke `production`** = auto build + deploy. Manual: **Actions → Build & Deploy to Nevacloud → Run workflow**.
 
 ```powershell
-# dari lokal
 git add -A
-git commit -m "deploy: <deskripsi perubahan>"
+git commit -m "deploy: <deskripsi>"
 git push origin production
 ```
 
-Pantau progres di tab **Actions**. Step-nya:
-1. Build image di GitHub → push `ghcr.io/syukurputra/bantusewa:production`
-2. SSH ke server → `docker compose pull && docker compose up -d`
-3. Container start → `prisma migrate deploy` → app listen `:3000`
+Pantau tab **Actions** — semua step harus hijau (Build & Push image → Deploy ke server (SSH)).
+
+---
+
+## Verifikasi di server
+
+```bash
+cd ~/rocket
+docker compose ps                    # service app harus "Up", port 0.0.0.0:3000->3000
+docker compose logs --tail=80 app    # cek migrate + app ready
+```
+
+Log yang diharapkan:
+```
+==> Running prisma migrate deploy...
+No pending migrations to apply.        (atau: Applied migration ...)
+==> Starting app...
+▲ Next.js 15.1.2
+- Local:  http://localhost:3000
+✓ Ready in ...
+```
+
+Tes HTTP:
+```bash
+curl -I http://localhost:3000
+curl http://localhost:3000/api/health
+```
 
 ---
 
@@ -125,7 +158,7 @@ server {
 sudo certbot --nginx -d domain-produksi-kamu.com
 ```
 
-Setelah domain aktif, set di `.env.production` lalu redeploy:
+Lalu update `.env.production` + redeploy:
 - `NEXT_PUBLIC_SITE_URL=https://domain-produksi-kamu.com`
 - `GOOGLE_REDIRECT_URI=https://domain-produksi-kamu.com/api/auth/google/callback`
 
@@ -134,22 +167,15 @@ Setelah domain aktif, set di `.env.production` lalu redeploy:
 ## Operasional
 
 ```bash
-# di server
-docker compose logs -f app          # lihat log (cek migrate deploy + listen :3000)
-docker compose ps                   # status container
-docker compose restart app          # restart
-docker compose pull && docker compose up -d   # deploy manual image terbaru
-
-# migrasi Prisma jalan otomatis tiap start; manual bila perlu:
-docker compose exec app node_modules/.bin/prisma migrate deploy
+docker compose ps
+docker compose logs -f app
+docker compose restart app
+docker compose pull && docker compose up -d          # deploy manual image terbaru
+docker compose exec app node node_modules/prisma/build/index.js migrate deploy   # migrate manual
 ```
 
-### Rollback
-
-Tiap build juga di-tag dengan commit SHA. Untuk balik ke versi lama:
-
+### Rollback (tiap build juga di-tag SHA)
 ```bash
-# di server, edit image tag di docker-compose.yml ke SHA tertentu, atau:
 docker pull ghcr.io/syukurputra/bantusewa:<SHA_LAMA>
 docker tag ghcr.io/syukurputra/bantusewa:<SHA_LAMA> ghcr.io/syukurputra/bantusewa:production
 docker compose up -d
@@ -157,31 +183,35 @@ docker compose up -d
 
 ---
 
-## Troubleshooting
+## Troubleshooting (masalah nyata yang pernah terjadi)
 
 | Gejala | Penyebab | Solusi |
 |--------|----------|--------|
-| Build gagal, `.next/standalone` tidak ada | `next build` OOM (RAM kurang) | Build sudah di GitHub (RAM besar) — pastikan tidak build di server 1 GB |
-| `docker compose pull` → `denied` / `unauthorized` | Server belum login GHCR | `docker login ghcr.io` pakai `GHCR_PAT` (scope `read:packages`) |
-| Actions gagal di step SSH | Secret `SSH_*` salah / key tidak cocok | Cek `SSH_HOST/USER/KEY`, pastikan public key ada di `~/.ssh/authorized_keys` server |
-| App start tapi gambar S3 ke-blok | `next.config.mjs` tidak ke-load saat build | Pastikan config `next.config.mjs` ada & `output:'standalone'` + `images.remotePatterns` terpasang |
-| `migrate deploy` gagal | Postgres tidak reachable dari server | Whitelist IP server / cek `DATABASE_URL` & `DIRECT_URL` |
+| Build gagal: `Failed to collect page data for /api/...`, `Missing MAIL_SERVER...` | Modul di-import validasi env di **level module** → throw saat `next build` | Jadikan **lazy** (validasi env saat runtime, bukan import). Cth: `getTransporter()` di `src/libs/mailer.ts` |
+| Build gagal, `.next/standalone` tak ada | `next build` berhenti (mis. error di atas), atau OOM di server | Build sudah di GitHub (RAM besar); pastikan tidak build di server 1 GB |
+| Container crash-loop: `ENOENT ... prisma_schema_build_bg.wasm` | Prisma dipanggil via symlink `.bin/prisma` yang ke-dereference → path wasm salah | Panggil `node node_modules/prisma/build/index.js migrate deploy` |
+| Actions SSH: `missing server host` | Secret disimpan sbg **Environment secret** tapi job tak set environment | Tambah `environment: production` di job |
+| Actions SSH: `ParsePrivateKey: no key found` | `SSH_KEY` berisi public key / kepotong | Paste **private key** (`gh_deploy`) utuh dgn BEGIN/END |
+| `docker login`/pull: `denied: denied` | `GHCR_PAT` kurang scope | PAT classic scope `read:packages` |
+| Migrate: `Can't reach database server` | DB tak reachable dari server | Cek `DATABASE_URL`/`DIRECT_URL`, whitelist IP server di Postgres |
 
 ---
 
 ## Catatan penting
 
-- **Config Next pakai `next.config.mjs`** (bukan `.ts`). Format `.mjs` di-load Node secara native — hindari ambiguitas loader.
-- **Server tidak pernah `docker compose build`** — selalu `pull`. Kalau butuh build lokal untuk debug, `docker compose build` tetap bisa (ada `build:` di compose) tapi butuh RAM ≥ 2 GB.
-- **Jangan commit `.env.production`** — hanya ada di server.
+- **Config Next = `next.config.mjs`** (bukan `.ts`) — format ESM di-load native, hindari ambiguitas loader.
+- **Server tidak pernah `docker compose build`** — selalu `pull`. Build butuh RAM ≥ 2 GB (dilakukan GitHub).
+- **`docker-entrypoint.sh` harus LF** (bukan CRLF) agar jalan di Linux.
+- **Jangan commit `.env.production`** — hanya ada di server. (Disarankan tambahkan ke `.gitignore`.)
 
 ---
 
 ## Checklist go-live
 
-- [ ] Semua GitHub Secrets terisi (`SSH_*`, `GHCR_PAT`, `PROD_*`)
-- [ ] Workflow Koyeb lama sudah dihapus (`deploy-production.yml`, `deploy-development.yml`)
+- [ ] Environment `production` berisi semua secret (`SSH_*`, `GHCR_PAT`, `PROD_*`)
+- [ ] SSH key: private → `SSH_KEY`, public → `authorized_keys` server
 - [ ] Server: repo ter-clone, `.env.production` terisi, sudah `docker login ghcr.io`
 - [ ] Postgres reachable dari IP server (whitelist / VPC)
-- [ ] Push ke `production` → Actions hijau → container jalan
+- [ ] Push ke `production` → Actions semua hijau
+- [ ] `docker compose ps` = Up, `logs` = migrate sukses + Ready, `curl` = 200
 - [ ] Domain + SSL aktif, `NEXT_PUBLIC_SITE_URL` & `GOOGLE_REDIRECT_URI` = domain produksi
