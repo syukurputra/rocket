@@ -49,8 +49,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const sql = `
       SELECT
-        COUNT(*) FILTER (WHERE t.status = 'LUNAS') AS count_sukses,
-        COALESCE(SUM(t.nominal) FILTER (WHERE t.status = 'LUNAS'), 0) AS total_sukses,
+        COUNT(*) FILTER (WHERE t.status = 'LUNAS' AND t."statusRekon" IS DISTINCT FROM 'SESUAI') AS count_sukses,
+        COALESCE(SUM(t.nominal) FILTER (WHERE t.status = 'LUNAS' AND t."statusRekon" IS DISTINCT FROM 'SESUAI'), 0) AS total_sukses,
         COUNT(*) FILTER (WHERE t."statusRekon" = 'SESUAI') AS count_rekon,
         COALESCE(SUM(t."amountPembayaran") FILTER (WHERE t."statusRekon" = 'SESUAI'), 0) AS total_rekon,
         COALESCE(SUM(t."amountFee") FILTER (WHERE t."statusRekon" = 'SESUAI'), 0) AS total_fee
