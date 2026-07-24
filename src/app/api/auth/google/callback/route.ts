@@ -8,17 +8,21 @@ import { setSessionCookies } from '@/src/libs/session'
 // import { generateRandomString } from '@/src/libs/auth-helpers' // Unused
 
 export async function GET(request: NextRequest) {
+  // Base URL kanonik untuk SEMUA redirect. Jangan pakai request.url: di belakang
+  // proxy + Next standalone, host-nya bisa jadi hostname internal container.
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
   try {
     const searchParams = request.nextUrl.searchParams
     const code = searchParams.get('code')
     const error = searchParams.get('error')
 
     if (error) {
-      return NextResponse.redirect(new URL('/login?error=GoogleAuthFailed', request.url))
+      return NextResponse.redirect(new URL('/login?error=GoogleAuthFailed', baseUrl))
     }
 
     if (!code) {
-      return NextResponse.redirect(new URL('/login?error=NoCode', request.url))
+      return NextResponse.redirect(new URL('/login?error=NoCode', baseUrl))
     }
 
     const clientId = process.env.GOOGLE_CLIENT_ID
@@ -28,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (!clientId || !clientSecret || !redirectUri) {
       console.error('Missing Google OAuth Config')
 
-      return NextResponse.redirect(new URL('/login?error=ServerConfig', request.url))
+      return NextResponse.redirect(new URL('/login?error=ServerConfig', baseUrl))
     }
 
     // Exchange code for token
@@ -49,7 +53,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       console.error('Google Token Error:', tokenData)
 
-      return NextResponse.redirect(new URL('/login?error=GoogleTokenFailed', request.url))
+      return NextResponse.redirect(new URL('/login?error=GoogleTokenFailed', baseUrl))
     }
 
     // Get User Info
@@ -62,7 +66,7 @@ export async function GET(request: NextRequest) {
     if (!userResponse.ok) {
       console.error('Google User Info Error:', userData)
 
-      return NextResponse.redirect(new URL('/login?error=GoogleUserInfoFailed', request.url))
+      return NextResponse.redirect(new URL('/login?error=GoogleUserInfoFailed', baseUrl))
     }
 
     const { email, name: googleName } = userData
@@ -207,7 +211,6 @@ export async function GET(request: NextRequest) {
     const needsPhone = !(user as any).nomorTelepon
 
     // Create URL with tokens and menus as query params for client-side storage
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const authSuccessUrl = new URL('/auth-success', baseUrl)
 
     authSuccessUrl.searchParams.set('accessToken', accessToken)
@@ -223,6 +226,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Google Auth Error:', error)
 
-    return NextResponse.redirect(new URL('/login?error=InternalError', request.url))
+    return NextResponse.redirect(new URL('/login?error=InternalError', baseUrl))
   }
 }
