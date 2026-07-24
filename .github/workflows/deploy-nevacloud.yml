@@ -64,6 +64,10 @@ jobs:
           script: |
             set -e
             cd ~/rocket
+            # Sinkronkan repo di server ke branch production (untuk docker-compose.yml dll).
+            # .env.production untracked (gitignored) → aman, tidak terhapus reset.
+            git fetch origin production
+            git reset --hard origin/production
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose up -d

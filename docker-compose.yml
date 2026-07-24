@@ -11,6 +11,6 @@ services:
     env_file:
       - .env.production
     ports:
-      - "3000:3000"
+      - "80:3000"   # akses via http://IP (port 80), container tetap listen :3000
     # Postgres sudah ada di luar (Nevacloud managed / server lain),
     # koneksinya lewat DATABASE_URL & DIRECT_URL di .env.production.
