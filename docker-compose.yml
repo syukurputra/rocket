@@ -1,9 +1,11 @@
 services:
   app:
+    # Server hanya PULL image ini dari GHCR (tidak build sendiri).
+    image: ghcr.io/syukurputra/bantusewa:production
+    # `build:` hanya dipakai kalau kamu jalankan `docker compose build` manual.
     build:
       context: .
       dockerfile: Dockerfile
-    image: bantusewa:production
     container_name: bantusewa
     restart: unless-stopped
     env_file:
