@@ -20,6 +20,11 @@ import TableCell from '@mui/material/TableCell'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid2'
 import CircularProgress from '@mui/material/CircularProgress'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 
 import dayjs from 'dayjs'
 
@@ -32,6 +37,7 @@ type Header = {
   biayaLayanan: number
   nilaiTransfer: number
   status: string
+  buktiTransfer: string | null
   tanggalRequest: string
 }
 
@@ -67,6 +73,7 @@ const TarikSaldoDetailView = () => {
   const [header, setHeader] = useState<Header | null>(null)
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
+  const [buktiOpen, setBuktiOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -136,6 +143,18 @@ const TarikSaldoDetailView = () => {
             <div>{header ? statusChip(header.status) : '-'}</div>
           </Grid>
         </Grid>
+
+        {header?.buktiTransfer && (
+          <Box className='mbs-4'>
+            <Button
+              variant='outlined'
+              startIcon={<i className='tabler-file-check' />}
+              onClick={() => setBuktiOpen(true)}
+            >
+              Lihat Bukti Transfer
+            </Button>
+          </Box>
+        )}
       </CardContent>
       <Divider />
 
@@ -183,6 +202,37 @@ const TarikSaldoDetailView = () => {
           </Table>
         </div>
       )}
+
+      {/* Popup Bukti Transfer */}
+      <Dialog open={buktiOpen} onClose={() => setBuktiOpen(false)} maxWidth='sm' fullWidth>
+        <DialogTitle className='flex items-center justify-between'>
+          <span>Bukti Transfer</span>
+          <IconButton size='small' onClick={() => setBuktiOpen(false)}>
+            <i className='tabler-x' />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {header?.buktiTransfer && (
+            header.buktiTransfer.toLowerCase().endsWith('.pdf') ? (
+              <iframe
+                src={header.buktiTransfer}
+                title='Bukti Transfer'
+                style={{ width: '100%', height: '70vh', border: 0 }}
+              />
+            ) : (
+              <Box
+                component='img'
+                src={header.buktiTransfer}
+                alt='Bukti Transfer'
+                sx={{ width: '100%', height: 'auto', borderRadius: 1 }}
+              />
+            )
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button color='secondary' onClick={() => setBuktiOpen(false)}>Tutup</Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }

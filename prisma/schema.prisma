@@ -535,6 +535,7 @@ model TarikSaldo {
   biayaLayanan    Decimal   @default(0) @db.Decimal(15, 2)
   nilaiTransfer   Decimal   @default(0) @db.Decimal(15, 2)
   status          String    @default("PENDING") @db.VarChar(20)
+  buktiTransfer   String?
   tanggalRequest  DateTime  @default(now())
   createdById     String
   createdAt       DateTime  @default(now())

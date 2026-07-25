@@ -1,0 +1,348 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+
+import { useParams, useRouter } from 'next/navigation'
+
+import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
+import CardContent from '@mui/material/CardContent'
+import Divider from '@mui/material/Divider'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Chip from '@mui/material/Chip'
+import Button from '@mui/material/Button'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid2'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+
+import dayjs from 'dayjs'
+
+import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
+
+type Header = {
+  id: string
+  companyNama: string | null
+  bankPenerima: string | null
+  nomorRekening: string | null
+  rekeningPenerima: string | null
+  jumlahTransaksi: number
+  jumlahNominal: number
+  biayaLayanan: number
+  nilaiTransfer: number
+  status: string
+  buktiTransfer: string | null
+  tanggalRequest: string
+}
+
+type Item = {
+  id: string
+  nomorTagihan: string | null
+  keterangan: string
+  hargaMerchant: number
+  tanggalBayar: string | null
+  penyewaNama: string | null
+  asetNama: string | null
+  itemAsetNama: string | null
+}
+
+const formatRupiah = (val: number) =>
+  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
+
+const statusChip = (status: string) => {
+  const s = (status || '').toUpperCase()
+
+  if (s === 'SELESAI') return <Chip label='Selesai' color='success' size='small' variant='tonal' />
+  if (s === 'DITOLAK') return <Chip label='Ditolak' color='error' size='small' variant='tonal' />
+  if (s === 'DIPROSES') return <Chip label='Diproses' color='info' size='small' variant='tonal' />
+
+  return <Chip label='Menunggu' color='warning' size='small' variant='tonal' />
+}
+
+const TarikSaldoManagementDetailView = () => {
+  const params = useParams()
+  const router = useRouter()
+  const id = (params?.id as string) || ''
+  const { snack, showSnack, closeSnack } = useSnackbar()
+
+  const [header, setHeader] = useState<Header | null>(null)
+  const [items, setItems] = useState<Item[]>([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [buktiOpen, setBuktiOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const fetchDetail = async () => {
+    try {
+      setLoading(true)
+      const res = await apiFetchClient<{ data: { header: Header; items: Item[] } }>(
+        `/api/admin/tarik-saldo/${id}`,
+        undefined,
+        { redirectOn401: '/login' }
+      )
+
+      setHeader(res.data?.header ?? null)
+      setItems(res.data?.items ?? [])
+    } catch (err) {
+      console.error('Fetch admin tarik saldo detail error:', err)
+      setHeader(null)
+      setItems([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!id) return
+
+    fetchDetail()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
+  const handleUploadBuktiTransfer = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    setUploading(true)
+
+    try {
+      const token = localStorage.getItem('accessToken')
+      const formData = new FormData()
+
+      formData.append('file', file)
+      formData.append('tarikSaldoId', id)
+      if (header?.buktiTransfer) formData.append('oldFilePath', header.buktiTransfer)
+
+      const uploadRes = await fetch('/api/upload/bukti-transfer', {
+        method: 'POST',
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+
+      const uploadData = await uploadRes.json()
+
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.message || 'Gagal upload file')
+      }
+
+      await apiFetchClient(`/api/admin/tarik-saldo/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ buktiTransfer: uploadData.url })
+      })
+
+      setHeader(prev => (prev ? { ...prev, buktiTransfer: uploadData.url, status: 'SELESAI' } : prev))
+      showSnack('Bukti transfer berhasil diupload, penarikan ditandai selesai')
+    } catch (err: any) {
+      console.error('Upload bukti transfer error:', err)
+      showSnack(err?.message || 'Gagal mengupload bukti transfer', 'error')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader
+          avatar={
+            <Tooltip title='Kembali'>
+              <IconButton size='small' onClick={() => router.push('/management-master/tarik-saldo')}>
+                <i className='tabler-arrow-left' />
+              </IconButton>
+            </Tooltip>
+          }
+          title='Detail Penarikan Saldo'
+          titleTypographyProps={{ variant: 'h5' }}
+        />
+        <Divider />
+
+        <CardContent>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Company</Typography>
+              <Typography variant='body2' fontWeight={500}>{header?.companyNama || '-'}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Tanggal Request</Typography>
+              <Typography variant='body2'>{header ? dayjs(header.tanggalRequest).format('DD-MM-YYYY HH:mm') : '-'}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Jumlah Transaksi</Typography>
+              <Typography variant='body2'>{header?.jumlahTransaksi ?? 0}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Status</Typography>
+              <div>{header ? statusChip(header.status) : '-'}</div>
+            </Grid>
+
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Jumlah Nominal</Typography>
+              <Typography variant='body2' fontWeight={600}>{formatRupiah(header?.jumlahNominal ?? 0)}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Biaya Layanan</Typography>
+              <Typography variant='body2' color='error.main'>- {formatRupiah(header?.biayaLayanan ?? 0)}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <Typography variant='caption' color='text.secondary'>Nilai Transfer</Typography>
+              <Typography variant='body2' fontWeight={600} color='primary.main'>{formatRupiah(header?.nilaiTransfer ?? 0)}</Typography>
+            </Grid>
+          </Grid>
+        </CardContent>
+        <Divider />
+
+        {/* Rekening Tujuan */}
+        <CardContent>
+          <Typography variant='h6' className='mbe-3'>Rekening Tujuan</Typography>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant='caption' color='text.secondary'>Bank Penerima</Typography>
+              <Typography variant='body2' fontWeight={500}>{header?.bankPenerima || '-'}</Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant='caption' color='text.secondary'>Nomor Rekening</Typography>
+              <Typography variant='body2' fontWeight={500}>{header?.nomorRekening || '-'}</Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant='caption' color='text.secondary'>Rekening Penerima</Typography>
+              <Typography variant='body2' fontWeight={500}>{header?.rekeningPenerima || '-'}</Typography>
+            </Grid>
+          </Grid>
+
+          <Box className='mbs-4 flex items-center gap-4 flex-wrap'>
+            {header?.buktiTransfer ? (
+              <>
+                <Button
+                  variant='outlined'
+                  startIcon={<i className='tabler-file-check' />}
+                  onClick={() => setBuktiOpen(true)}
+                >
+                  Lihat Bukti Transfer
+                </Button>
+                <Button
+                  variant='text'
+                  size='small'
+                  startIcon={uploading ? <CircularProgress size={14} /> : <i className='tabler-refresh' />}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  Upload Ulang
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant='contained'
+                startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-upload' />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? 'Mengupload...' : 'Upload Bukti Transfer'}
+              </Button>
+            )}
+            <input
+              ref={fileInputRef}
+              type='file'
+              hidden
+              accept='image/jpeg,image/png,image/jpg,application/pdf'
+              onChange={handleUploadBuktiTransfer}
+            />
+          </Box>
+        </CardContent>
+        <Divider />
+
+        {loading ? (
+          <Box display='flex' justifyContent='center' alignItems='center' minHeight={280}>
+            <CircularProgress />
+          </Box>
+        ) : items.length === 0 ? (
+          <Box display='flex' flexDirection='column' alignItems='center' gap={2} py={8}>
+            <i className='tabler-inbox text-5xl text-textDisabled' />
+            <Typography color='text.secondary'>Tidak ada transaksi</Typography>
+          </Box>
+        ) : (
+          <div className='overflow-x-auto'>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>No. Tagihan</TableCell>
+                  <TableCell>Aset / Item</TableCell>
+                  <TableCell>Penyewa</TableCell>
+                  <TableCell>Tanggal Bayar</TableCell>
+                  <TableCell align='right'>Harga Merchant</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map(row => (
+                  <TableRow key={row.id} hover>
+                    <TableCell>
+                      <Typography variant='body2' color='primary.main' className='font-medium'>
+                        {row.nomorTagihan || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='body2'>{row.asetNama || '-'}</Typography>
+                      <Typography variant='caption' color='text.secondary'>{row.itemAsetNama || ''}</Typography>
+                    </TableCell>
+                    <TableCell>{row.penyewaNama || '-'}</TableCell>
+                    <TableCell>{row.tanggalBayar ? dayjs(row.tanggalBayar).format('DD-MM-YYYY') : '-'}</TableCell>
+                    <TableCell align='right'>
+                      <Typography fontWeight={600}>{formatRupiah(row.hargaMerchant)}</Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Card>
+
+      {/* Popup Bukti Transfer */}
+      <Dialog open={buktiOpen} onClose={() => setBuktiOpen(false)} maxWidth='sm' fullWidth>
+        <DialogTitle className='flex items-center justify-between'>
+          <span>Bukti Transfer</span>
+          <IconButton size='small' onClick={() => setBuktiOpen(false)}>
+            <i className='tabler-x' />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {header?.buktiTransfer && (
+            header.buktiTransfer.toLowerCase().endsWith('.pdf') ? (
+              <iframe
+                src={header.buktiTransfer}
+                title='Bukti Transfer'
+                style={{ width: '100%', height: '70vh', border: 0 }}
+              />
+            ) : (
+              <Box
+                component='img'
+                src={header.buktiTransfer}
+                alt='Bukti Transfer'
+                sx={{ width: '100%', height: 'auto', borderRadius: 1 }}
+              />
+            )
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button color='secondary' onClick={() => setBuktiOpen(false)}>Tutup</Button>
+        </DialogActions>
+      </Dialog>
+
+      <AppSnackbar snack={snack} onClose={closeSnack} />
+    </>
+  )
+}
+
+export default TarikSaldoManagementDetailView

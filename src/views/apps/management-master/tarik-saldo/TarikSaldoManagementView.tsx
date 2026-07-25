@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
@@ -18,6 +20,8 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid2'
 import CircularProgress from '@mui/material/CircularProgress'
 import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 
 import dayjs from 'dayjs'
 
@@ -49,7 +53,19 @@ const statusColor = (status: string): 'warning' | 'success' | 'error' | 'default
   return 'default'
 }
 
+const statusLabel = (status: string): string => {
+  const s = (status || '').toUpperCase()
+
+  if (s === 'PENDING') return 'Menunggu'
+  if (s === 'DIPROSES') return 'Diproses'
+  if (s === 'SELESAI' || s === 'SUCCESS' || s === 'COMPLETED' || s === 'DISETUJUI') return 'Selesai'
+  if (s === 'DITOLAK' || s === 'REJECTED' || s === 'GAGAL') return 'Ditolak'
+
+  return status || '-'
+}
+
 const TarikSaldoManagementView = () => {
+  const router = useRouter()
   const { snack, showSnack, closeSnack } = useSnackbar()
 
   const [data, setData] = useState<TarikSaldoRequest[]>([])
@@ -149,6 +165,7 @@ const TarikSaldoManagementView = () => {
                   <TableCell align='right'>Nilai Transfer</TableCell>
                   <TableCell align='center'>Status</TableCell>
                   <TableCell>Tanggal Request</TableCell>
+                  <TableCell align='center'>Aksi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -168,9 +185,16 @@ const TarikSaldoManagementView = () => {
                       <Typography fontWeight={600} color='primary.main'>{formatRupiah(row.nilaiTransfer)}</Typography>
                     </TableCell>
                     <TableCell align='center'>
-                      <Chip label={row.status} color={statusColor(row.status)} size='small' variant='tonal' />
+                      <Chip label={statusLabel(row.status)} color={statusColor(row.status)} size='small' variant='tonal' />
                     </TableCell>
                     <TableCell>{row.tanggalRequest ? dayjs(row.tanggalRequest).format('DD-MM-YYYY HH:mm') : '-'}</TableCell>
+                    <TableCell align='center'>
+                      <Tooltip title='Lihat Detail'>
+                        <IconButton size='small' onClick={() => router.push(`/management-master/tarik-saldo/${row.id}`)}>
+                          <i className='tabler-eye text-textSecondary' />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
