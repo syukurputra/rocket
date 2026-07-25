@@ -15,6 +15,13 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
     const status = searchParams.get('status') || ''
+    const idTagihan = searchParams.get('idTagihan') || ''
+    const nomorTagihan = searchParams.get('nomorTagihan') || ''
+    const penyewa = searchParams.get('penyewa') || ''
+    const asetNama = searchParams.get('aset') || ''
+    const itemAset = searchParams.get('itemAset') || ''
+    const bayarDari = searchParams.get('bayarDari') || ''
+    const bayarSampai = searchParams.get('bayarSampai') || ''
 
     const whereClause: any = {
       companyId: user.companyId
@@ -29,8 +36,17 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       ]
     }
 
-    if (status) {
-      whereClause.status = status
+    if (status) whereClause.status = status
+    if (idTagihan) whereClause.id = { contains: idTagihan.trim() }
+    if (nomorTagihan) whereClause.nomorTagihan = { contains: nomorTagihan.trim(), mode: 'insensitive' }
+    if (penyewa) whereClause.penyewa = { nama: { contains: penyewa.trim(), mode: 'insensitive' } }
+    if (asetNama) whereClause.aset = { nama: { contains: asetNama.trim(), mode: 'insensitive' } }
+    if (itemAset) whereClause.ruangan = { nama: { contains: itemAset.trim(), mode: 'insensitive' } }
+
+    if (bayarDari || bayarSampai) {
+      whereClause.tanggalBayar = {}
+      if (bayarDari) whereClause.tanggalBayar.gte = new Date(bayarDari)
+      if (bayarSampai) whereClause.tanggalBayar.lte = new Date(`${bayarSampai}T23:59:59`)
     }
 
     const [data, total] = await Promise.all([
