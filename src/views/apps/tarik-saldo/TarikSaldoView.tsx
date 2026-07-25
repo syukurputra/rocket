@@ -10,6 +10,8 @@ import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import Checkbox from '@mui/material/Checkbox'
 import Table from '@mui/material/Table'
 import TableHead from '@mui/material/TableHead'
@@ -132,13 +134,17 @@ const TarikSaldoView = () => {
     <>
       <Card>
         <CardHeader
+          avatar={
+            <Tooltip title='Kembali ke Company'>
+              <IconButton size='small' onClick={() => router.push('/setting/company')}>
+                <i className='tabler-arrow-left' />
+              </IconButton>
+            </Tooltip>
+          }
           title='Tarik Saldo'
-          subheader='Pilih transaksi yang akan ditarik'
+          titleTypographyProps={{ variant: 'h5' }}
           action={
             <Box display='flex' gap={2}>
-              <Button variant='tonal' color='secondary' onClick={() => router.push('/tarik-saldo/history')}>
-                History
-              </Button>
               <Button
                 variant='contained'
                 disabled={selected.size === 0}

@@ -68,6 +68,9 @@ type Company = {
   alamat: string | null
   telepon: string | null
   email: string | null
+  bankPenerima?: string | null
+  nomorRekening?: string | null
+  rekeningPenerima?: string | null
   status: boolean
   paketId: string | null
   paketStartDate: string | null
@@ -98,7 +101,10 @@ const CompanySettings = () => {
     nama: '',
     alamat: '',
     telepon: '',
-    email: ''
+    email: '',
+    bankPenerima: '',
+    nomorRekening: '',
+    rekeningPenerima: ''
   })
 
   const fetchCompany = async () => {
@@ -111,7 +117,10 @@ const CompanySettings = () => {
         nama: response.data.nama,
         alamat: response.data.alamat || '',
         telepon: response.data.telepon || '',
-        email: response.data.email || ''
+        email: response.data.email || '',
+        bankPenerima: response.data.bankPenerima || '',
+        nomorRekening: response.data.nomorRekening || '',
+        rekeningPenerima: response.data.rekeningPenerima || ''
       })
     } catch (error) {
       console.error('Failed to fetch company:', error)
@@ -154,15 +163,7 @@ const CompanySettings = () => {
   }, [])
 
   const handleEditClick = () => {
-    if (company) {
-      setFormData({
-        nama: company.nama,
-        alamat: company.alamat || '',
-        telepon: company.telepon || '',
-        email: company.email || ''
-      })
-      setEditDialogOpen(true)
-    }
+    router.push('/setting/company/edit')
   }
 
   const handleSave = async () => {
@@ -279,7 +280,7 @@ const CompanySettings = () => {
             <CardContent>
               <div className='flex justify-between items-center mb-6'>
                 <Typography variant='h5'>Informasi Usaha</Typography>
-                <Button variant='contained' onClick={handleEditClick} startIcon={<i className='tabler-edit' />}>
+                <Button variant='contained' size='small' onClick={handleEditClick} startIcon={<i className='tabler-edit' />}>
                   Ubah
                 </Button>
               </div>
@@ -310,6 +311,18 @@ const CompanySettings = () => {
                 <Grid size={{ xs: 12 }}>
                   <Typography variant='caption' color='text.secondary'>Alamat</Typography>
                   <Typography variant='body1' className='mt-1'>{company.alamat || '-'}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Typography variant='caption' color='text.secondary'>Bank Penerima</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.bankPenerima || '-'}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Typography variant='caption' color='text.secondary'>Nomor Rekening</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.nomorRekening || '-'}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Typography variant='caption' color='text.secondary'>Rekening Penerima</Typography>
+                  <Typography variant='body1' className='mt-1'>{company.rekeningPenerima || '-'}</Typography>
                 </Grid>
               </Grid>
             </CardContent>
@@ -415,7 +428,6 @@ const CompanySettings = () => {
           <Card>
             <CardHeader
               title='Laporan Pendapatan Booking'
-              subheader='Ringkasan Transaksi Booking'
               className='pbe-0'
               action={
                 <div className='flex flex-wrap gap-2'>
@@ -515,6 +527,35 @@ const CompanySettings = () => {
                 rows={3}
                 value={formData.alamat}
                 onChange={e => setFormData({ ...formData, alamat: e.target.value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Bank Penerima'
+                placeholder='mis. BCA, Mandiri, BNI'
+                value={formData.bankPenerima}
+                onChange={e => setFormData({ ...formData, bankPenerima: e.target.value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Nomor Rekening'
+                value={formData.nomorRekening}
+                onChange={e => setFormData({ ...formData, nomorRekening: e.target.value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label='Rekening Penerima'
+                placeholder='Nama pemilik rekening'
+                value={formData.rekeningPenerima}
+                onChange={e => setFormData({ ...formData, rekeningPenerima: e.target.value })}
               />
             </Grid>
           </Grid>

@@ -88,7 +88,7 @@ const TarikSaldoManagementView = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Tarik Saldo' subheader='Semua permintaan tarik saldo' />
+        <CardHeader title='Tarik Saldo' />
         <Divider />
 
         <CardContent>

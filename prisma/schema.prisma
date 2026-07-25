@@ -21,6 +21,9 @@ model Company {
   paketStartDate   DateTime?
   paketEndDate     DateTime?
   isTrial          Boolean   @default(false)
+  bankPenerima     String?
+  nomorRekening    String?
+  rekeningPenerima String?
   aset             Aset[]
   categoryKeuangan CategoryKeuangan[]
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])

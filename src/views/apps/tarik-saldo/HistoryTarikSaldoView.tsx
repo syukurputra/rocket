@@ -8,7 +8,6 @@ import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Table from '@mui/material/Table'
 import TableHead from '@mui/material/TableHead'
@@ -16,6 +15,8 @@ import TableBody from '@mui/material/TableBody'
 import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
 
 import dayjs from 'dayjs'
@@ -69,13 +70,15 @@ const HistoryTarikSaldoView = () => {
   return (
     <Card>
       <CardHeader
-        title='History Tarik Saldo'
-        subheader='Riwayat penarikan saldo'
-        action={
-          <Button variant='tonal' color='secondary' onClick={() => router.push('/tarik-saldo')}>
-            Tarik Saldo
-          </Button>
+        avatar={
+          <Tooltip title='Kembali ke Company'>
+            <IconButton size='small' onClick={() => router.push('/setting/company')}>
+              <i className='tabler-arrow-left' />
+            </IconButton>
+          </Tooltip>
         }
+        title='Riwayat Penarikan Saldo'
+        titleTypographyProps={{ variant: 'h5' }}
       />
       <Divider />
 
@@ -97,6 +100,7 @@ const HistoryTarikSaldoView = () => {
                 <TableCell align='center'>Jumlah Transaksi</TableCell>
                 <TableCell align='right'>Jumlah Nominal</TableCell>
                 <TableCell align='center'>Status</TableCell>
+                <TableCell align='center'>Aksi</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -110,6 +114,13 @@ const HistoryTarikSaldoView = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>{statusChip(row.status)}</TableCell>
+                  <TableCell align='center'>
+                    <Tooltip title='Lihat Detail'>
+                      <IconButton size='small' onClick={() => router.push(`/tarik-saldo/history/${row.id}`)}>
+                        <i className='tabler-eye text-textSecondary' />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
