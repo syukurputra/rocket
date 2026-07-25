@@ -9,22 +9,36 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
 import Autocomplete from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
-import Divider from '@mui/material/Divider'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
+import Stepper from '@mui/material/Stepper'
+import Step from '@mui/material/Step'
+import StepLabel from '@mui/material/StepLabel'
+
+// Third-party Imports
+import classnames from 'classnames'
+
 // Custom Components
 import CustomTextField from '@core/components/mui/TextField'
+import CustomAvatar from '@core/components/mui/Avatar'
+import StepperWrapper from '@core/styles/stepper'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 
 const MapPicker = dynamic(() => import('@/src/components/MapPicker'), { ssr: false })
 
+// Sidebar sections
+const steps = [
+  { icon: 'tabler-user', title: 'Informasi Diri', subtitle: 'Data pribadi & foto' },
+  { icon: 'tabler-map-pin', title: 'Informasi Alamat', subtitle: 'Alamat & lokasi' }
+]
+
 export default function MyProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
 
   // Photo States
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -296,221 +310,213 @@ export default function MyProfilePage() {
 
   return (
     <>
-      <Card>
-        <CardHeader title='Akun Saya' titleTypographyProps={{ variant: 'h5' }} />
-        <Divider />
-        <CardContent>
-          <Grid container spacing={6}>
-            {/* Photo Section */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6'>Foto Profil</Typography>
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <Box className='flex items-center gap-6'>
-                <Avatar
-                  src={photoUrl || undefined}
-                  alt={username || 'User'}
-                  sx={{ width: 96, height: 96, fontSize: 36 }}
-                />
-
-                <Box className='flex flex-col gap-2'>
-                  <Box className='flex gap-2'>
-                    <Button
-                      variant='contained'
-                      size='small'
-                      startIcon={<i className='tabler-upload' />}
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={photoUploading || photoDeleting}
-                    >
-                      {photoUploading ? 'Mengupload...' : 'Upload Foto'}
-                    </Button>
-                    {photoUrl && (
-                      <Button
-                        variant='outlined'
-                        color='error'
-                        size='small'
-                        startIcon={
-                          photoDeleting ? <CircularProgress size={14} color='inherit' /> : <i className='tabler-trash' />
-                        }
-                        onClick={handlePhotoDelete}
-                        disabled={photoUploading || photoDeleting}
+      <Card className='flex flex-col lg:flex-row'>
+        {/* Sidebar */}
+        <CardContent className='max-lg:border-be lg:border-ie lg:min-is-[300px]'>
+          <StepperWrapper>
+            <Stepper
+              activeStep={activeStep}
+              orientation='vertical'
+              connector={<></>}
+              className='flex flex-col gap-4 min-is-[220px]'
+            >
+              {steps.map((label, index) => (
+                <Step key={index} onClick={() => setActiveStep(index)}>
+                  <StepLabel icon={<></>} className='p-1 cursor-pointer'>
+                    <div className='step-label'>
+                      <CustomAvatar
+                        variant='rounded'
+                        skin={activeStep === index ? 'filled' : 'light'}
+                        {...(activeStep === index && { color: 'primary', className: 'shadow-primarySm' })}
+                        size={38}
                       >
-                        {photoDeleting ? 'Menghapus...' : 'Hapus Foto'}
-                      </Button>
-                    )}
-                  </Box>
-                  <Typography variant='caption' color='text.secondary'>
-                    JPG, PNG, atau WebP. Maksimal 2MB.
+                        <i className={classnames(label.icon, '!text-[22px]')} />
+                      </CustomAvatar>
+                      <div className='flex flex-col'>
+                        <Typography color='text.primary' className='step-title'>
+                          {label.title}
+                        </Typography>
+                        <Typography className='step-subtitle'>{label.subtitle}</Typography>
+                      </div>
+                    </div>
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </StepperWrapper>
+        </CardContent>
+
+        {/* Content */}
+        <CardContent className='flex-1 pbs-6'>
+          <Grid container spacing={6}>
+            {activeStep === 0 && (
+              <>
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='h5'>Informasi Diri</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Lengkapi data pribadi & foto profil Anda.
                   </Typography>
-                </Box>
+                </Grid>
 
-                <input
-                  ref={fileInputRef}
-                  type='file'
-                  accept='image/jpeg,image/png,image/jpg,image/webp'
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoUpload}
-                />
-              </Box>
-            </Grid>
+                {/* Photo */}
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='h6' className='mbe-2'>Foto Profil</Typography>
+                  <Box className='flex items-center gap-6'>
+                    <Avatar src={photoUrl || undefined} alt={username || 'User'} sx={{ width: 96, height: 96, fontSize: 36 }} />
+                    <Box className='flex flex-col gap-2'>
+                      <Box className='flex gap-2'>
+                        <Button
+                          variant='contained'
+                          size='small'
+                          startIcon={<i className='tabler-upload' />}
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={photoUploading || photoDeleting}
+                        >
+                          {photoUploading ? 'Mengupload...' : 'Upload Foto'}
+                        </Button>
+                        {photoUrl && (
+                          <Button
+                            variant='outlined'
+                            color='error'
+                            size='small'
+                            startIcon={photoDeleting ? <CircularProgress size={14} color='inherit' /> : <i className='tabler-trash' />}
+                            onClick={handlePhotoDelete}
+                            disabled={photoUploading || photoDeleting}
+                          >
+                            {photoDeleting ? 'Menghapus...' : 'Hapus Foto'}
+                          </Button>
+                        )}
+                      </Box>
+                      <Typography variant='caption' color='text.secondary'>
+                        JPG, PNG, atau WebP. Maksimal 2MB.
+                      </Typography>
+                    </Box>
+                    <input
+                      ref={fileInputRef}
+                      type='file'
+                      accept='image/jpeg,image/png,image/jpg,image/webp'
+                      style={{ display: 'none' }}
+                      onChange={handlePhotoUpload}
+                    />
+                  </Box>
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-              <Divider />
-            </Grid>
+                {/* Personal Info */}
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField fullWidth label='Username' placeholder='Username' value={username} onChange={e => setUsername(e.target.value)} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField fullWidth label='Nama Lengkap' placeholder='Nama lengkap' value={nama} onChange={e => setNama(e.target.value)} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField fullWidth label='Email' placeholder='email@example.com' value={email} onChange={e => setEmail(e.target.value)} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField fullWidth label='Nomor Telepon' placeholder='08123456789' value={nomorTelepon} onChange={e => setNomorTelepon(e.target.value)} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <CustomTextField fullWidth label='Nomor KTP' placeholder='3201xxxxxxxxxxxxxxxx' value={nomorKtp} onChange={e => setNomorKtp(e.target.value)} />
+                </Grid>
+              </>
+            )}
 
-            {/* Personal Info Section */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6'>Informasi Pribadi</Typography>
-            </Grid>
+            {activeStep === 1 && (
+              <>
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='h5'>Informasi Alamat</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Lengkapi alamat & titik lokasi Anda.
+                  </Typography>
+                </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Username'
-                placeholder='Username'
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Nama Lengkap'
-                placeholder='Nama lengkap'
-                value={nama}
-                onChange={e => setNama(e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Email'
-                placeholder='email@example.com'
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Nomor Telepon'
-                placeholder='08123456789'
-                value={nomorTelepon}
-                onChange={e => setNomorTelepon(e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomTextField
-                fullWidth
-                label='Nomor KTP'
-                placeholder='3201xxxxxxxxxxxxxxxx'
-                value={nomorKtp}
-                onChange={e => setNomorKtp(e.target.value)}
-              />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <CustomTextField
+                    fullWidth
+                    label='Alamat'
+                    placeholder='Alamat lengkap (Nama jalan, RT/RW, No. Rumah)'
+                    multiline
+                    rows={2}
+                    value={alamat}
+                    onChange={e => setAlamat(e.target.value)}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Autocomplete
+                    fullWidth
+                    options={listProvinsi}
+                    getOptionLabel={option => option.name || ''}
+                    value={listProvinsi.find(p => p.name === provinsi) || null}
+                    onChange={(_, newValue) => {
+                      setProvinsi(newValue ? newValue.name : '')
+                      setSelectedProvinsiId(newValue ? newValue.id : '')
+                      setKota('')
+                      setSelectedKotaId('')
+                      setKecamatan('')
+                      setSelectedKecamatanId('')
+                      setKelurahan('')
+                    }}
+                    renderInput={params => <CustomTextField {...params} label='Provinsi' placeholder='Pilih Provinsi' />}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Autocomplete
+                    fullWidth
+                    options={listKota}
+                    getOptionLabel={option => option.name || ''}
+                    value={listKota.find(k => k.name === kota) || null}
+                    onChange={(_, newValue) => {
+                      setKota(newValue ? newValue.name : '')
+                      setSelectedKotaId(newValue ? newValue.id : '')
+                      setKecamatan('')
+                      setSelectedKecamatanId('')
+                      setKelurahan('')
+                    }}
+                    disabled={!selectedProvinsiId}
+                    renderInput={params => <CustomTextField {...params} label='Kota/Kabupaten' placeholder='Pilih Kota/Kabupaten' />}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Autocomplete
+                    fullWidth
+                    options={listKecamatan}
+                    getOptionLabel={option => option.name || ''}
+                    value={listKecamatan.find(k => k.name === kecamatan) || null}
+                    onChange={(_, newValue) => {
+                      setKecamatan(newValue ? newValue.name : '')
+                      setSelectedKecamatanId(newValue ? newValue.id : '')
+                      setKelurahan('')
+                    }}
+                    disabled={!selectedKotaId}
+                    renderInput={params => <CustomTextField {...params} label='Kecamatan' placeholder='Pilih Kecamatan' />}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Autocomplete
+                    fullWidth
+                    options={listKelurahan}
+                    getOptionLabel={option => option.name || ''}
+                    value={listKelurahan.find(k => k.name === kelurahan) || null}
+                    onChange={(_, newValue) => {
+                      setKelurahan(newValue ? newValue.name : '')
+                    }}
+                    disabled={!selectedKecamatanId}
+                    renderInput={params => <CustomTextField {...params} label='Kelurahan' placeholder='Pilih Kelurahan' />}
+                  />
+                </Grid>
 
-            {/* Address Section */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' sx={{ mt: 2 }}>
-                Alamat Lengkap
-              </Typography>
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='h6' className='mbe-2'>Lokasi Peta</Typography>
+                  <MapPicker
+                    latitude={lat}
+                    longitude={lng}
+                    onLocationChange={handleLocationChange}
+                    containerId='my-profile-map-container'
+                  />
+                </Grid>
+              </>
+            )}
 
-            <Grid size={{ xs: 12 }}>
-              <CustomTextField
-                fullWidth
-                label='Alamat'
-                placeholder='Alamat lengkap (Nama jalan, RT/RW, No. Rumah)'
-                multiline
-                rows={2}
-                value={alamat}
-                onChange={e => setAlamat(e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Autocomplete
-                fullWidth
-                options={listProvinsi}
-                getOptionLabel={option => option.name || ''}
-                value={listProvinsi.find(p => p.name === provinsi) || null}
-                onChange={(_, newValue) => {
-                  setProvinsi(newValue ? newValue.name : '')
-                  setSelectedProvinsiId(newValue ? newValue.id : '')
-                  setKota('')
-                  setSelectedKotaId('')
-                  setKecamatan('')
-                  setSelectedKecamatanId('')
-                  setKelurahan('')
-                }}
-                renderInput={params => <CustomTextField {...params} label='Provinsi' placeholder='Pilih Provinsi' />}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Autocomplete
-                fullWidth
-                options={listKota}
-                getOptionLabel={option => option.name || ''}
-                value={listKota.find(k => k.name === kota) || null}
-                onChange={(_, newValue) => {
-                  setKota(newValue ? newValue.name : '')
-                  setSelectedKotaId(newValue ? newValue.id : '')
-                  setKecamatan('')
-                  setSelectedKecamatanId('')
-                  setKelurahan('')
-                }}
-                disabled={!selectedProvinsiId}
-                renderInput={params => (
-                  <CustomTextField {...params} label='Kota/Kabupaten' placeholder='Pilih Kota/Kabupaten' />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Autocomplete
-                fullWidth
-                options={listKecamatan}
-                getOptionLabel={option => option.name || ''}
-                value={listKecamatan.find(k => k.name === kecamatan) || null}
-                onChange={(_, newValue) => {
-                  setKecamatan(newValue ? newValue.name : '')
-                  setSelectedKecamatanId(newValue ? newValue.id : '')
-                  setKelurahan('')
-                }}
-                disabled={!selectedKotaId}
-                renderInput={params => (
-                  <CustomTextField {...params} label='Kecamatan' placeholder='Pilih Kecamatan' />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Autocomplete
-                fullWidth
-                options={listKelurahan}
-                getOptionLabel={option => option.name || ''}
-                value={listKelurahan.find(k => k.name === kelurahan) || null}
-                onChange={(_, newValue) => {
-                  setKelurahan(newValue ? newValue.name : '')
-                }}
-                disabled={!selectedKecamatanId}
-                renderInput={params => (
-                  <CustomTextField {...params} label='Kelurahan' placeholder='Pilih Kelurahan' />
-                )}
-              />
-            </Grid>
-
-            {/* Map Section */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' sx={{ mt: 2 }}>
-                Lokasi Peta
-              </Typography>
-              <MapPicker
-                latitude={lat}
-                longitude={lng}
-                onLocationChange={handleLocationChange}
-                containerId='my-profile-map-container'
-              />
-            </Grid>
-
-            {/* Action Buttons */}
+            {/* Action */}
             <Grid size={{ xs: 12 }} className='flex justify-end gap-3 mt-4'>
               <Button variant='contained' color='primary' disabled={saving} onClick={handleSave}>
                 {saving ? <CircularProgress size={24} color='inherit' /> : 'Simpan'}

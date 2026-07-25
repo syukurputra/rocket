@@ -202,6 +202,7 @@ const TiketDetailView = ({ tiketId, mode }: { tiketId: string; mode: 'user' | 'c
           <Card>
             <CardHeader
               title={`Tiket ${tiket.nomorTiket}`}
+              titleTypographyProps={{ variant: 'h5' }}
               subheader={tiket.kategoriNama || '-'}
               avatar={
                 mode === 'user' ? (

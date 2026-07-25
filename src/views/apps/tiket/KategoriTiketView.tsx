@@ -131,7 +131,6 @@ const KategoriTiketView = () => {
       <Card>
         <CardHeader
           title='Category Tiket'
-          subheader='Master kategori untuk tiket support'
           action={
             <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={openCreate}>
               Tambah Kategori

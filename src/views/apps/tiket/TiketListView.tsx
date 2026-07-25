@@ -134,7 +134,6 @@ const TiketListView = ({ mode }: { mode: 'user' | 'cs' }) => {
       <Card>
         <CardHeader
           title={mode === 'cs' ? 'Tiket Support' : 'Support'}
-          subheader={mode === 'cs' ? 'Kelola & balas tiket dari pengguna' : 'Buat tiket kendala dan pantau statusnya'}
           action={
             mode === 'user' ? (
               <Button variant='contained' startIcon={<i className='tabler-plus' />} onClick={openCreateDialog}>
