@@ -37,7 +37,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     const sql = `
-      SELECT ts.id, ts."jumlahTransaksi", ts."jumlahNominal", ts.status,
+      SELECT ts.id, ts."jumlahTransaksi", ts."jumlahNominal", ts."biayaLayanan", ts."nilaiTransfer", ts.status,
              ts."tanggalRequest", ts."createdAt", c.nama AS "companyNama"
       FROM "tarik_saldo" ts
       LEFT JOIN "company" c ON c.id = ts."companyId"
@@ -50,6 +50,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         id: string
         jumlahTransaksi: number
         jumlahNominal: string
+        biayaLayanan: string
+        nilaiTransfer: string
         status: string
         tanggalRequest: Date
         createdAt: Date
@@ -62,6 +64,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       companyNama: r.companyNama,
       jumlahTransaksi: Number(r.jumlahTransaksi ?? 0),
       jumlahNominal: Number(r.jumlahNominal ?? 0),
+      biayaLayanan: Number(r.biayaLayanan ?? 0),
+      nilaiTransfer: Number(r.nilaiTransfer ?? 0),
       status: r.status,
       tanggalRequest: r.tanggalRequest
     }))

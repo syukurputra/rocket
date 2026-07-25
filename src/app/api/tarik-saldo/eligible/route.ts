@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { getParameter } from '@/src/libs/getParameter'
 
 export const runtime = 'nodejs'
 
@@ -11,7 +12,7 @@ export const runtime = 'nodejs'
 async function handleGet(_request: NextRequest, { user }: AuthContext) {
   try {
     if (!user.companyId) {
-      return NextResponse.json({ data: [], total: { jumlahTransaksi: 0, jumlahNominal: 0 } })
+      return NextResponse.json({ data: [], total: { jumlahTransaksi: 0, jumlahNominal: 0, biayaLayanan: 0 } })
     }
 
     const rows = await prisma.$queryRaw<
@@ -54,10 +55,11 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
     }))
 
     const jumlahNominal = data.reduce((sum, d) => sum + d.hargaMerchant, 0)
+    const biayaLayanan = Number((await getParameter('ADMIN_TARIK_SALDO', '0')) || '0')
 
     return NextResponse.json({
       data,
-      total: { jumlahTransaksi: data.length, jumlahNominal },
+      total: { jumlahTransaksi: data.length, jumlahNominal, biayaLayanan },
       message: 'Data berhasil diambil'
     })
   } catch (error) {

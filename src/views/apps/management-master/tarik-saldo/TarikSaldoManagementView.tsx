@@ -30,6 +30,8 @@ type TarikSaldoRequest = {
   companyNama: string | null
   jumlahTransaksi: number
   jumlahNominal: number
+  biayaLayanan: number
+  nilaiTransfer: number
   status: string
   tanggalRequest: string
 }
@@ -143,6 +145,8 @@ const TarikSaldoManagementView = () => {
                   <TableCell>Company</TableCell>
                   <TableCell align='center'>Jumlah Transaksi</TableCell>
                   <TableCell align='right'>Jumlah Nominal</TableCell>
+                  <TableCell align='right'>Biaya Layanan</TableCell>
+                  <TableCell align='right'>Nilai Transfer</TableCell>
                   <TableCell align='center'>Status</TableCell>
                   <TableCell>Tanggal Request</TableCell>
                 </TableRow>
@@ -155,7 +159,13 @@ const TarikSaldoManagementView = () => {
                     </TableCell>
                     <TableCell align='center'>{row.jumlahTransaksi}</TableCell>
                     <TableCell align='right'>
-                      <Typography fontWeight={600} color='primary.main'>{formatRupiah(row.jumlahNominal)}</Typography>
+                      <Typography fontWeight={600}>{formatRupiah(row.jumlahNominal)}</Typography>
+                    </TableCell>
+                    <TableCell align='right'>
+                      <Typography color='error.main'>- {formatRupiah(row.biayaLayanan)}</Typography>
+                    </TableCell>
+                    <TableCell align='right'>
+                      <Typography fontWeight={600} color='primary.main'>{formatRupiah(row.nilaiTransfer)}</Typography>
                     </TableCell>
                     <TableCell align='center'>
                       <Chip label={row.status} color={statusColor(row.status)} size='small' variant='tonal' />

@@ -27,6 +27,8 @@ type TarikSaldo = {
   id: string
   jumlahTransaksi: number
   jumlahNominal: number
+  biayaLayanan: number
+  nilaiTransfer: number
   status: string
   tanggalRequest: string
   createdAt: string
@@ -99,6 +101,8 @@ const HistoryTarikSaldoView = () => {
                 <TableCell>Tanggal Request</TableCell>
                 <TableCell align='center'>Jumlah Transaksi</TableCell>
                 <TableCell align='right'>Jumlah Nominal</TableCell>
+                <TableCell align='right'>Biaya Layanan</TableCell>
+                <TableCell align='right'>Nilai Transfer</TableCell>
                 <TableCell align='center'>Status</TableCell>
                 <TableCell align='center'>Aksi</TableCell>
               </TableRow>
@@ -109,8 +113,16 @@ const HistoryTarikSaldoView = () => {
                   <TableCell>{dayjs(row.tanggalRequest).format('DD-MM-YYYY HH:mm')}</TableCell>
                   <TableCell align='center'>{row.jumlahTransaksi}</TableCell>
                   <TableCell align='right'>
-                    <Typography fontWeight={600} color='primary.main'>
+                    <Typography fontWeight={600}>
                       {formatRupiah(row.jumlahNominal)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align='right'>
+                    <Typography color='error.main'>- {formatRupiah(row.biayaLayanan)}</Typography>
+                  </TableCell>
+                  <TableCell align='right'>
+                    <Typography fontWeight={600} color='primary.main'>
+                      {formatRupiah(row.nilaiTransfer)}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>{statusChip(row.status)}</TableCell>

@@ -1,0 +1,7 @@
+-- AlterTable: Tambah field alamat wilayah & lokasi peta di Company
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "provinsi" VARCHAR(100);
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "kota" VARCHAR(100);
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "kecamatan" VARCHAR(100);
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "kelurahan" VARCHAR(100);
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "latitude" DOUBLE PRECISION;
+ALTER TABLE "company" ADD COLUMN IF NOT EXISTS "longitude" DOUBLE PRECISION;

@@ -24,6 +24,12 @@ model Company {
   bankPenerima     String?
   nomorRekening    String?
   rekeningPenerima String?
+  provinsi         String?   @db.VarChar(100)
+  kota             String?   @db.VarChar(100)
+  kecamatan        String?   @db.VarChar(100)
+  kelurahan        String?   @db.VarChar(100)
+  latitude         Float?
+  longitude        Float?
   aset             Aset[]
   categoryKeuangan CategoryKeuangan[]
   paket            MasterPaket?       @relation("CompanyActivePaket", fields: [paketId], references: [id])
@@ -526,6 +532,8 @@ model TarikSaldo {
   companyId       String
   jumlahTransaksi Int       @default(0)
   jumlahNominal   Decimal   @default(0) @db.Decimal(15, 2)
+  biayaLayanan    Decimal   @default(0) @db.Decimal(15, 2)
+  nilaiTransfer   Decimal   @default(0) @db.Decimal(15, 2)
   status          String    @default("PENDING") @db.VarChar(20)
   tanggalRequest  DateTime  @default(now())
   createdById     String

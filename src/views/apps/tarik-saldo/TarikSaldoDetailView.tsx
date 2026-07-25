@@ -29,6 +29,8 @@ type Header = {
   id: string
   jumlahTransaksi: number
   jumlahNominal: number
+  biayaLayanan: number
+  nilaiTransfer: number
   status: string
   tanggalRequest: string
 }
@@ -119,7 +121,15 @@ const TarikSaldoDetailView = () => {
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant='caption' color='text.secondary'>Jumlah Nominal</Typography>
-            <Typography variant='body2' fontWeight={600} color='primary.main'>{formatRupiah(header?.jumlahNominal ?? 0)}</Typography>
+            <Typography variant='body2' fontWeight={600}>{formatRupiah(header?.jumlahNominal ?? 0)}</Typography>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant='caption' color='text.secondary'>Biaya Layanan</Typography>
+            <Typography variant='body2' color='error.main'>- {formatRupiah(header?.biayaLayanan ?? 0)}</Typography>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant='caption' color='text.secondary'>Nilai Transfer</Typography>
+            <Typography variant='body2' fontWeight={600} color='primary.main'>{formatRupiah(header?.nilaiTransfer ?? 0)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant='caption' color='text.secondary'>Status</Typography>

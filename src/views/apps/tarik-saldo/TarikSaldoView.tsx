@@ -25,6 +25,8 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 
 import dayjs from 'dayjs'
 
@@ -56,14 +58,21 @@ const TarikSaldoView = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [rekeningLengkap, setRekeningLengkap] = useState(true)
+  const [checkingRekening, setCheckingRekening] = useState(true)
+  const [biayaLayanan, setBiayaLayanan] = useState(0)
+  const [rekening, setRekening] = useState({ bankPenerima: '', nomorRekening: '', rekeningPenerima: '' })
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: EligibleTagihan[] }>('/api/tarik-saldo/eligible')
+      const res = await apiFetchClient<{ data: EligibleTagihan[]; total: { biayaLayanan: number } }>(
+        '/api/tarik-saldo/eligible'
+      )
 
       setData(res.data || [])
       setSelected(new Set())
+      setBiayaLayanan(Number(res.total?.biayaLayanan ?? 0))
     } catch (err) {
       console.error('Fetch eligible error:', err)
       showSnack('Gagal memuat data transaksi', 'error')
@@ -72,8 +81,30 @@ const TarikSaldoView = () => {
     }
   }
 
+  const checkRekening = async () => {
+    try {
+      setCheckingRekening(true)
+      const res = await apiFetchClient<{ data: any }>('/api/setting/company')
+      const d = res.data
+
+      setRekening({
+        bankPenerima: d.bankPenerima || '',
+        nomorRekening: d.nomorRekening || '',
+        rekeningPenerima: d.rekeningPenerima || ''
+      })
+      setRekeningLengkap(Boolean(d.bankPenerima && d.nomorRekening && d.rekeningPenerima))
+    } catch (err) {
+      console.error('Fetch company error:', err)
+      // Kalau gagal cek, jangan blokir user — biarkan validasi backend yang final
+      setRekeningLengkap(true)
+    } finally {
+      setCheckingRekening(false)
+    }
+  }
+
   useEffect(() => {
     fetchData()
+    checkRekening()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -98,15 +129,15 @@ const TarikSaldoView = () => {
     })
   }
 
-  const { selectedCount, selectedTotal } = useMemo(() => {
+  const { selectedCount, selectedTotal, nilaiTransfer } = useMemo(() => {
     let total = 0
 
     data.forEach(d => {
       if (selected.has(d.id)) total += d.hargaMerchant
     })
 
-    return { selectedCount: selected.size, selectedTotal: total }
-  }, [selected, data])
+    return { selectedCount: selected.size, selectedTotal: total, nilaiTransfer: total - biayaLayanan }
+  }, [selected, data, biayaLayanan])
 
   const handleTarik = async () => {
     if (selected.size === 0) return
@@ -147,7 +178,7 @@ const TarikSaldoView = () => {
             <Box display='flex' gap={2}>
               <Button
                 variant='contained'
-                disabled={selected.size === 0}
+                disabled={selected.size === 0 || !rekeningLengkap || checkingRekening}
                 onClick={() => setConfirmOpen(true)}
                 startIcon={<i className='tabler-cash-banknote' />}
               >
@@ -157,6 +188,27 @@ const TarikSaldoView = () => {
           }
         />
         <Divider />
+
+        {!checkingRekening && !rekeningLengkap && (
+          <CardContent>
+            <Alert
+              severity='warning'
+              action={
+                <Button
+                  color='warning'
+                  size='small'
+                  variant='outlined'
+                  onClick={() => router.push('/setting/company/edit?step=2')}
+                >
+                  Lengkapi Sekarang
+                </Button>
+              }
+            >
+              <AlertTitle>Informasi Rekening Belum Lengkap</AlertTitle>
+              Lengkapi Bank Penerima, Nomor Rekening, dan Nama Penerima di halaman Informasi Usaha sebelum melakukan tarik saldo.
+            </Alert>
+          </CardContent>
+        )}
 
         {/* Ringkasan pilihan */}
         <CardContent>
@@ -233,10 +285,42 @@ const TarikSaldoView = () => {
       <Dialog open={confirmOpen} onClose={() => !submitting && setConfirmOpen(false)} maxWidth='xs' fullWidth>
         <DialogTitle>Konfirmasi Tarik Saldo</DialogTitle>
         <DialogContent>
-          <Typography>
-            Tarik saldo untuk <strong>{selectedCount} transaksi</strong> senilai{' '}
-            <strong>{formatRupiah(selectedTotal)}</strong>?
+          <Typography className='mbe-4'>
+            Tarik saldo untuk <strong>{selectedCount} transaksi</strong>?
           </Typography>
+
+          <Box display='flex' flexDirection='column' gap={2}>
+            <Box display='flex' justifyContent='space-between'>
+              <Typography color='text.secondary'>Bank Penerima</Typography>
+              <Typography fontWeight={500}>{rekening.bankPenerima || '-'}</Typography>
+            </Box>
+            <Box display='flex' justifyContent='space-between'>
+              <Typography color='text.secondary'>Nomor Rekening</Typography>
+              <Typography fontWeight={500}>{rekening.nomorRekening || '-'}</Typography>
+            </Box>
+            <Box display='flex' justifyContent='space-between'>
+              <Typography color='text.secondary'>Rekening Penerima</Typography>
+              <Typography fontWeight={500}>{rekening.rekeningPenerima || '-'}</Typography>
+            </Box>
+
+            <Divider />
+
+            <Box display='flex' justifyContent='space-between'>
+              <Typography color='text.secondary'>Total Tarik Saldo</Typography>
+              <Typography fontWeight={500}>{formatRupiah(selectedTotal)}</Typography>
+            </Box>
+            <Box display='flex' justifyContent='space-between'>
+              <Typography color='text.secondary'>Biaya Layanan</Typography>
+              <Typography fontWeight={500} color='error.main'>- {formatRupiah(biayaLayanan)}</Typography>
+            </Box>
+
+            <Divider />
+
+            <Box display='flex' justifyContent='space-between'>
+              <Typography variant='h6'>Nilai Transfer</Typography>
+              <Typography variant='h6' color='primary.main'>{formatRupiah(nilaiTransfer)}</Typography>
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button color='secondary' onClick={() => setConfirmOpen(false)} disabled={submitting}>

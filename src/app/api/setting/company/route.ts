@@ -67,7 +67,21 @@ async function handlePut(request: NextRequest, { user }: AuthContext) {
     }
 
     const body = await request.json()
-    const { nama, alamat, telepon, email, bankPenerima, nomorRekening, rekeningPenerima } = body
+    const {
+      nama,
+      alamat,
+      telepon,
+      email,
+      bankPenerima,
+      nomorRekening,
+      rekeningPenerima,
+      provinsi,
+      kota,
+      kecamatan,
+      kelurahan,
+      latitude,
+      longitude
+    } = body
 
     if (!nama) {
       return NextResponse.json({ message: 'Nama perusahaan harus diisi' }, { status: 400 })
@@ -84,7 +98,13 @@ async function handlePut(request: NextRequest, { user }: AuthContext) {
         email: email || null,
         bankPenerima: bankPenerima || null,
         nomorRekening: nomorRekening || null,
-        rekeningPenerima: rekeningPenerima || null
+        rekeningPenerima: rekeningPenerima || null,
+        provinsi: provinsi || null,
+        kota: kota || null,
+        kecamatan: kecamatan || null,
+        kelurahan: kelurahan || null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null
       },
       include: {
         paket: {

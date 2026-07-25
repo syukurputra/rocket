@@ -20,9 +20,17 @@ async function handleGet(_request: NextRequest, { user, params }: ParamCtx) {
 
     // Header penarikan (dibutuhkan halaman detail yang cuma punya id dari URL)
     const headerRows = await prisma.$queryRaw<
-      { id: string; jumlahTransaksi: number; jumlahNominal: any; status: string; tanggalRequest: Date }[]
+      {
+        id: string
+        jumlahTransaksi: number
+        jumlahNominal: any
+        biayaLayanan: any
+        nilaiTransfer: any
+        status: string
+        tanggalRequest: Date
+      }[]
     >`
-      SELECT id, "jumlahTransaksi", "jumlahNominal", status, "tanggalRequest"
+      SELECT id, "jumlahTransaksi", "jumlahNominal", "biayaLayanan", "nilaiTransfer", status, "tanggalRequest"
       FROM "tarik_saldo"
       WHERE id = ${id} AND "companyId" = ${user.companyId}
       LIMIT 1
@@ -38,6 +46,8 @@ async function handleGet(_request: NextRequest, { user, params }: ParamCtx) {
       id: h.id,
       jumlahTransaksi: Number(h.jumlahTransaksi ?? 0),
       jumlahNominal: Number(h.jumlahNominal ?? 0),
+      biayaLayanan: Number(h.biayaLayanan ?? 0),
+      nilaiTransfer: Number(h.nilaiTransfer ?? 0),
       status: h.status,
       tanggalRequest: h.tanggalRequest
     }
