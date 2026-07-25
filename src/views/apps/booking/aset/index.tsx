@@ -61,9 +61,11 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 
 type TagihanBooking = {
   id: string
+  nomorTagihan?: string | null
   keterangan: string
   nominal: number
   status: string
+  tanggalBayar?: string | null
   periodeSewa?: string | null
   mulaiSewa: string
   selesaiSewa: string
@@ -104,6 +106,23 @@ const BookingAsetList = () => {
   const [activeSearch, setActiveSearch] = useState('')
   const [pendingStatus, setPendingStatus] = useState('')
   const [activeStatus, setActiveStatus] = useState('')
+
+  // Filter spesifik
+  const [pendingIdTagihan, setPendingIdTagihan] = useState('')
+  const [activeIdTagihan, setActiveIdTagihan] = useState('')
+  const [pendingNomor, setPendingNomor] = useState('')
+  const [activeNomor, setActiveNomor] = useState('')
+  const [pendingPenyewa, setPendingPenyewa] = useState('')
+  const [activePenyewa, setActivePenyewa] = useState('')
+  const [pendingAset, setPendingAset] = useState('')
+  const [activeAset, setActiveAset] = useState('')
+  const [pendingItemAset, setPendingItemAset] = useState('')
+  const [activeItemAset, setActiveItemAset] = useState('')
+  const [pendingBayarDari, setPendingBayarDari] = useState('')
+  const [activeBayarDari, setActiveBayarDari] = useState('')
+  const [pendingBayarSampai, setPendingBayarSampai] = useState('')
+  const [activeBayarSampai, setActiveBayarSampai] = useState('')
+
   const filterOpen = Boolean(filterAnchor)
 
   const [selectedTagihan, setSelectedTagihan] = useState<TagihanBooking | null>(null)
@@ -112,15 +131,25 @@ const BookingAsetList = () => {
 
   const { snack, showSnack, closeSnack } = useSnackbar()
 
-  const activeFilterCount = [activeSearch, activeStatus].filter(Boolean).length
+  const activeFilterCount = [
+    activeSearch, activeStatus, activeIdTagihan, activeNomor,
+    activePenyewa, activeAset, activeItemAset, activeBayarDari, activeBayarSampai
+  ].filter(Boolean).length
 
-  const fetchData = async (pageNum = 0, limit = 10, search = '', status = '') => {
+  const fetchData = async (pageNum = currentPage, limit = pageSize) => {
     try {
       setLoading(true)
       const params = new URLSearchParams({ page: String(pageNum + 1), limit: String(limit) })
 
-      if (search.trim()) params.append('search', search.trim())
-      if (status) params.append('status', status)
+      if (activeSearch.trim()) params.append('search', activeSearch.trim())
+      if (activeStatus) params.append('status', activeStatus)
+      if (activeIdTagihan.trim()) params.append('idTagihan', activeIdTagihan.trim())
+      if (activeNomor.trim()) params.append('nomorTagihan', activeNomor.trim())
+      if (activePenyewa.trim()) params.append('penyewa', activePenyewa.trim())
+      if (activeAset.trim()) params.append('aset', activeAset.trim())
+      if (activeItemAset.trim()) params.append('itemAset', activeItemAset.trim())
+      if (activeBayarDari) params.append('bayarDari', activeBayarDari)
+      if (activeBayarSampai) params.append('bayarSampai', activeBayarSampai)
 
       const result = await apiFetchClient<{
         data: TagihanBooking[]
@@ -143,22 +172,34 @@ const BookingAsetList = () => {
   }
 
   useEffect(() => {
-    fetchData(currentPage, pageSize, activeSearch, activeStatus)
+    fetchData(currentPage, pageSize)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, activeSearch, activeStatus])
+  }, [currentPage, pageSize, activeSearch, activeStatus, activeIdTagihan, activeNomor, activePenyewa, activeAset, activeItemAset, activeBayarDari, activeBayarSampai])
 
   const handleApplyFilter = () => {
     setActiveSearch(pendingSearch)
     setActiveStatus(pendingStatus)
+    setActiveIdTagihan(pendingIdTagihan)
+    setActiveNomor(pendingNomor)
+    setActivePenyewa(pendingPenyewa)
+    setActiveAset(pendingAset)
+    setActiveItemAset(pendingItemAset)
+    setActiveBayarDari(pendingBayarDari)
+    setActiveBayarSampai(pendingBayarSampai)
     setCurrentPage(0)
     setFilterAnchor(null)
   }
 
   const handleResetFilter = () => {
-    setPendingSearch('')
-    setPendingStatus('')
-    setActiveSearch('')
-    setActiveStatus('')
+    setPendingSearch(''); setActiveSearch('')
+    setPendingStatus(''); setActiveStatus('')
+    setPendingIdTagihan(''); setActiveIdTagihan('')
+    setPendingNomor(''); setActiveNomor('')
+    setPendingPenyewa(''); setActivePenyewa('')
+    setPendingAset(''); setActiveAset('')
+    setPendingItemAset(''); setActiveItemAset('')
+    setPendingBayarDari(''); setActiveBayarDari('')
+    setPendingBayarSampai(''); setActiveBayarSampai('')
     setCurrentPage(0)
     setFilterAnchor(null)
   }
@@ -233,6 +274,14 @@ const BookingAsetList = () => {
 
           return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
         }
+      }),
+      columnHelper.accessor('tanggalBayar', {
+        header: 'Bayar',
+        cell: ({ row }) => (
+          <Typography>
+            {row.original.tanggalBayar ? dayjs(row.original.tanggalBayar).format('DD-MM-YYYY') : '-'}
+          </Typography>
+        )
       }),
       columnHelper.accessor('action', {
         header: 'Aksi',
@@ -358,7 +407,7 @@ const BookingAsetList = () => {
                 onClose={() => setFilterAnchor(null)}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 340 } } }}
+                slotProps={{ paper: { sx: { mt: 1, p: 3, minWidth: 480, maxWidth: 520 } } }}
               >
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
@@ -385,6 +434,73 @@ const BookingAsetList = () => {
                       <MenuItem value='BELUM TERBAYAR'>Belum Terbayar</MenuItem>
                       <MenuItem value='DIBATALKAN'>Dibatalkan</MenuItem>
                     </CustomTextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='No. Tagihan'
+                      placeholder='TG-...'
+                      value={pendingNomor}
+                      onChange={e => setPendingNomor(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='ID Tagihan'
+                      placeholder='ID...'
+                      value={pendingIdTagihan}
+                      onChange={e => setPendingIdTagihan(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Nama Penyewa'
+                      value={pendingPenyewa}
+                      onChange={e => setPendingPenyewa(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Aset'
+                      value={pendingAset}
+                      onChange={e => setPendingAset(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <CustomTextField
+                      fullWidth
+                      label='Item Aset'
+                      value={pendingItemAset}
+                      onChange={e => setPendingItemAset(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleApplyFilter() }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      type='date'
+                      label='Tanggal Bayar (Dari)'
+                      value={pendingBayarDari}
+                      onChange={e => setPendingBayarDari(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <CustomTextField
+                      fullWidth
+                      type='date'
+                      label='Tanggal Bayar (Sampai)'
+                      value={pendingBayarSampai}
+                      onChange={e => setPendingBayarSampai(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12 }} className='flex justify-end gap-2'>
                     <Button size='small' variant='outlined' color='secondary' onClick={() => setFilterAnchor(null)}>
@@ -481,7 +597,7 @@ const BookingAsetList = () => {
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         tagihan={selectedTagihan}
-        onPaid={() => fetchData(currentPage, pageSize, activeSearch, activeStatus)}
+        onPaid={() => fetchData(currentPage, pageSize)}
       />
 
       <TambahBookingDialog
