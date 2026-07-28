@@ -12,10 +12,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import Button from '@mui/material/Button'
-import FormControl from '@mui/material/FormControl'
-import MenuItem from '@mui/material/MenuItem'
 import Pagination from '@mui/material/Pagination'
-import Select from '@mui/material/Select'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -104,13 +101,10 @@ const PublishedAsetList = (props: Props) => {
   const { searchValue } = props
 
   // States
-  const [jenisFilter, setJenisFilter] = useState<string>('All')
-  const [jenisOptions, setJenisOptions] = useState<string[]>([])
   const [data, setData] = useState<PublishedAset[]>([])
   const [loading, setLoading] = useState(true)
   const [activePage, setActivePage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
-  const [totalCount, setTotalCount] = useState(0)
 
   const fetchData = useCallback(async () => {
     try {
@@ -122,7 +116,6 @@ const PublishedAsetList = (props: Props) => {
       })
 
       if (searchValue) params.set('search', searchValue)
-      if (jenisFilter !== 'All') params.set('jenis', jenisFilter)
 
       const res = await fetch(`/api/public/aset?${params.toString()}`)
       const result = await res.json()
@@ -130,22 +123,17 @@ const PublishedAsetList = (props: Props) => {
       if (result.data) {
         setData(result.data)
         setTotalPages(result.pagination.totalPages)
-        setTotalCount(result.pagination.totalCount)
-      }
-
-      if (result.jenisOptions) {
-        setJenisOptions(result.jenisOptions)
       }
     } catch (error) {
       console.error('Error fetching published assets:', error)
     } finally {
       setLoading(false)
     }
-  }, [activePage, searchValue, jenisFilter])
+  }, [activePage, searchValue])
 
   useEffect(() => {
     setActivePage(1)
-  }, [searchValue, jenisFilter])
+  }, [searchValue])
 
   useEffect(() => {
     fetchData()
@@ -169,19 +157,19 @@ const PublishedAsetList = (props: Props) => {
   const SkeletonCard = () => (
     <div className='border rounded bs-full'>
       <div className='pli-2 pbs-2'>
-        <Skeleton variant='rectangular' height={200} className='rounded' />
+        <Skeleton variant='rectangular' height={130} className='rounded' />
       </div>
-      <div className='flex flex-col gap-4 p-5'>
+      <div className='flex flex-col gap-2 p-3'>
         <div className='flex items-center justify-between'>
-          <Skeleton variant='rounded' width={70} height={24} />
-          <Skeleton variant='text' width={80} />
+          <Skeleton variant='rounded' width={60} height={20} />
+          <Skeleton variant='text' width={60} />
         </div>
         <div className='flex flex-col gap-1'>
-          <Skeleton variant='text' width='80%' height={28} />
+          <Skeleton variant='text' width='80%' height={24} />
           <Skeleton variant='text' width='100%' />
         </div>
         <Skeleton variant='text' width='60%' />
-        <Skeleton variant='rounded' height={36} />
+        <Skeleton variant='rounded' height={32} />
       </div>
     </div>
   )
@@ -189,48 +177,18 @@ const PublishedAsetList = (props: Props) => {
   return (
     <Card>
       <CardContent className='flex flex-col gap-6'>
-        <div className='flex flex-wrap items-center justify-between gap-4'>
-          <div>
-            <Typography variant='h5'>Aset Publish</Typography>
-            <Typography>
-              {loading ? 'Memuat data...' : `Total ${totalCount} aset tersedia`}
-            </Typography>
-          </div>
-          <div className='flex flex-wrap items-center gap-y-4 gap-x-6'>
-            <FormControl fullWidth size='small' className='is-[250px] flex-auto'>
-              <Select
-                fullWidth
-                id='select-jenis'
-                value={jenisFilter}
-                onChange={e => {
-                  setJenisFilter(e.target.value)
-                  setActivePage(1)
-                }}
-                labelId='jenis-select'
-              >
-                <MenuItem value='All'>Semua Jenis</MenuItem>
-                {jenisOptions.map(jenis => (
-                  <MenuItem key={jenis} value={jenis}>
-                    {jenis}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
-        </div>
-
         {loading ? (
-          <Grid container spacing={6}>
+          <Grid container spacing={4}>
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
                 <SkeletonCard />
               </Grid>
             ))}
           </Grid>
         ) : data.length > 0 ? (
-          <Grid container spacing={6}>
+          <Grid container spacing={4}>
             {data.map((item, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                 <div className='border rounded bs-full flex flex-col'>
                   <div className='pli-2 pbs-2'>
                     <Link href={`/publish/${item.publishId || item.id}`} className='flex'>
@@ -239,23 +197,23 @@ const PublishedAsetList = (props: Props) => {
                           src={item.images[0].filepath}
                           alt={item.nama}
                           className='is-full rounded object-cover'
-                          style={{ height: '200px' }}
+                          style={{ height: '130px' }}
                         />
                       ) : (
                         <Box
                           className='is-full rounded flex items-center justify-center'
                           sx={{
-                            height: '200px',
+                            height: '130px',
                             bgcolor: 'action.hover'
                           }}
                         >
-                          <i className='tabler-photo-off text-4xl text-textDisabled' />
+                          <i className='tabler-photo-off text-3xl text-textDisabled' />
                         </Box>
                       )}
                     </Link>
                   </div>
-                  <div className='flex flex-col gap-4 p-5 flex-1'>
-                    <div className='flex items-center justify-between'>
+                  <div className='flex flex-col gap-2 p-3 flex-1'>
+                    <div className='flex items-center justify-between gap-1'>
                       <Chip
                         label={item.jenis.charAt(0).toUpperCase() + item.jenis.slice(1)}
                         variant='tonal'
@@ -263,48 +221,46 @@ const PublishedAsetList = (props: Props) => {
                         color={getChipColor(item.jenis)}
                       />
                       <div className='flex items-center gap-1'>
-                        <i className='tabler-box text-lg text-textSecondary' />
-                        <Typography variant='body2' color='text.secondary'>
-                          {getActiveItemCount(item.itemAsets)} Item Aset
+                        <i className='tabler-box text-sm text-textSecondary' />
+                        <Typography variant='caption' color='text.secondary'>
+                          {getActiveItemCount(item.itemAsets)} Item
                         </Typography>
                       </div>
                     </div>
                     <div className='flex flex-col gap-1'>
-                      <Typography variant='h5'>
+                      <Typography variant='body1' fontWeight={600} className='line-clamp-1'>
                         {item.nama}
                       </Typography>
                       <Typography variant='body2' color='text.secondary' className='line-clamp-2'>
                         {item.deskripsi || item.alamat}
                       </Typography>
                     </div>
-                    <div className='flex flex-col gap-1'>
-                      <div className='flex items-center gap-1'>
-                        <i className='tabler-map-pin text-xl text-textSecondary' />
-                        {item.latitude && item.longitude ? (
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                            className='line-clamp-1 cursor-pointer hover:text-primary hover:underline'
-                            component='a'
-                            href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {item.kota}, {item.provinsi}
-                          </Typography>
-                        ) : (
-                          <Typography variant='body2' color='text.secondary' className='line-clamp-1'>
-                            {item.kota}, {item.provinsi}
-                          </Typography>
-                        )}
-                      </div>
+                    <div className='flex items-center gap-1'>
+                      <i className='tabler-map-pin text-lg text-textSecondary' />
+                      {item.latitude && item.longitude ? (
+                        <Typography
+                          variant='caption'
+                          color='text.secondary'
+                          className='line-clamp-1 cursor-pointer hover:text-primary hover:underline'
+                          component='a'
+                          href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {item.kota}, {item.provinsi}
+                        </Typography>
+                      ) : (
+                        <Typography variant='caption' color='text.secondary' className='line-clamp-1'>
+                          {item.kota}, {item.provinsi}
+                        </Typography>
+                      )}
                     </div>
 
                     {/* Fasilitas */}
                     {item.fasilitasAset && item.fasilitasAset.length > 0 && (
-                      <div className='flex flex-wrap gap-2'>
-                        {item.fasilitasAset.slice(0, 4).map(fasilitas => (
+                      <div className='flex flex-wrap gap-1'>
+                        {item.fasilitasAset.slice(0, 2).map(fasilitas => (
                           <Chip
                             key={fasilitas.id}
                             label={fasilitas.nama}
@@ -313,9 +269,9 @@ const PublishedAsetList = (props: Props) => {
                             icon={<i className={fasilitas.icon.code} />}
                           />
                         ))}
-                        {item.fasilitasAset.length > 4 && (
+                        {item.fasilitasAset.length > 2 && (
                           <Chip
-                            label={`+${item.fasilitasAset.length - 4}`}
+                            label={`+${item.fasilitasAset.length - 2}`}
                             size='small'
                             variant='outlined'
                           />
@@ -324,10 +280,10 @@ const PublishedAsetList = (props: Props) => {
                     )}
 
                     {/* Price & Action */}
-                    <div className='flex flex-col gap-3 mt-auto'>
+                    <div className='flex flex-col gap-2 mt-auto'>
                       {getLowestPrice(item.itemAsets) > 0 && (
                         <div className='flex items-baseline gap-1'>
-                          <Typography variant='h6' color='primary.main' className='font-bold'>
+                          <Typography variant='body1' color='primary.main' className='font-bold'>
                             {formatCurrency(getLowestPrice(item.itemAsets))}
                           </Typography>
                           <Typography variant='caption' color='text.secondary'>
@@ -337,6 +293,7 @@ const PublishedAsetList = (props: Props) => {
                       )}
                       <Button
                         fullWidth
+                        size='small'
                         variant='tonal'
                         endIcon={<i className='tabler-chevron-right' />}
                         component={Link}

@@ -4,6 +4,7 @@ import { sendInvoiceNotificationEmail } from '@/src/mails/invoiceNotificationEma
 import { sendPaymentConfirmationEmail } from '@/src/mails/paymentConfirmationEmail'
 import { sendBookingPaymentOwnerEmail } from '@/src/mails/bookingPaymentOwnerEmail'
 import { createPendapatan } from '@/src/libs/pendapatanService'
+import { createKeuanganBooking } from '@/src/libs/keuanganBookingService'
 
 // iPaymu mengirim status dalam berbagai format — normalize ke lowercase
 const parseIpaymuStatus = (raw: string): 'berhasil' | 'gagal' | 'expired' | 'pending' | 'unknown' => {
@@ -107,10 +108,15 @@ export async function POST(request: NextRequest) {
 
         console.log(`[iPaymu Notify] Tagihan "${tagihanId}" → LUNAS ✓`)
 
-        // Catat pendapatan
+        // Catat pendapatan + keuangan (booking, kategori "BOOKING").
+        // createKeuanganBooking hanya dijalankan kalau createPendapatan BENAR-BENAR
+        // baru dibuat (bukan sudah ada) — jadi aman kalau webhook iPaymu terkirim ulang.
         if (tagihan.companyId) {
           createPendapatan(tagihanId, tagihan.companyId, Number(tagihan.nominal))
-            .catch(err => console.error('[iPaymu Notify] Pendapatan error:', err))
+            .then(created => {
+              if (created) return createKeuanganBooking(tagihan)
+            })
+            .catch(err => console.error('[iPaymu Notify] Pendapatan/Keuangan error:', err))
         }
 
         const nomorTagihanRows = await prisma.$queryRaw<{ nomorTagihan: string | null }[]>`

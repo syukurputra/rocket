@@ -1,23 +1,23 @@
 'use client'
 
-// React Imports
-import { useState } from 'react'
+// Next Imports
+import { useSearchParams } from 'next/navigation'
 
 // MUI Imports
 import Grid from '@mui/material/Grid2'
 
 // Component Imports
-import HomeHeader from './HomeHeader'
 import PublishedAsetList from './PublishedAsetList'
+import PromoSection from '@/src/views/front-pages/landing/PromoSection'
 
 const HomeView = () => {
-  // States
-  const [searchValue, setSearchValue] = useState('')
+  const searchParams = useSearchParams()
+  const searchValue = searchParams.get('search') || ''
 
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <HomeHeader searchValue={searchValue} setSearchValue={setSearchValue} />
+        <PromoSection embedded />
       </Grid>
       <Grid size={{ xs: 12 }}>
         <PublishedAsetList searchValue={searchValue} />

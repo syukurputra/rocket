@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       ...(search && {
         OR: [
           { nama: { contains: search, mode: 'insensitive' as const } },
+          { jenis: { contains: search, mode: 'insensitive' as const } },
           { alamat: { contains: search, mode: 'insensitive' as const } },
           { deskripsi: { contains: search, mode: 'insensitive' as const } },
           { kelurahan: { contains: search, mode: 'insensitive' as const } },

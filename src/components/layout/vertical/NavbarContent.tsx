@@ -11,6 +11,7 @@ import classnames from 'classnames'
 
 // Component Imports
 import NavToggle from './NavToggle'
+import NavSearch from '@components/layout/shared/search'
 import ModeDropdown from '@components/layout/shared/ModeDropdown'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 import NotificationsDropdown from '@components/layout/shared/NotificationsDropdown'
@@ -26,18 +27,23 @@ const NavbarContent = () => {
     setIsAuth(!!localStorage.getItem('accessToken'))
   }, [pathname])
 
-  // Di /home tanpa login, header kosong (tombol ada di sidebar)
+  // Di /home tanpa login, header cuma berisi search (tombol Masuk/Daftar ada di sidebar)
   if (pathname === '/home' && !isAuth) {
-    return <div className={classnames(verticalLayoutClasses.navbarContent, 'is-full')} />
+    return (
+      <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center is-full')}>
+        <NavSearch />
+      </div>
+    )
   }
 
   return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
         <NavToggle />
-        <ModeDropdown />
+        <NavSearch />
       </div>
       <div className='flex items-center gap-2'>
+        <ModeDropdown />
         <NotificationsDropdown />
         <UserDropdown />
       </div>

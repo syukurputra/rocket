@@ -38,7 +38,13 @@ const formatDate = (iso: string) => {
   return `${dd}/${mm}/${yyyy}`
 }
 
-const PromoSection = () => {
+type Props = {
+  // true kalau dipasang di halaman lain (mis. dashboard) yang sudah punya
+  // container/padding sendiri — skip max-width & padding khusus landing page.
+  embedded?: boolean
+}
+
+const PromoSection = ({ embedded = false }: Props) => {
   const [promos, setPromos] = useState<BannerPromo[]>([])
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<string | null>(null)
@@ -77,8 +83,12 @@ const PromoSection = () => {
 
   return (
     <>
-    <section className='flex flex-col gap-8 plb-[50px] bg-backgroundDefault'>
-      <div className={classnames('flex max-md:flex-col max-sm:flex-wrap is-full gap-6', frontCommonStyles.layoutSpacing)}>
+    <section className={classnames('flex flex-col gap-8 bg-backgroundDefault', { 'plb-[50px]': !embedded })}>
+      <div
+        className={classnames('flex max-md:flex-col max-sm:flex-wrap is-full gap-6', {
+          [frontCommonStyles.layoutSpacing]: !embedded
+        })}
+      >
         <div className='flex flex-col gap-1 bs-full justify-center items-center lg:items-start is-full md:is-[30%] mlb-auto sm:pbs-2'>
           <Chip label='Promo Terbaru' variant='tonal' color='primary' size='small' className='mbe-3' />
           <div className='flex flex-col gap-y-1 flex-wrap max-lg:text-center'>
