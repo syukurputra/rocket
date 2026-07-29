@@ -12,7 +12,7 @@ import classnames from 'classnames'
 // Component Imports
 import NavToggle from './NavToggle'
 import NavSearch from '@components/layout/shared/search'
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
+import KeranjangButton from '@components/layout/shared/KeranjangButton'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 import NotificationsDropdown from '@components/layout/shared/NotificationsDropdown'
 
@@ -43,7 +43,7 @@ const NavbarContent = () => {
         <NavSearch />
       </div>
       <div className='flex items-center gap-2'>
-        <ModeDropdown />
+        <KeranjangButton />
         <NotificationsDropdown />
         <UserDropdown />
       </div>

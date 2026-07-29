@@ -15,11 +15,15 @@ import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 
 import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import ScheduleDialog from '@/src/views/front-pages/publish/ScheduleDialog'
-import { hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
+import type { TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
 
 interface HargaItem {
   id: string
@@ -32,6 +36,7 @@ interface ItemAset {
   nama: string
   status: string
   companyId: string
+  asetId: string
   asetNama: string
   tarifBiayaLayanan: TarifBiayaLayanan
   hargaItemAset: HargaItem[]
@@ -95,6 +100,9 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
   const [error, setError] = useState('')
   const [openSchedule, setOpenSchedule] = useState(false)
 
+  // Keranjang hanya boleh berisi satu aset — kalau berbeda, user diminta memilih
+  const [konfirmasiGantiAset, setKonfirmasiGantiAset] = useState('')
+
   const [user, setUser] = useState<any>(null)
 
   // Bersihkan penanda pending (jika datang dari alur login)
@@ -152,13 +160,18 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
   const selectedHarga = item?.hargaItemAset.find(h => h.jenisHarga === jenisHarga)
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
-  const adminBooking = hitungBiayaLayanan(total, item?.tarifBiayaLayanan)
 
   // Tanggal & jam disimpan terpisah lalu digabung — menit dikunci 00
   const mulaiSewa = tanggalMulai ? (pakaiJam(jenisHarga) ? `${tanggalMulai}T${jamMulai}:00` : tanggalMulai) : ''
   const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
 
-  const handleBooking = async () => {
+  /**
+   * Booking tidak langsung jadi tagihan — masuk keranjang dulu supaya beberapa
+   * booking pada aset yang sama bisa dibayar sekaligus.
+   *
+   * @param kosongkanDulu isi keranjang dari aset lain dibuang lebih dahulu
+   */
+  const tambahKeKeranjang = async (kosongkanDulu = false) => {
     if (!item) return
     if (!jenisHarga) { setError('Pilih Jenis Harga terlebih dahulu.'); return }
     if (!mulaiSewa) { setError('Pilih Tanggal Mulai terlebih dahulu.'); return }
@@ -166,33 +179,44 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
 
     setSubmitting(true)
     setError('')
+    setKonfirmasiGantiAset('')
 
     try {
-      const res = await fetch('/api/public/booking', {
+      if (kosongkanDulu) {
+        await apiFetchClient('/api/keranjang', { method: 'DELETE' }, { redirectOn401: '/login' })
+      }
+
+      const res = await fetch('/api/keranjang', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`
+        },
         body: JSON.stringify({
-          ruanganId: item.id,
-          namaPemesan: user.name || user.nama || user.username || '',
-          email: user.email || '',
-          telepon: user.nomorTelepon || '',
+          itemAsetId: item.id,
           jenisHarga,
           mulaiSewa,
           selesaiSewa: selesaiSewa?.toISOString(),
           durasi,
           hargaSatuan,
           total,
-          adminBooking,
-          catatan,
-          userId: user.id || null
+          catatan
         })
       })
 
       const data = await res.json()
 
-      if (!res.ok) throw new Error(data.message || 'Gagal membuat booking')
+      if (res.status === 409 && data.code === 'ASET_BERBEDA') {
+        setKonfirmasiGantiAset(data.message)
 
-      router.push('/booking/saya')
+        return
+      }
+
+      if (!res.ok) throw new Error(data.message || 'Gagal menambahkan ke keranjang')
+
+      // Badge keranjang di header ikut menyesuaikan
+      window.dispatchEvent(new Event('keranjang:updated'))
+      router.push('/keranjang')
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan, coba lagi.')
     } finally {
@@ -369,11 +393,11 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
               <Button
                 fullWidth
                 variant='contained'
-                onClick={handleBooking}
+                onClick={() => tambahKeKeranjang()}
                 disabled={submitting}
-                startIcon={submitting ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-calendar-check' />}
+                startIcon={submitting ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-shopping-cart-plus' />}
               >
-                {submitting ? 'Memproses...' : 'Booking Sekarang'}
+                {submitting ? 'Memproses...' : 'Tambah ke Keranjang'}
               </Button>
               <Button fullWidth variant='tonal' color='secondary' onClick={() => router.back()} disabled={submitting}>
                 Kembali
@@ -390,6 +414,24 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
       itemAsetId={item.id}
       itemAsetNama={item.nama}
     />
+
+    <Dialog open={!!konfirmasiGantiAset} onClose={() => setKonfirmasiGantiAset('')} maxWidth='xs' fullWidth>
+      <DialogTitle>Ganti Isi Keranjang?</DialogTitle>
+      <DialogContent>
+        <Typography color='text.secondary'>{konfirmasiGantiAset}</Typography>
+        <Typography color='text.secondary' className='mt-3'>
+          Lanjutkan untuk mengosongkan keranjang lalu menambahkan booking ini.
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button variant='tonal' color='secondary' onClick={() => setKonfirmasiGantiAset('')} disabled={submitting}>
+          Batal
+        </Button>
+        <Button variant='contained' onClick={() => tambahKeKeranjang(true)} disabled={submitting}>
+          Kosongkan & Tambahkan
+        </Button>
+      </DialogActions>
+    </Dialog>
     </>
   )
 }

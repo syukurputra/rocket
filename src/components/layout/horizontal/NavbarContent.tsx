@@ -7,7 +7,7 @@ import classnames from 'classnames'
 import NavToggle from './NavToggle'
 import Logo from '@components/layout/shared/Logo'
 import NavSearch from '@components/layout/shared/search'
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
+import KeranjangButton from '@components/layout/shared/KeranjangButton'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 
 // Hook Imports
@@ -31,7 +31,7 @@ const NavbarContent = () => {
       </div>
       <div className='flex items-center'>
         <NavSearch />
-        <ModeDropdown />
+        <KeranjangButton />
         <UserDropdown />
       </div>
     </div>

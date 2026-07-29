@@ -53,7 +53,7 @@ const themeConfig: Config = {
   templateName: 'Bantu Sewa',
   homePageUrl: '/home',
   settingsCookieName: 'vuexy-mui-next-demo-1',
-  mode: 'system', // 'system', 'light', 'dark'
+  mode: 'light', // Mode dark/light dinonaktifkan — aplikasi selalu light
   skin: 'default', // 'default', 'bordered'
   semiDark: false, // true, false
   layout: 'vertical', // 'vertical', 'collapsed', 'horizontal'

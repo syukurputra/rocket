@@ -19,13 +19,10 @@ export const getSettingsFromCookie = async (): Promise<Settings> => {
   return JSON.parse(cookieStore.get(cookieName)?.value || '{}')
 }
 
+// Mode dark/light dinonaktifkan. Nilai `mode` di cookie lama sengaja diabaikan
+// supaya pengguna yang terlanjur tersimpan 'dark' tetap ikut light.
 export const getMode = async () => {
-  const settingsCookie = await getSettingsFromCookie()
-
-  // Get mode from cookie or fallback to theme config
-  const _mode = settingsCookie.mode || themeConfig.mode
-
-  return _mode
+  return themeConfig.mode
 }
 
 export const getSystemMode = async (): Promise<SystemMode> => {

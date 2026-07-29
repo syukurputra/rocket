@@ -21,7 +21,7 @@ import type { Mode } from '@core/types'
 
 // Component Imports
 import Logo from '@components/layout/shared/Logo'
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
+import KeranjangButton from '@components/layout/shared/KeranjangButton'
 import FrontMenu from './FrontMenu'
 import CustomIconButton from '@core/components/mui/IconButton'
 
@@ -75,7 +75,7 @@ const Header = ({ mode }: { mode: Mode }) => {
             </div>
           )}
           <div className='flex items-center gap-2 sm:gap-4'>
-            {/*<ModeDropdown />*/}
+            <KeranjangButton />
             {isBelowLgScreen ? (
               <CustomIconButton
                 component={Link}

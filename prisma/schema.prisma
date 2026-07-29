@@ -43,6 +43,7 @@ model Company {
   users            User[]
   conversations    Conversation[]
   tarikSaldo       TarikSaldo[]
+  keranjang        Keranjang[]
 
   @@map("company")
 }
@@ -146,6 +147,7 @@ model User {
   notifikasi              Notifikasi[]
   conversations           Conversation[]     @relation("UserConversations")
   tarikSaldoCreated       TarikSaldo[]       @relation("TarikSaldoCreatedBy")
+  keranjang               Keranjang[]        @relation("KeranjangUser")
 
   // Self-relation for invitations
   invitedBy    User?  @relation("UserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
@@ -198,6 +200,7 @@ model Aset {
   images        AsetImage[]
   fasilitasAset FasilitasAset[]
   conversations Conversation[]
+  keranjang     Keranjang[]
 
   @@index([companyId])
   @@map("aset")
@@ -251,6 +254,7 @@ model Ruangan {
   images           RuanganImage[]
   fasilitasRuangan FasilitasRuangan[]
   hargaItemAset    HargaItemAset[]
+  keranjang        Keranjang[]
 
   @@index([companyId])
   @@map("item_aset")
@@ -496,6 +500,10 @@ model Tagihan {
   ipaymuSessionId  String?
   paymentUrl       String?  @db.Text
 
+  // Penanda satu kali pembayaran dari keranjang. Beberapa tagihan yang dibayar
+  // sekaligus berbagi orderId yang sama, dan itulah referenceId ke iPaymu.
+  orderId          String?
+
   // Rekonsiliasi fields
   statusRekon      String?
   amountPembayaran Decimal? @db.Decimal(15, 2)
@@ -524,7 +532,37 @@ model Tagihan {
 
   @@index([companyId])
   @@index([tarikSaldoId])
+  @@index([orderId])
   @@map("tagihan")
+}
+
+/// Keranjang belanja booking. Isinya hanya boleh dari satu aset yang sama per user.
+model Keranjang {
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String
+  asetId      String
+  itemAsetId  String
+  jenisHarga  String   @db.VarChar(20)
+  mulaiSewa   DateTime
+  selesaiSewa DateTime
+  durasi      Int      @default(1)
+  hargaSatuan Decimal  @default(0) @db.Decimal(15, 2)
+  total       Decimal  @default(0) @db.Decimal(15, 2)
+  catatan     String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User    @relation("KeranjangUser", fields: [userId], references: [id], onDelete: Cascade)
+  company  Company @relation(fields: [companyId], references: [id])
+  aset     Aset    @relation(fields: [asetId], references: [id], onDelete: Cascade)
+  itemAset Ruangan @relation(fields: [itemAsetId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([asetId])
+  @@index([itemAsetId])
+  @@index([companyId])
+  @@map("keranjang")
 }
 
 model TarikSaldo {

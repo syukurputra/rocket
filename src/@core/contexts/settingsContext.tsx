@@ -74,10 +74,12 @@ export const SettingsProvider = (props: Props) => {
     JSON.stringify(props.settingsCookie) !== '{}' ? props.settingsCookie : updatedInitialSettings
   )
 
-  // State
-  const [_settingsState, _updateSettingsState] = useState<Settings>(
-    JSON.stringify(settingsCookie) !== '{}' ? settingsCookie : updatedInitialSettings
-  )
+  // State — mode dipaksa 'light' karena fitur dark/light sudah dihapus, sekaligus
+  // menetralkan cookie lama yang masih menyimpan 'dark'/'system'.
+  const [_settingsState, _updateSettingsState] = useState<Settings>({
+    ...(JSON.stringify(settingsCookie) !== '{}' ? settingsCookie : updatedInitialSettings),
+    mode: 'light'
+  })
 
   const updateSettings = (settings: Partial<Settings>, options?: UpdateSettingsOptions) => {
     const { updateCookie = true } = options || {}
