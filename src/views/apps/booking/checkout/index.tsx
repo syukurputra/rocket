@@ -35,6 +35,7 @@ interface ItemAset {
   id: string
   nama: string
   status: string
+  multipleBooking: boolean
   companyId: string
   asetId: string
   asetNama: string
@@ -260,14 +261,16 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
               </div>
             }
             action={
-              <Button
-                variant='outlined'
-                color='secondary'
-                startIcon={<i className='tabler-calendar' />}
-                onClick={() => setOpenSchedule(true)}
-              >
-                Schedule
-              </Button>
+              item.multipleBooking ? null : (
+                <Button
+                  variant='outlined'
+                  color='secondary'
+                  startIcon={<i className='tabler-calendar' />}
+                  onClick={() => setOpenSchedule(true)}
+                >
+                  Schedule
+                </Button>
+              )
             }
           />
           <Divider />

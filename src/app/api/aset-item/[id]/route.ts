@@ -48,7 +48,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { nama, deskripsi, status, asetId } = body
+    const { nama, deskripsi, status, asetId, multipleBooking } = body
 
     const existingItemAset = await prisma.ruangan.findUnique({
       where: { id }
@@ -65,6 +65,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         ...(deskripsi !== undefined && { deskripsi }),
         ...(asetId && { asetId }),
         ...(status && { status }),
+        ...(multipleBooking !== undefined && { multipleBooking: multipleBooking === true }),
         updatedById: user.id
       },
       include: {

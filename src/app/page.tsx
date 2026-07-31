@@ -83,10 +83,10 @@ const jsonLd = {
         },
         {
           '@type': 'Question',
-          name: 'Apakah Bantu Sewa bisa digunakan untuk berbagai jenis sewa?',
+          name: 'Apakah Bantu Sewa bisa digunakan untuk berbagai jenis bisnis sewa?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Ya, Bantu Sewa fleksibel untuk berbagai bisnis sewa: properti (kos, kontrakan, apartemen, ruko), kendaraan, peralatan, hingga perlengkapan acara.'
+            text: 'Ya, Bantu Sewa fleksibel untuk berbagai bisnis sewa: properti (kos, kontrakan, apartemen, ruko), kendaraan, peralatan, perlengkapan bayi, hingga perlengkapan acara.'
           }
         },
         {

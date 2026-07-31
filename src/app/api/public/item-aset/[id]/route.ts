@@ -31,6 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         id: ruangan.id,
         nama: ruangan.nama,
         status: ruangan.status,
+        multipleBooking: ruangan.multipleBooking,
         companyId: ruangan.companyId,
         asetId: ruangan.asetId,
         asetNama: ruangan.aset?.nama || '',

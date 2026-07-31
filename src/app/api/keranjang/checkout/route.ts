@@ -35,7 +35,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       where: { userId: user.id },
       include: {
         aset: { select: { id: true, nama: true, alamatPemesanAktif: true } },
-        itemAset: { select: { id: true, nama: true } }
+        itemAset: { select: { id: true, nama: true, multipleBooking: true } }
       },
       orderBy: { createdAt: 'asc' }
     })
@@ -78,8 +78,11 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       }
     }
 
-    // Tanggal bisa saja keburu dibayar orang lain setelah masuk keranjang
+    // Tanggal bisa saja keburu dibayar orang lain setelah masuk keranjang.
+    // Item multiple booking dikecualikan karena boleh dipesan bersamaan.
     for (const item of items) {
+      if (item.itemAset?.multipleBooking) continue
+
       const konflik = await prisma.tagihan.findFirst({
         where: {
           itemAsetId: item.itemAsetId,

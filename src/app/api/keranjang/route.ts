@@ -125,33 +125,37 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       )
     }
 
-    // Tanggal yang sudah dibayar orang lain tidak boleh masuk keranjang
-    const konflikTagihan = await prisma.tagihan.findFirst({
-      where: {
-        itemAsetId,
-        status: 'LUNAS',
-        AND: [{ mulaiSewa: { lte: selesai } }, { selesaiSewa: { gte: mulai } }]
+    // Item dengan multiple booking boleh dipesan berkali-kali pada waktu sama,
+    // jadi pengecekan bentrok jadwal dilewati.
+    if (!itemAset.multipleBooking) {
+      // Tanggal yang sudah dibayar orang lain tidak boleh masuk keranjang
+      const konflikTagihan = await prisma.tagihan.findFirst({
+        where: {
+          itemAsetId,
+          status: 'LUNAS',
+          AND: [{ mulaiSewa: { lte: selesai } }, { selesaiSewa: { gte: mulai } }]
+        }
+      })
+
+      if (konflikTagihan) {
+        return NextResponse.json({ message: 'Tanggal yang dipilih tidak tersedia' }, { status: 409 })
       }
-    })
 
-    if (konflikTagihan) {
-      return NextResponse.json({ message: 'Tanggal yang dipilih tidak tersedia' }, { status: 409 })
-    }
+      // Bentrok dengan item lain di keranjang sendiri
+      const konflikKeranjang = await prisma.keranjang.findFirst({
+        where: {
+          userId: user.id,
+          itemAsetId,
+          AND: [{ mulaiSewa: { lte: selesai } }, { selesaiSewa: { gte: mulai } }]
+        }
+      })
 
-    // Bentrok dengan item lain di keranjang sendiri
-    const konflikKeranjang = await prisma.keranjang.findFirst({
-      where: {
-        userId: user.id,
-        itemAsetId,
-        AND: [{ mulaiSewa: { lte: selesai } }, { selesaiSewa: { gte: mulai } }]
+      if (konflikKeranjang) {
+        return NextResponse.json(
+          { message: 'Jadwal ini bentrok dengan item yang sudah ada di keranjang' },
+          { status: 409 }
+        )
       }
-    })
-
-    if (konflikKeranjang) {
-      return NextResponse.json(
-        { message: 'Jadwal ini bentrok dengan item yang sudah ada di keranjang' },
-        { status: 409 }
-      )
     }
 
     const item = await prisma.keranjang.create({

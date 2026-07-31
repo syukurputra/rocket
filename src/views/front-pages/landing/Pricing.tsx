@@ -104,9 +104,9 @@ const PricingPlan = () => {
               </Typography>
             </div>
             <Typography className='text-center'>
-              Semua paket mencakup 20+ fitur canggih untuk meningkatkan bisnis properti Anda.
+              Kelola aset, booking, dan keuangan bisnis sewa Anda dalam satu platform.
               <br />
-              Pilih paket terbaik yang sesuai dengan kebutuhan Anda.
+              Pilih paket yang sesuai dengan skala usaha Anda.
             </Typography>
           </div>
         </div>

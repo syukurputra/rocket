@@ -202,7 +202,7 @@ const swaggerSpec: OpenAPIV3.Document = {
     { name: 'Auth', description: 'Autentikasi dan manajemen sesi' },
     { name: 'User', description: 'Manajemen pengguna' },
     { name: 'Company', description: 'Manajemen perusahaan' },
-    { name: 'Aset', description: 'Manajemen aset properti' },
+    { name: 'Aset', description: 'Manajemen aset sewa' },
     { name: 'Aset Item', description: 'Manajemen item/unit dalam aset' },
     { name: 'Penyewa', description: 'Manajemen data penyewa' },
     { name: 'Tagihan', description: 'Manajemen tagihan' },

@@ -18,6 +18,8 @@ import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
 import MenuItem from '@mui/material/MenuItem'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
@@ -40,6 +42,7 @@ type ItemAsetData = {
   nama: string
   deskripsi?: string
   status: string
+  multipleBooking?: boolean
   images?: any[]
 }
 
@@ -54,6 +57,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
   const [nama, setNama] = useState('')
   const [deskripsi, setDeskripsi] = useState('')
   const [status, setStatus] = useState('Tidak Dihuni')
+  const [multipleBooking, setMultipleBooking] = useState(false)
 
   // File Upload State
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -93,6 +97,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
     setNama(room.nama)
     setDeskripsi(room.deskripsi || '')
     setStatus(room.status)
+    setMultipleBooking(room.multipleBooking ?? false)
     setExistingImages(room.images || [])
     setSelectedFiles([])
     setView('form')
@@ -151,6 +156,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
     setNama('')
     setDeskripsi('')
     setStatus('tidak dihuni')
+    setMultipleBooking(false)
     setSelectedFiles([])
     setExistingImages([])
   }
@@ -164,7 +170,8 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
       asetId,
       nama,
       deskripsi,
-      status
+      status,
+      multipleBooking
     }
 
     setSubmitting(true)
@@ -362,6 +369,28 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
           <MenuItem value='aktif'>Aktif</MenuItem>
           <MenuItem value='non aktif'>Non Aktif</MenuItem>
         </CustomTextField>
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <div className='flex items-center gap-1'>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={multipleBooking}
+                onChange={e => setMultipleBooking(e.target.checked)}
+                size='small'
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                Multiple Booking — {multipleBooking ? 'Aktif' : 'Non Aktif'}
+              </Typography>
+            }
+            className='mie-1'
+          />
+          <Tooltip title='Kalau aktif, item ini boleh dibooking beberapa kali pada waktu yang sama dan tombol Schedule tidak ditampilkan di halaman publish.'>
+            <i className='tabler-info-circle text-textSecondary cursor-help' />
+          </Tooltip>
+        </div>
       </Grid>
       <Grid size={{ xs: 12 }}>
         <CustomTextField

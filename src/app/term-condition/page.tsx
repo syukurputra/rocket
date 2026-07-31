@@ -67,7 +67,7 @@ const termData: FaqType[] = [
         id: 'deskripsi-layanan',
         question: 'Deskripsi Layanan',
         answer:
-          'Bantu Sewa menyediakan platform manajemen properti sewa berbasis berlangganan. Detail fitur dan batasan setiap paket tersedia di halaman Pricing dan dapat berubah sewaktu-waktu.'
+          'Bantu Sewa menyediakan platform manajemen bisnis sewa berbasis berlangganan. Detail fitur dan batasan setiap paket tersedia di halaman Pricing dan dapat berubah sewaktu-waktu.'
       },
       {
         id: 'masa-berlaku',
@@ -145,7 +145,7 @@ const termData: FaqType[] = [
         id: 'pengumpulan-data',
         question: 'Pengumpulan Data',
         answer:
-          'Kami mengumpulkan data yang Anda berikan saat mendaftar dan menggunakan layanan, termasuk nama, email, nomor telepon, dan data properti. Data digunakan untuk menyediakan dan meningkatkan layanan kami.'
+          'Kami mengumpulkan data yang Anda berikan saat mendaftar dan menggunakan layanan, termasuk nama, email, nomor telepon, dan data aset sewa. Data digunakan untuk menyediakan dan meningkatkan layanan kami.'
       },
       {
         id: 'penggunaan-data',

@@ -35,9 +35,9 @@ const FaqsData: FaqsDataTypes[] = [
   },
   {
     id: 'panel2',
-    question: 'Bagaimana cara mendaftarkan properti saya di Bantu Sewa?',
+    question: 'Bagaimana cara mendaftarkan aset sewa saya di Bantu Sewa?',
     answer:
-      'Setelah mendaftar akun, Anda dapat langsung menambahkan properti (aset) melalui menu Aset. Isi informasi aset seperti nama, alamat, fasilitas, dan unggah foto. Selanjutnya tambahkan unit atau kamar beserta harga sewanya. Properti Anda akan segera bisa dikelola melalui dashboard.'
+      'Setelah mendaftar akun, Anda dapat langsung menambahkan aset melalui menu Aset. Isi informasi aset seperti nama, alamat, fasilitas, dan unggah foto. Selanjutnya tambahkan item aset beserta harga sewanya. Aset Anda akan segera bisa dikelola melalui dashboard, dan bisa dipublikasikan agar punya halaman sewa sendiri.'
   },
   {
     id: 'panel3',
@@ -47,9 +47,9 @@ const FaqsData: FaqsDataTypes[] = [
   },
   {
     id: 'panel4',
-    question: 'Apakah Bantu Sewa bisa digunakan untuk berbagai jenis properti?',
+    question: 'Apakah Bantu Sewa bisa digunakan untuk berbagai jenis bisnis sewa?',
     answer:
-      'Ya, Bantu Sewa dirancang fleksibel untuk berbagai jenis properti sewa seperti kos, kontrakan, apartemen, ruko, dan properti komersial lainnya. Anda dapat mengatur struktur aset sesuai kebutuhan spesifik properti Anda.'
+      'Ya, Bantu Sewa dirancang fleksibel untuk berbagai bisnis sewa: properti (kos, kontrakan, apartemen, ruko), kendaraan, peralatan, perlengkapan bayi, hingga perlengkapan acara. Anda dapat mengatur struktur aset dan item aset sesuai kebutuhan usaha Anda.'
   },
   {
     id: 'panel5',

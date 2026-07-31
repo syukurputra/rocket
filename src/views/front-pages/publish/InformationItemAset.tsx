@@ -171,15 +171,19 @@ const InformationItemAset = ({ data }: InformationItemAsetProps) => {
               )}
               {data.hargaItemAset && data.hargaItemAset.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1, mt: 1, width: '100%' }}>
-                  <Button
-                    variant='outlined'
-                    color='secondary'
-                    fullWidth
-                    startIcon={<i className='tabler-calendar' />}
-                    onClick={() => setOpenSchedule(true)}
-                  >
-                    Schedule
-                  </Button>
+                  {/* Item multiple booking tidak punya jadwal terpakai, jadi
+                      tombol Schedule tidak relevan */}
+                  {!data.multipleBooking && (
+                    <Button
+                      variant='outlined'
+                      color='secondary'
+                      fullWidth
+                      startIcon={<i className='tabler-calendar' />}
+                      onClick={() => setOpenSchedule(true)}
+                    >
+                      Schedule
+                    </Button>
+                  )}
                   <Button
                     variant='contained'
                     fullWidth

@@ -243,6 +243,9 @@ model Ruangan {
   nama             String
   deskripsi        String?            @db.Text
   status           String             @default("tidak huni")
+
+  /// Kalau aktif, item boleh dibooking beberapa kali pada waktu yang bersamaan
+  multipleBooking  Boolean            @default(false)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   createdById      String
