@@ -51,6 +51,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
   const [instagramAktif, setInstagramAktif] = useState<boolean>(initialData?.instagramAktif ?? false)
   const [facebook, setFacebook] = useState(initialData?.facebook || '')
   const [facebookAktif, setFacebookAktif] = useState<boolean>(initialData?.facebookAktif ?? false)
+  const [alamatPemesanAktif, setAlamatPemesanAktif] = useState<boolean>(initialData?.alamatPemesanAktif ?? false)
 
   const [alamat, setAlamat] = useState(initialData?.alamat || '')
 
@@ -106,6 +107,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
       setInstagramAktif(initialData.instagramAktif ?? false)
       setFacebook(initialData.facebook || '')
       setFacebookAktif(initialData.facebookAktif ?? false)
+      setAlamatPemesanAktif(initialData.alamatPemesanAktif ?? false)
       setAlamat(initialData.alamat || '')
       setKota(initialData.kota || '')
       setProvinsi(initialData.provinsi || '')
@@ -317,6 +319,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
           instagramAktif,
           facebook,
           facebookAktif,
+          alamatPemesanAktif,
           alamat,
           provinsi, // String name
           kota,
@@ -462,6 +465,27 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
             control={<Switch checked={facebookAktif} onChange={e => setFacebookAktif(e.target.checked)} size='small' />}
             label={<Typography variant='caption'>{facebookAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
           />
+        </div>
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <div className='flex flex-col'>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={alamatPemesanAktif}
+                onChange={e => setAlamatPemesanAktif(e.target.checked)}
+                size='small'
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                Alamat Pemesan — {alamatPemesanAktif ? 'Aktif' : 'Non Aktif'}
+              </Typography>
+            }
+          />
+          <Typography variant='caption' color='text.secondary'>
+            Kalau aktif, pemesan wajib melengkapi alamat di profilnya sebelum bisa membayar booking aset ini.
+          </Typography>
         </div>
       </Grid>
       <Grid size={{ xs: 12 }}>

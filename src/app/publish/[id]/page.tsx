@@ -14,6 +14,7 @@ import UlasanPanel from '@/src/views/front-pages/publish/UlasanPanel'
 
 // Lib Imports
 import prisma from '@/src/libs/prisma'
+import { isPromoBerlaku } from '@/src/libs/hargaPromo'
 
 // Style Imports
 import frontCommonStyles from '@views/front-pages/styles.module.css'
@@ -57,7 +58,12 @@ const PublishPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     nominal: Number(data.nominal),
     ruangan: data.ruangan.map(r => ({
       ...r,
-      hargaItemAset: r.hargaItemAset.map(h => ({ ...h, harga: Number(h.harga) }))
+      hargaItemAset: r.hargaItemAset.map(h => ({
+        ...h,
+        harga: Number(h.harga),
+        hargaPromo: Number(h.hargaPromo),
+        promoAktif: isPromoBerlaku(h)
+      }))
     }))
   }
 

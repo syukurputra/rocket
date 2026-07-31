@@ -82,6 +82,14 @@ export default function MyProfilePage() {
   const [selectedKotaId, setSelectedKotaId] = useState<string>('')
   const [selectedKecamatanId, setSelectedKecamatanId] = useState<string>('')
 
+  // Buka langsung tab tertentu lewat ?step= (dipakai tautan "Lengkapi Alamat").
+  // Dibaca dari window supaya tidak perlu Suspense boundary useSearchParams.
+  useEffect(() => {
+    const step = Number(new URLSearchParams(window.location.search).get('step'))
+
+    if (step >= 0 && step < steps.length) setActiveStep(step)
+  }, [])
+
   // Fetch Profile Data
   useEffect(() => {
     const fetchProfile = async () => {

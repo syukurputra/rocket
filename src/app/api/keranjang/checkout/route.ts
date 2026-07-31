@@ -7,6 +7,7 @@ import { createIpaymuPayment } from '@/src/libs/ipaymu'
 import { getTarifBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 import { hitungBiayaLayanan } from '@/src/libs/biayaLayanan'
 import { generateNomorTagihan } from '@/src/libs/nomorTagihan'
+import { isAlamatLengkap } from '@/src/libs/alamatPemesan'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -33,7 +34,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const items = await prisma.keranjang.findMany({
       where: { userId: user.id },
       include: {
-        aset: { select: { id: true, nama: true } },
+        aset: { select: { id: true, nama: true, alamatPemesanAktif: true } },
         itemAset: { select: { id: true, nama: true } }
       },
       orderBy: { createdAt: 'asc' }
@@ -60,6 +61,21 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     if (!nomorTelepon) {
       return NextResponse.json({ message: 'Nomor telepon harus diisi' }, { status: 400 })
+    }
+
+    // Aset yang mengaktifkan "Alamat Pemesan" mensyaratkan alamat profil lengkap
+    if (items.some(i => i.aset?.alamatPemesanAktif)) {
+      const profil = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { alamat: true, provinsi: true, kota: true, kecamatan: true, kelurahan: true }
+      })
+
+      if (!isAlamatLengkap(profil)) {
+        return NextResponse.json(
+          { message: 'Harus lengkapi alamat terlebih dahulu', code: 'ALAMAT_BELUM_LENGKAP' },
+          { status: 400 }
+        )
+      }
     }
 
     // Tanggal bisa saja keburu dibayar orang lain setelah masuk keranjang

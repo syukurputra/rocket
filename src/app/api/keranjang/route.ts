@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { formatAlamatLengkap, isAlamatLengkap } from '@/src/libs/alamatPemesan'
+import { hargaEfektif } from '@/src/libs/hargaPromo'
 
 // GET /api/keranjang — isi keranjang user yang login
 async function handleGet(_request: NextRequest, { user }: AuthContext) {
@@ -10,7 +12,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
     const items = await prisma.keranjang.findMany({
       where: { userId: user.id },
       include: {
-        aset: { select: { id: true, nama: true, alamat: true, kota: true } },
+        aset: { select: { id: true, nama: true, alamat: true, kota: true, alamatPemesanAktif: true } },
         itemAset: { select: { id: true, nama: true } }
       },
       orderBy: { createdAt: 'asc' }
@@ -36,12 +38,27 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
     // dari pembayaran di sisi backend saat checkout (lihat adminBooking).
     const subtotal = mapped.reduce((acc, i) => acc + i.total, 0)
 
+    // Aset bisa mewajibkan pemesan punya alamat lengkap sebelum boleh membayar
+    const wajibAlamat = items.some(i => i.aset?.alamatPemesanAktif)
+
+    const profil = wajibAlamat
+      ? await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { alamat: true, provinsi: true, kota: true, kecamatan: true, kelurahan: true }
+        })
+      : null
+
     return NextResponse.json({
       data: mapped,
       summary: {
         jumlahItem: mapped.length,
         subtotal,
         totalBayar: subtotal
+      },
+      alamatPemesan: {
+        wajib: wajibAlamat,
+        lengkap: wajibAlamat ? isAlamatLengkap(profil) : true,
+        alamat: formatAlamatLengkap(profil)
       },
       message: 'Data berhasil diambil'
     })
@@ -56,7 +73,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { itemAsetId, jenisHarga, mulaiSewa, selesaiSewa, durasi, hargaSatuan, total, catatan } = body
+    const { itemAsetId, jenisHarga, mulaiSewa, selesaiSewa, durasi, catatan } = body
 
     if (!itemAsetId || !jenisHarga || !mulaiSewa || !selesaiSewa || !durasi) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 })
@@ -64,12 +81,27 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     const itemAset = await prisma.ruangan.findUnique({
       where: { id: itemAsetId },
-      include: { aset: { select: { id: true, nama: true } } }
+      include: {
+        aset: { select: { id: true, nama: true } },
+        hargaItemAset: { where: { jenisHarga } }
+      }
     })
 
     if (!itemAset) {
       return NextResponse.json({ message: 'Item aset tidak ditemukan' }, { status: 404 })
     }
+
+    // Harga selalu diambil ulang dari DB — nilai kiriman client sengaja diabaikan
+    // supaya harga promo pasti terpakai dan harganya tidak bisa dimanipulasi.
+    const daftarHarga = itemAset.hargaItemAset[0]
+
+    if (!daftarHarga) {
+      return NextResponse.json({ message: 'Jenis harga tidak tersedia untuk item aset ini' }, { status: 400 })
+    }
+
+    const jumlahDurasi = Math.max(1, Number(durasi))
+    const hargaSatuan = hargaEfektif(daftarHarga)
+    const total = hargaSatuan * jumlahDurasi
 
     const mulai = new Date(mulaiSewa)
     const selesai = new Date(selesaiSewa)
@@ -131,9 +163,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         jenisHarga,
         mulaiSewa: mulai,
         selesaiSewa: selesai,
-        durasi: Number(durasi),
-        hargaSatuan: Number(hargaSatuan) || 0,
-        total: Number(total) || 0,
+        durasi: jumlahDurasi,
+        hargaSatuan,
+        total,
         catatan: catatan || null
       }
     })

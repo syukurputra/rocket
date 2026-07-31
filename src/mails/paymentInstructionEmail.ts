@@ -1,14 +1,7 @@
-import nodemailer from 'nodemailer'
-
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_SERVER,
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  }
-})
+// Pakai transporter bersama dari libs/mailer (port 465 + SSL). Sebelumnya file
+// ini punya transporter sendiri di port 587 non-SSL, yang tidak cocok dengan
+// SMTP produksi sehingga hanya email ini yang gagal terkirim.
+import { getTransporter } from '@/src/libs/mailer'
 
 export async function sendPaymentInstructionEmail(
   to: string,
@@ -247,7 +240,7 @@ export async function sendPaymentInstructionEmail(
   }
 
   try {
-    await transporter.sendMail(mailOptions)
+    await getTransporter().sendMail(mailOptions)
     console.log('Payment instruction email sent successfully to:', to)
   } catch (error) {
     console.error('Error sending payment instruction email:', error)

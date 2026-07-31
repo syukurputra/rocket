@@ -22,18 +22,24 @@ import {
   JENIS_LABEL,
   formatCurrency,
   formatTanggal,
+  type AlamatPemesanStatus,
   type KeranjangItem,
   type KeranjangResponse,
   type KeranjangSummary
 } from '../types'
 
 const KOSONG: KeranjangSummary = { jumlahItem: 0, subtotal: 0, totalBayar: 0 }
+const ALAMAT_AWAL: AlamatPemesanStatus = { wajib: false, lengkap: true, alamat: '' }
+
+/** Tab "Informasi Alamat" pada halaman profil */
+const PROFIL_ALAMAT_URL = '/my-profile?step=1'
 
 const KonfirmasiBayarView = () => {
   const router = useRouter()
 
   const [items, setItems] = useState<KeranjangItem[]>([])
   const [summary, setSummary] = useState<KeranjangSummary>(KOSONG)
+  const [alamatPemesan, setAlamatPemesan] = useState<AlamatPemesanStatus>(ALAMAT_AWAL)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -47,6 +53,7 @@ const KonfirmasiBayarView = () => {
       .then(res => {
         setItems(res.data)
         setSummary(res.summary)
+        setAlamatPemesan(res.alamatPemesan ?? ALAMAT_AWAL)
       })
       .catch(err => setError(err.message || 'Gagal memuat keranjang'))
       .finally(() => setLoading(false))
@@ -72,6 +79,13 @@ const KonfirmasiBayarView = () => {
       return
     }
 
+    // Aset ini mewajibkan alamat pemesan — arahkan ke profil sampai lengkap
+    if (alamatPemesan.wajib && !alamatPemesan.lengkap) {
+      router.push(PROFIL_ALAMAT_URL)
+
+      return
+    }
+
     setSubmitting(true)
     setError('')
 
@@ -92,6 +106,11 @@ const KonfirmasiBayarView = () => {
     } catch (err: any) {
       setError(err.message || 'Gagal membuat pembayaran, coba lagi.')
       setSubmitting(false)
+
+      // Alamat bisa saja jadi tidak lengkap lagi setelah halaman dibuka
+      if (String(err.message).toLowerCase().includes('alamat')) {
+        setAlamatPemesan(prev => ({ ...prev, wajib: true, lengkap: false }))
+      }
     }
   }
 
@@ -150,6 +169,29 @@ const KonfirmasiBayarView = () => {
               placeholder='08xxxxxxxxxx'
             />
 
+            {alamatPemesan.wajib && (
+              <>
+                <Divider />
+
+                <Typography variant='h6'>Alamat Pemesan</Typography>
+
+                {alamatPemesan.lengkap ? (
+                  <Typography color='text.secondary'>{alamatPemesan.alamat}</Typography>
+                ) : (
+                  <Alert
+                    severity='warning'
+                    action={
+                      <Button size='small' color='warning' onClick={() => router.push(PROFIL_ALAMAT_URL)}>
+                        Lengkapi Alamat
+                      </Button>
+                    }
+                  >
+                    Harus lengkapi alamat terlebih dahulu sebelum melanjutkan pembayaran.
+                  </Alert>
+                )}
+              </>
+            )}
+
             <Divider />
 
             <Typography variant='h6'>Rincian Booking</Typography>
@@ -207,15 +249,27 @@ const KonfirmasiBayarView = () => {
             </div>
 
             <div className='flex flex-col gap-3 mt-6'>
-              <Button
-                fullWidth
-                variant='contained'
-                onClick={handleBayar}
-                disabled={submitting}
-                startIcon={submitting ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
-              >
-                {submitting ? 'Memproses...' : 'Bayar Sekarang'}
-              </Button>
+              {alamatPemesan.wajib && !alamatPemesan.lengkap ? (
+                <Button
+                  fullWidth
+                  variant='contained'
+                  color='warning'
+                  startIcon={<i className='tabler-map-pin' />}
+                  onClick={() => router.push(PROFIL_ALAMAT_URL)}
+                >
+                  Lengkapi Alamat
+                </Button>
+              ) : (
+                <Button
+                  fullWidth
+                  variant='contained'
+                  onClick={handleBayar}
+                  disabled={submitting}
+                  startIcon={submitting ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
+                >
+                  {submitting ? 'Memproses...' : 'Bayar Sekarang'}
+                </Button>
+              )}
               <Button
                 fullWidth
                 variant='tonal'

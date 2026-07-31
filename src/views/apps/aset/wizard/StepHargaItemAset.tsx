@@ -16,17 +16,15 @@ import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import Chip from '@mui/material/Chip'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
-import {
-  BIAYA_LAYANAN_PARAM_IDS,
-  hitungBiayaLayanan,
-  tierBiayaLayanan,
-  type TarifBiayaLayanan
-} from '@/src/libs/biayaLayanan'
+import { BIAYA_LAYANAN_PARAM_IDS, hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
+import { isPromoBerlaku } from '@/src/libs/hargaPromo'
 
 type Props = {
   activeStep: number
@@ -44,6 +42,8 @@ type HargaData = {
   ruanganId: string
   jenisHarga: string
   harga: number
+  promoAktif: boolean
+  hargaPromo: number
   ruangan?: ItemAsetData
 }
 
@@ -75,13 +75,20 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [selectedItemAsetId, setSelectedItemAsetId] = useState('')
   const [jenisHarga, setJenisHarga] = useState('HARIAN')
   const [harga, setHarga] = useState('')
+  const [promoAktif, setPromoAktif] = useState(false)
+  const [hargaPromo, setHargaPromo] = useState('')
 
   const hargaNum = Number(parseNumber(harga)) || 0
+  const hargaPromoNum = Number(parseNumber(hargaPromo)) || 0
+
+  // Saat promo aktif, harga promo yang ditagihkan — jadi biaya layanan dan harga
+  // merchant ikut dihitung dari nilai itu.
+  const hargaBerlaku = promoAktif && hargaPromoNum > 0 ? hargaPromoNum : hargaNum
 
   // Biaya layanan mengikuti jenjang harga di Master Parameter, jadi ikut berubah
   // begitu harga diketik
-  const biayaLayanan = hitungBiayaLayanan(hargaNum, tarifLayanan)
-  const nilaiMerchant = Math.max(0, hargaNum - biayaLayanan)
+  const biayaLayanan = hitungBiayaLayanan(hargaBerlaku, tarifLayanan)
+  const nilaiMerchant = Math.max(0, hargaBerlaku - biayaLayanan)
 
   useEffect(() => {
     if (asetId) {
@@ -115,6 +122,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
     setSelectedItemAsetId('')
     setJenisHarga('HARIAN')
     setHarga('')
+    setPromoAktif(false)
+    setHargaPromo('')
     setEditingId(null)
   }
 
@@ -125,6 +134,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
     setSelectedItemAsetId(item.ruanganId)
     setJenisHarga(item.jenisHarga)
     setHarga(formatNumber(String(Math.floor(Number(item.harga)))))
+    setPromoAktif(item.promoAktif ?? false)
+    setHargaPromo(Number(item.hargaPromo) > 0 ? formatNumber(String(Math.floor(Number(item.hargaPromo)))) : '')
     setView('form')
   }
 
@@ -145,8 +156,20 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
       return
     }
 
+    if (promoAktif && hargaPromoNum <= 0) {
+      onShowMessage?.('Harga promo harus diisi saat promo aktif.', 'error')
+
+      return
+    }
+
     try {
-      const payload = { ruanganId: selectedItemAsetId, jenisHarga, harga: Number(parseNumber(harga)) }
+      const payload = {
+        ruanganId: selectedItemAsetId,
+        jenisHarga,
+        harga: Number(parseNumber(harga)),
+        promoAktif,
+        hargaPromo: hargaPromoNum
+      }
 
       if (editingId) {
         await apiFetchClient(`/api/harga-item-aset/${editingId}`, {
@@ -199,7 +222,21 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
                       <TableCell>
                         <Chip label={jenisLabel(item.jenisHarga)} color={jenisColor(item.jenisHarga)} size='small' variant='tonal' />
                       </TableCell>
-                      <TableCell>{formatRupiah(item.harga)}</TableCell>
+                      <TableCell>
+                        {isPromoBerlaku(item) ? (
+                          <div className='flex items-center gap-2 flex-wrap'>
+                            <Typography variant='body2' color='text.disabled' sx={{ textDecoration: 'line-through' }}>
+                              {formatRupiah(item.harga)}
+                            </Typography>
+                            <Typography variant='body2' fontWeight={600}>
+                              {formatRupiah(item.hargaPromo)}
+                            </Typography>
+                            <Chip label='Promo' color='error' size='small' variant='tonal' />
+                          </div>
+                        ) : (
+                          formatRupiah(item.harga)
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className='flex gap-2'>
                           <Tooltip title='Ubah'>
@@ -294,13 +331,43 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
       </Grid>
 
       <Grid size={{ xs: 12, md: 6 }}>
+        <div className='flex flex-col'>
+          <FormControlLabel
+            control={<Switch checked={promoAktif} onChange={e => setPromoAktif(e.target.checked)} size='small' />}
+            label={<Typography variant='body2'>Promo — {promoAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
+          />
+          <Typography variant='caption' color='text.secondary'>
+            Kalau aktif, harga promo yang tampil di publish dan yang ditagihkan saat booking.
+          </Typography>
+        </div>
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <CustomTextField
+          fullWidth
+          label='Harga Promo'
+          placeholder='0'
+          value={hargaPromo}
+          onChange={e => setHargaPromo(formatNumber(e.target.value))}
+          disabled={!promoAktif}
+          inputProps={{ inputMode: 'numeric' }}
+          error={promoAktif && hargaPromoNum > 0 && hargaPromoNum >= hargaNum}
+          helperText={
+            promoAktif && hargaPromoNum > 0 && hargaPromoNum >= hargaNum
+              ? 'Harga promo sebaiknya lebih rendah dari harga normal'
+              : ' '
+          }
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
         <CustomTextField
           fullWidth
           label='Biaya Layanan'
           value={biayaLayanan > 0 ? formatNumber(String(biayaLayanan)) : '0'}
           disabled
           InputProps={{ readOnly: true }}
-          helperText={hargaNum > 0 ? `Jenjang harga ${tierBiayaLayanan(hargaNum).label}` : ' '}
+          helperText={hargaBerlaku > 0 ? 'Biaya layanan setiap 1 booking transaksi' : ' '}
         />
       </Grid>
 
@@ -308,7 +375,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
         <CustomTextField
           fullWidth
           label='Harga Merchant'
-          value={hargaNum > 0 ? formatNumber(String(nilaiMerchant)) : '0'}
+          value={hargaBerlaku > 0 ? formatNumber(String(nilaiMerchant)) : '0'}
           disabled
           InputProps={{ readOnly: true }}
         />

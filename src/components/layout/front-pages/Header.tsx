@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 
 // Next Imports
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 // MUI Imports
 import Button from '@mui/material/Button'
@@ -38,6 +39,10 @@ const Header = ({ mode }: { mode: Mode }) => {
 
   // Hooks
   const isBelowLgScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('lg'))
+  const pathname = usePathname()
+
+  // Keranjang hanya relevan di halaman aset yang dipublish, bukan di landing page
+  const tampilkanKeranjang = pathname.startsWith('/publish')
 
   useEffect(() => {
     fetch('/api/auth/check', { credentials: 'include' })
@@ -75,7 +80,7 @@ const Header = ({ mode }: { mode: Mode }) => {
             </div>
           )}
           <div className='flex items-center gap-2 sm:gap-4'>
-            <KeranjangButton />
+            {tampilkanKeranjang && <KeranjangButton />}
             {isBelowLgScreen ? (
               <CustomIconButton
                 component={Link}

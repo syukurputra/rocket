@@ -87,16 +87,32 @@ const InformationItemAset = ({ data }: InformationItemAsetProps) => {
               <CardContent sx={{ pt: 0 }}>
                 <Typography variant='h5' className='mbe-2'>Harga Sewa</Typography>
                 <Grid container spacing={2}>
-                  {data.hargaItemAset.map((h: any) => (
-                    <Grid key={h.id}>
-                      <Chip
-                        label={`${jenisLabel(h.jenisHarga)}: ${formatCurrency(h.harga)}`}
-                        color='info'
-                        size='small'
-                        variant='tonal'
-                      />
-                    </Grid>
-                  ))}
+                  {data.hargaItemAset.map((h: any) =>
+                    h.promoAktif ? (
+                      <Grid key={h.id}>
+                        <Box className='flex items-center gap-2'>
+                          <Typography variant='body2' color='text.disabled' sx={{ textDecoration: 'line-through' }}>
+                            {formatCurrency(h.harga)}
+                          </Typography>
+                          <Chip
+                            label={`${jenisLabel(h.jenisHarga)}: ${formatCurrency(h.hargaPromo)}`}
+                            color='error'
+                            size='small'
+                            variant='tonal'
+                          />
+                        </Box>
+                      </Grid>
+                    ) : (
+                      <Grid key={h.id}>
+                        <Chip
+                          label={`${jenisLabel(h.jenisHarga)}: ${formatCurrency(h.harga)}`}
+                          color='info'
+                          size='small'
+                          variant='tonal'
+                        />
+                      </Grid>
+                    )
+                  )}
                 </Grid>
               </CardContent>
             )}

@@ -35,14 +35,24 @@ async function handleGet(request: NextRequest, _ctx: AuthContext) {
 async function handlePost(request: NextRequest, _ctx: AuthContext) {
   try {
     const body = await request.json()
-    const { ruanganId, jenisHarga, harga } = body
+    const { ruanganId, jenisHarga, harga, promoAktif, hargaPromo } = body
 
     if (!ruanganId || !jenisHarga || harga === undefined) {
       return NextResponse.json({ message: 'ruanganId, jenisHarga, dan harga harus diisi' }, { status: 400 })
     }
 
+    if (promoAktif === true && !(Number(hargaPromo) > 0)) {
+      return NextResponse.json({ message: 'Harga promo harus diisi saat promo aktif' }, { status: 400 })
+    }
+
     const data = await prisma.hargaItemAset.create({
-      data: { ruanganId, jenisHarga, harga },
+      data: {
+        ruanganId,
+        jenisHarga,
+        harga,
+        promoAktif: promoAktif === true,
+        hargaPromo: Number(hargaPromo) || 0
+      },
       include: { ruangan: { select: { id: true, nama: true } } }
     })
 

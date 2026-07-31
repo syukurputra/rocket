@@ -7,11 +7,21 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 async function handlePut(request: NextRequest, { params }: AuthContext & { params: { id: string } }) {
   try {
     const body = await request.json()
-    const { ruanganId, jenisHarga, harga } = body
+    const { ruanganId, jenisHarga, harga, promoAktif, hargaPromo } = body
+
+    if (promoAktif === true && !(Number(hargaPromo) > 0)) {
+      return NextResponse.json({ message: 'Harga promo harus diisi saat promo aktif' }, { status: 400 })
+    }
 
     const data = await prisma.hargaItemAset.update({
       where: { id: params.id },
-      data: { ruanganId, jenisHarga, harga },
+      data: {
+        ruanganId,
+        jenisHarga,
+        harga,
+        promoAktif: promoAktif !== undefined ? promoAktif === true : undefined,
+        hargaPromo: hargaPromo !== undefined ? Number(hargaPromo) || 0 : undefined
+      },
       include: { ruangan: { select: { id: true, nama: true } } }
     })
 

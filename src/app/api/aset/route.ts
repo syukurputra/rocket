@@ -65,7 +65,7 @@ async function handleGet(req: NextRequest, { user }: AuthContext) {
 
 async function handlePost(req: NextRequest, { user }: AuthContext) {
   const body = await req.json()
-  const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, bookingOnline, pembayaranOnline } = body
+  const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamatPemesanAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, bookingOnline, pembayaranOnline } = body
 
   if (!jenis || !nama || !alamat || !kota || !provinsi) {
     return NextResponse.json({ message: 'Jenis, nama, alamat, kota dan provinsi harus diisi' }, { status: 400 })
@@ -99,6 +99,7 @@ async function handlePost(req: NextRequest, { user }: AuthContext) {
       instagramAktif: instagramAktif === true,
       facebook: facebook || null,
       facebookAktif: facebookAktif === true,
+      alamatPemesanAktif: alamatPemesanAktif === true,
       alamat,
       kota,
       provinsi,

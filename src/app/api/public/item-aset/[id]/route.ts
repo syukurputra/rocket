@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { getTarifBiayaLayanan } from '@/src/libs/getBiayaLayanan'
+import { hargaEfektif, isPromoBerlaku } from '@/src/libs/hargaPromo'
 
 // GET /api/public/item-aset/[id] — detail item aset (ruangan) untuk halaman checkout booking
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -34,10 +35,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         asetId: ruangan.asetId,
         asetNama: ruangan.aset?.nama || '',
         tarifBiayaLayanan,
+
+        // `harga` sudah berupa harga yang berlaku (promo kalau aktif) supaya
+        // form booking dan perhitungan totalnya otomatis ikut promo.
         hargaItemAset: ruangan.hargaItemAset.map(h => ({
           id: h.id,
           jenisHarga: h.jenisHarga,
-          harga: Number(h.harga)
+          harga: hargaEfektif(h),
+          hargaNormal: Number(h.harga),
+          promoAktif: isPromoBerlaku(h)
         }))
       },
       message: 'Data berhasil diambil'

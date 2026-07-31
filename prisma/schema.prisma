@@ -180,6 +180,9 @@ model Aset {
   instagramAktif   Boolean         @default(false)
   facebook         String?
   facebookAktif    Boolean         @default(false)
+
+  /// Kalau aktif, pemesan wajib melengkapi alamat profilnya sebelum bisa membayar booking
+  alamatPemesanAktif Boolean       @default(false)
   status              String          @default("aktif")
   publishId           String?         @unique
   syaratKetentuan     String?         @db.Text
@@ -264,6 +267,11 @@ model HargaItemAset {
   id         String   @id @default(cuid())
   jenisHarga String   // JAM | HARIAN | BULANAN | TAHUNAN
   harga      Decimal  @db.Decimal(15, 2)
+
+  /// Kalau aktif, hargaPromo yang dipakai untuk tampilan publish, booking, dan pembayaran
+  promoAktif Boolean  @default(false)
+  hargaPromo Decimal  @default(0) @db.Decimal(15, 2)
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   ruanganId  String

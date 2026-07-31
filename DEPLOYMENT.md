@@ -150,6 +150,11 @@ App listen di `:3000`. Pasang **Nginx reverse proxy** + Certbot (atau **Load Bal
 ```nginx
 server {
     server_name domain-produksi-kamu.com;
+
+    # Upload gambar (banner promo, foto aset, bukti transfer) sampai 5MB.
+    # Default Nginx cuma 1MB → upload gagal dengan 413 Request Entity Too Large.
+    client_max_body_size 10M;
+
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -159,8 +164,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+
+        # Token JWT + menus JSON bikin header redirect besar → default buffer jebol (502)
+        proxy_buffer_size       64k;
+        proxy_buffers         8 64k;
+        proxy_busy_buffers_size 128k;
     }
 }
+```
+
+Setelah diubah:
+```bash
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ```bash
@@ -178,10 +193,24 @@ Lalu update `.env.production` + redeploy:
 ```bash
 docker compose ps
 docker compose logs -f app
-docker compose restart app
+docker compose restart app                           # restart proses saja (env TIDAK dibaca ulang)
 docker compose pull && docker compose up -d          # deploy manual image terbaru
 docker compose exec app node node_modules/prisma/build/index.js migrate deploy   # migrate manual
 ```
+
+### Setelah mengubah `.env.production`
+
+`env_file` hanya diproses saat container **dibuat**, jadi `restart` tidak cukup —
+container harus dibuat ulang:
+
+```bash
+docker compose up -d --force-recreate
+docker compose exec app printenv | grep NEXT_PUBLIC_APP_URL   # pastikan nilainya masuk
+```
+
+Variabel `NEXT_PUBLIC_*` yang dipakai di **komponen client** dibakar saat build,
+jadi perubahannya butuh build ulang lewat GitHub Actions, bukan sekadar recreate.
+Yang dipakai di sisi server (route handler, sitemap, metadata) cukup recreate.
 
 ### Rollback (tiap build juga di-tag SHA)
 ```bash
@@ -201,6 +230,8 @@ docker compose up -d
 | Container crash-loop: `ENOENT ... prisma_schema_build_bg.wasm` | Prisma dipanggil via symlink `.bin/prisma` yang ke-dereference → path wasm salah | Panggil `node node_modules/prisma/build/index.js migrate deploy` |
 | Actions SSH: `missing server host` | Secret disimpan sbg **Environment secret** tapi job tak set environment | Tambah `environment: production` di job |
 | Actions SSH: `ParsePrivateKey: no key found` | `SSH_KEY` berisi public key / kepotong | Paste **private key** (`gh_deploy`) utuh dgn BEGIN/END |
+| Upload gambar gagal: `413 Request Entity Too Large` | Nginx host batasi body 1MB (default), app izinkan 5MB. **Bukan** setelan Docker | `client_max_body_size 10M;` di server block Nginx, lalu `nginx -t && systemctl reload nginx` |
+| `502 Bad Gateway` saat login/redirect | Header respons besar (JWT + menus JSON) melebihi proxy buffer default | `proxy_buffer_size 64k; proxy_buffers 8 64k; proxy_busy_buffers_size 128k;` di block `location /` |
 | `docker login`/pull: `denied: denied` | `GHCR_PAT` kurang scope | PAT classic scope `read:packages` |
 | Migrate: `Can't reach database server` | DB tak reachable dari server | Cek `DATABASE_URL`/`DIRECT_URL`, whitelist IP server di Postgres |
 | `P2022: column ... does not exist` (mis. saat login) | Field baru ditambah ke `schema.prisma` **tanpa** membuat file migration di `prisma/migrations/` — `migrate deploy` tak punya apa pun untuk diterapkan | Selalu buat migration resmi (folder + `migration.sql`) untuk tiap perubahan schema, jangan cuma edit `schema.prisma` |

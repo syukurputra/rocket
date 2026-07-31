@@ -22,9 +22,17 @@ export interface KeranjangSummary {
   totalBayar: number
 }
 
+/** Status alamat pemesan — hanya berlaku kalau asetnya mengaktifkan opsi ini. */
+export interface AlamatPemesanStatus {
+  wajib: boolean
+  lengkap: boolean
+  alamat: string
+}
+
 export interface KeranjangResponse {
   data: KeranjangItem[]
   summary: KeranjangSummary
+  alamatPemesan: AlamatPemesanStatus
 }
 
 export const JENIS_LABEL: Record<string, string> = {
