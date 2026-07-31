@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
-import { createIpaymuPayment } from '@/src/libs/ipaymu'
+import { buatPembayaranOrder, STATUS_TAGIHAN } from '@/src/libs/orderPayment'
 import { getTarifBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 import { hitungBiayaLayanan } from '@/src/libs/biayaLayanan'
 import { generateNomorTagihan } from '@/src/libs/nomorTagihan'
@@ -35,7 +35,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       where: { userId: user.id },
       include: {
         aset: { select: { id: true, nama: true, alamatPemesanAktif: true } },
-        itemAset: { select: { id: true, nama: true, multipleBooking: true } }
+        itemAset: { select: { id: true, nama: true, multipleBooking: true, konfirmasiBooking: true } }
       },
       orderBy: { createdAt: 'asc' }
     })
@@ -142,10 +142,11 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const tarif = await getTarifBiayaLayanan()
     const orderId = `ORD-${Date.now().toString(36).toUpperCase()}-${user.id.slice(-6).toUpperCase()}`
 
+    // Satu order = satu pembayaran, jadi kalau ada satu saja item yang butuh
+    // persetujuan pemilik, seluruh order menunggu konfirmasi dulu.
+    const perluKonfirmasi = items.some(i => i.itemAset?.konfirmasiBooking)
+
     const tagihanIds: string[] = []
-    const produk: string[] = []
-    const qty: string[] = []
-    const harga: string[] = []
 
     let totalBayar = 0
 
@@ -166,7 +167,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         data: {
           nomorTagihan,
           keterangan,
-          status: 'BELUM TERBAYAR',
+          status: perluKonfirmasi ? STATUS_TAGIHAN.menungguKonfirmasi : STATUS_TAGIHAN.belumTerbayar,
           periodeSewa,
           mulaiSewa: item.mulaiSewa,
           selesaiSewa: item.selesaiSewa,
@@ -184,53 +185,37 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       })
 
       tagihanIds.push(tagihan.id)
-      produk.push(keterangan)
-      qty.push('1')
-      harga.push(String(total))
-
       totalBayar += total
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get('origin') ?? 'https://bantusewa.com')
 
-    let paymentUrl: string
+    // Booking yang perlu konfirmasi belum boleh dibayar — link pembayarannya
+    // baru dibuat setelah pemilik menyetujui.
+    let paymentUrl: string | null = null
 
-    try {
-      const ipaymuResult = await createIpaymuPayment({
-        transactionId: orderId,
-        amount: totalBayar,
-        buyerName: nama,
-        buyerEmail: emailPemesan || 'customer@example.com',
-        buyerPhone: nomorTelepon,
-        product: produk,
-        qty,
-        price: harga,
-        description: produk,
-        returnUrl: `${baseUrl}/booking/saya`,
-        cancelUrl: `${baseUrl}/booking/saya`,
-        notifyUrl: `${baseUrl}/api/ipaymu/notify`
-      })
+    if (!perluKonfirmasi) {
+      try {
+        paymentUrl = await buatPembayaranOrder(orderId, baseUrl, {
+          nama,
+          email: emailPemesan,
+          telepon: nomorTelepon
+        })
+      } catch (err) {
+        console.error('[Keranjang Checkout] iPaymu error:', err)
 
-      paymentUrl = ipaymuResult.Data.Url
+        // Tagihan yang terlanjur dibuat dibatalkan supaya keranjang tidak berubah
+        // jadi tagihan menggantung tanpa cara bayar.
+        await prisma.tagihan.deleteMany({ where: { id: { in: tagihanIds } } })
 
-      await prisma.tagihan.updateMany({
-        where: { id: { in: tagihanIds } },
-        data: { paymentUrl, ipaymuSessionId: ipaymuResult.Data.SessionID }
-      })
-    } catch (err) {
-      console.error('[Keranjang Checkout] iPaymu error:', err)
-
-      // Tagihan yang terlanjur dibuat dibatalkan supaya keranjang tidak berubah
-      // jadi tagihan menggantung tanpa cara bayar.
-      await prisma.tagihan.deleteMany({ where: { id: { in: tagihanIds } } })
-
-      return NextResponse.json(
-        { message: 'Gagal membuat link pembayaran. Coba beberapa saat lagi.' },
-        { status: 502 }
-      )
+        return NextResponse.json(
+          { message: 'Gagal membuat link pembayaran. Coba beberapa saat lagi.' },
+          { status: 502 }
+        )
+      }
     }
 
-    // Link pembayaran sudah ada → keranjang boleh dikosongkan
+    // Order sudah terbentuk → keranjang boleh dikosongkan
     await prisma.keranjang.deleteMany({ where: { userId: user.id } })
 
     const ringkasan = `${items.length} booking ${items[0].aset?.nama} | ${formatRupiah(totalBayar)}`
@@ -238,10 +223,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     prisma.notifikasi
       .create({
         data: {
-          title: 'Booking Menunggu Pembayaran',
+          title: perluKonfirmasi ? 'Booking Menunggu Konfirmasi' : 'Booking Menunggu Pembayaran',
           subtitle: `${orderId} — ${ringkasan}`,
-          avatarIcon: 'tabler-shopping-cart',
-          avatarColor: 'primary',
+          avatarIcon: perluKonfirmasi ? 'tabler-clock-hour-4' : 'tabler-shopping-cart',
+          avatarColor: perluKonfirmasi ? 'warning' : 'primary',
           type: 'tagihan',
           url: '/booking/saya',
           refId: orderId,
@@ -260,9 +245,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
         return prisma.notifikasi.createMany({
           data: superAdmins.map(u => ({
-            title: 'Booking Baru Masuk',
+            title: perluKonfirmasi ? 'Booking Perlu Konfirmasi' : 'Booking Baru Masuk',
             subtitle: `${nama} — ${ringkasan}`,
-            avatarIcon: 'tabler-calendar-plus',
+            avatarIcon: perluKonfirmasi ? 'tabler-help-circle' : 'tabler-calendar-plus',
             avatarColor: 'warning',
             type: 'tagihan',
             url: '/booking',
@@ -275,8 +260,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     return NextResponse.json(
       {
-        data: { orderId, paymentUrl, jumlahTagihan: tagihanIds.length, totalBayar },
-        message: 'Link pembayaran berhasil dibuat'
+        data: { orderId, paymentUrl, perluKonfirmasi, jumlahTagihan: tagihanIds.length, totalBayar },
+        message: perluKonfirmasi
+          ? 'Booking dikirim dan menunggu konfirmasi pemilik'
+          : 'Link pembayaran berhasil dibuat'
       },
       { status: 201 }
     )

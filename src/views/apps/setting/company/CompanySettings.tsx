@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
 import Card from '@mui/material/Card'
@@ -22,14 +21,12 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Chip from '@mui/material/Chip'
 
-import type { ApexOptions } from 'apexcharts'
 import classnames from 'classnames'
 
 import CustomAvatar from '@core/components/mui/Avatar'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 
-const AppReactApexCharts = dynamic(() => import('@/src/libs/styles/AppReactApexCharts'), { ssr: false })
 
 type EarningItem = {
   title: string
@@ -43,7 +40,6 @@ type EarningItem = {
 const formatRupiah = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
-const earningChartSeries = [{ data: [0, 0, 0, 0, 0, 0, 0] }]
 
 type LastInvoice = {
   id: string
@@ -245,32 +241,6 @@ const CompanySettings = () => {
   const progress = Math.min(100, Math.round((daysUsed / totalDays) * 100))
   const isExpiringSoon = !isExpired && daysRemaining <= 7 && endDate !== null
 
-  const primaryColorWithOpacity = 'var(--mui-palette-primary-lightOpacity)'
-
-  const earningChartOptions: ApexOptions = {
-    chart: { parentHeightOffset: 0, toolbar: { show: false } },
-    tooltip: { enabled: false },
-    grid: { show: false, padding: { top: -31, left: 0, right: 0, bottom: -9 } },
-    plotOptions: {
-      bar: { borderRadius: 4, distributed: true, columnWidth: '42%' }
-    },
-    legend: { show: false },
-    dataLabels: { enabled: false },
-    colors: [
-      primaryColorWithOpacity, primaryColorWithOpacity, primaryColorWithOpacity,
-      primaryColorWithOpacity, 'var(--mui-palette-primary-main)',
-      primaryColorWithOpacity, primaryColorWithOpacity
-    ],
-    states: { hover: { filter: { type: 'none' } }, active: { filter: { type: 'none' } } },
-    xaxis: {
-      categories: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-      axisTicks: { show: false },
-      axisBorder: { show: false },
-      labels: { style: { fontSize: '13px', colors: 'var(--mui-palette-text-disabled)' } }
-    },
-    yaxis: { show: false }
-  }
-
   return (
     <>
       <Grid container spacing={6}>
@@ -452,19 +422,16 @@ const CompanySettings = () => {
               }
             />
             <CardContent className='flex flex-col gap-5'>
-              <div className='flex flex-col sm:flex-row items-center justify-between gap-8'>
-                <div className='flex flex-col gap-3 is-full sm:is-[unset]'>
-                  <div className='flex items-center gap-2.5'>
-                    <Typography variant='h2'>{jumlahTransaksi}</Typography>
-                    <Chip size='small' variant='tonal' color='secondary' label='Total Transaksi' />
-                  </div>
-                  <Typography variant='body2'>
-                    {jumlahTransaksi > 0
-                      ? 'Jumlah transaksi lunas pada item aset Anda'
-                      : 'Data transaksi akan tampil setelah ada transaksi'}
-                  </Typography>
+              <div className='flex flex-col gap-3'>
+                <div className='flex items-center gap-2.5'>
+                  <Typography variant='h2'>{jumlahTransaksi}</Typography>
+                  <Chip size='small' variant='tonal' color='secondary' label='Total Transaksi' />
                 </div>
-                <AppReactApexCharts type='bar' height={163} width='100%' series={earningChartSeries} options={earningChartOptions} />
+                <Typography variant='body2'>
+                  {jumlahTransaksi > 0
+                    ? 'Jumlah transaksi lunas pada item aset Anda'
+                    : 'Data transaksi akan tampil setelah ada transaksi'}
+                </Typography>
               </div>
               <div className='flex flex-col sm:flex-row gap-6 p-5 border rounded'>
                 {earningData.map((item, index) => (

@@ -214,6 +214,10 @@ const BookingList = () => {
           if (s === 'lunas') return <Chip label='Lunas' color='success' size='small' variant='tonal' />
           if (s === 'dibatalkan') return <Chip label='Dibatalkan' color='warning' size='small' variant='tonal' />
 
+          if (s === 'menunggu konfirmasi') {
+            return <Chip label='Menunggu Konfirmasi' color='info' size='small' variant='tonal' />
+          }
+
           return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
         }
       }),

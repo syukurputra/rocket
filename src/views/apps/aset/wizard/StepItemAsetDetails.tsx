@@ -43,6 +43,7 @@ type ItemAsetData = {
   deskripsi?: string
   status: string
   multipleBooking?: boolean
+  konfirmasiBooking?: boolean
   images?: any[]
 }
 
@@ -58,6 +59,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
   const [deskripsi, setDeskripsi] = useState('')
   const [status, setStatus] = useState('Tidak Dihuni')
   const [multipleBooking, setMultipleBooking] = useState(false)
+  const [konfirmasiBooking, setKonfirmasiBooking] = useState(false)
 
   // File Upload State
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -98,6 +100,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
     setDeskripsi(room.deskripsi || '')
     setStatus(room.status)
     setMultipleBooking(room.multipleBooking ?? false)
+    setKonfirmasiBooking(room.konfirmasiBooking ?? false)
     setExistingImages(room.images || [])
     setSelectedFiles([])
     setView('form')
@@ -157,6 +160,7 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
     setDeskripsi('')
     setStatus('tidak dihuni')
     setMultipleBooking(false)
+    setKonfirmasiBooking(false)
     setSelectedFiles([])
     setExistingImages([])
   }
@@ -171,7 +175,8 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
       nama,
       deskripsi,
       status,
-      multipleBooking
+      multipleBooking,
+      konfirmasiBooking
     }
 
     setSubmitting(true)
@@ -388,6 +393,28 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
             className='mie-1'
           />
           <Tooltip title='Kalau aktif, item ini boleh dibooking beberapa kali pada waktu yang sama dan tombol Schedule tidak ditampilkan di halaman publish.'>
+            <i className='tabler-info-circle text-textSecondary cursor-help' />
+          </Tooltip>
+        </div>
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <div className='flex items-center gap-1'>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={konfirmasiBooking}
+                onChange={e => setKonfirmasiBooking(e.target.checked)}
+                size='small'
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                Konfirmasi Booking — {konfirmasiBooking ? 'Aktif' : 'Non Aktif'}
+              </Typography>
+            }
+            className='mie-1'
+          />
+          <Tooltip title='Kalau aktif, booking pada item ini menunggu persetujuan Anda lebih dulu. Penyewa baru bisa membayar setelah Anda menyetujui di menu Booking Aset.'>
             <i className='tabler-info-circle text-textSecondary cursor-help' />
           </Tooltip>
         </div>

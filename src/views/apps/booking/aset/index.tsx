@@ -19,6 +19,10 @@ import Divider from '@mui/material/Divider'
 import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
 import Grid from '@mui/material/Grid2'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 
 import classnames from 'classnames'
 import { rankItem } from '@tanstack/match-sorter-utils'
@@ -90,6 +94,10 @@ const columnHelper = createColumnHelper<TagihanWithAction>()
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
+const STATUS_MENUNGGU_KONFIRMASI = 'menunggu konfirmasi'
+
+const perluKonfirmasi = (status?: string) => status?.toLowerCase() === STATUS_MENUNGGU_KONFIRMASI
+
 const BookingAsetList = () => {
   const router = useRouter()
   const [data, setData] = useState<TagihanWithAction[]>([])
@@ -128,6 +136,10 @@ const BookingAsetList = () => {
   const [selectedTagihan, setSelectedTagihan] = useState<TagihanBooking | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [tambahOpen, setTambahOpen] = useState(false)
+
+  // Booking yang menunggu persetujuan pemilik
+  const [konfirmasiTarget, setKonfirmasiTarget] = useState<TagihanBooking | null>(null)
+  const [konfirmasiLoading, setKonfirmasiLoading] = useState(false)
 
   const { snack, showSnack, closeSnack } = useSnackbar()
 
@@ -175,6 +187,44 @@ const BookingAsetList = () => {
     fetchData(currentPage, pageSize)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, activeSearch, activeStatus, activeIdTagihan, activeNomor, activePenyewa, activeAset, activeItemAset, activeBayarDari, activeBayarSampai])
+
+  /** Setujui (lanjut bayar) atau tolak (batalkan) booking yang menunggu konfirmasi. */
+  const handleKonfirmasi = async (setuju: boolean) => {
+    if (!konfirmasiTarget) return
+
+    setKonfirmasiLoading(true)
+
+    try {
+      const res = await apiFetchClient<{ message: string }>('/api/booking/aset/konfirmasi', {
+        method: 'POST',
+        body: JSON.stringify({ tagihanId: konfirmasiTarget.id, setuju })
+      })
+
+      showSnack(res.message, setuju ? 'success' : 'info')
+      setKonfirmasiTarget(null)
+      fetchData(currentPage, pageSize)
+    } catch (err: any) {
+      showSnack(err.message || 'Gagal memproses konfirmasi', 'error')
+    } finally {
+      setKonfirmasiLoading(false)
+    }
+  }
+
+  /** Buka percakapan dengan penyewa dari sisi usaha. */
+  const handleChatPenyewa = async (tagihan: TagihanBooking) => {
+    if (!tagihan.penyewa?.id) return
+
+    try {
+      const res = await apiFetchClient<{ data: { id: string } }>('/api/chat/conversations/usaha', {
+        method: 'POST',
+        body: JSON.stringify({ userId: tagihan.penyewa.id, asetId: tagihan.aset?.id })
+      })
+
+      router.push(`/chat/usaha?c=${res.data.id}`)
+    } catch (err: any) {
+      showSnack(err.message || 'Gagal membuka percakapan', 'error')
+    }
+  }
 
   const handleApplyFilter = () => {
     setActiveSearch(pendingSearch)
@@ -272,6 +322,10 @@ const BookingAsetList = () => {
           if (s === 'lunas') return <Chip label='Lunas' color='success' size='small' variant='tonal' />
           if (s === 'dibatalkan') return <Chip label='Dibatalkan' color='warning' size='small' variant='tonal' />
 
+          if (s === STATUS_MENUNGGU_KONFIRMASI) {
+            return <Chip label='Menunggu Konfirmasi' color='info' size='small' variant='tonal' />
+          }
+
           return <Chip label='Belum Terbayar' color='error' size='small' variant='tonal' />
         }
       }),
@@ -286,14 +340,23 @@ const BookingAsetList = () => {
       columnHelper.accessor('action', {
         header: 'Aksi',
         cell: ({ row }) => (
-          <Tooltip title='Detail'>
-            <IconButton
-              size='small'
-              onClick={() => { setSelectedTagihan(row.original); setDetailOpen(true) }}
-            >
-              <i className='tabler-eye text-textSecondary' />
-            </IconButton>
-          </Tooltip>
+          <div className='flex items-center'>
+            <Tooltip title='Detail'>
+              <IconButton
+                size='small'
+                onClick={() => { setSelectedTagihan(row.original); setDetailOpen(true) }}
+              >
+                <i className='tabler-eye text-textSecondary' />
+              </IconButton>
+            </Tooltip>
+            {perluKonfirmasi(row.original.status) && (
+              <Tooltip title='Konfirmasi Booking'>
+                <IconButton size='small' color='info' onClick={() => setKonfirmasiTarget(row.original)}>
+                  <i className='tabler-checkup-list' />
+                </IconButton>
+              </Tooltip>
+            )}
+          </div>
         ),
         enableSorting: false
       })
@@ -430,8 +493,10 @@ const BookingAsetList = () => {
                       onChange={e => setPendingStatus(e.target.value)}
                     >
                       <MenuItem value=''>Semua Status</MenuItem>
+                      <MenuItem value='MENUNGGU KONFIRMASI'>Menunggu Konfirmasi</MenuItem>
                       <MenuItem value='LUNAS'>Lunas</MenuItem>
                       <MenuItem value='BELUM TERBAYAR'>Belum Terbayar</MenuItem>
+                      <MenuItem value='DIBATALKAN'>Dibatalkan</MenuItem>
                       <MenuItem value='DIBATALKAN'>Dibatalkan</MenuItem>
                     </CustomTextField>
                   </Grid>
@@ -605,6 +670,73 @@ const BookingAsetList = () => {
         onClose={() => setTambahOpen(false)}
         onSuccess={() => router.push('/booking/saya')}
       />
+
+      <Dialog open={!!konfirmasiTarget} onClose={() => setKonfirmasiTarget(null)} maxWidth='xs' fullWidth>
+        <DialogTitle>Konfirmasi Booking</DialogTitle>
+        <DialogContent>
+          {konfirmasiTarget && (
+            <div className='flex flex-col gap-3'>
+              <div className='flex justify-between gap-4'>
+                <Typography color='text.secondary'>Penyewa</Typography>
+                <Typography fontWeight={500} className='text-right'>{konfirmasiTarget.penyewa?.nama || '-'}</Typography>
+              </div>
+              <div className='flex justify-between gap-4'>
+                <Typography color='text.secondary'>Item Aset</Typography>
+                <Typography fontWeight={500} className='text-right'>{konfirmasiTarget.itemAset?.nama || '-'}</Typography>
+              </div>
+              <div className='flex justify-between gap-4'>
+                <Typography color='text.secondary'>Periode</Typography>
+                <Typography fontWeight={500} className='text-right'>
+                  {dayjs(konfirmasiTarget.mulaiSewa).format('DD-MM-YYYY')} —{' '}
+                  {dayjs(konfirmasiTarget.selesaiSewa).format('DD-MM-YYYY')}
+                </Typography>
+              </div>
+              <div className='flex justify-between gap-4'>
+                <Typography color='text.secondary'>Nominal</Typography>
+                <Typography fontWeight={600} color='primary.main'>
+                  {formatCurrency(Number(konfirmasiTarget.nominal))}
+                </Typography>
+              </div>
+
+              <Divider />
+
+              <Button
+                variant='tonal'
+                color='secondary'
+                startIcon={<i className='tabler-message-circle' />}
+                onClick={() => handleChatPenyewa(konfirmasiTarget)}
+                disabled={!konfirmasiTarget.penyewa?.id}
+              >
+                Chat Penyewa
+              </Button>
+
+              <Typography variant='body2' color='text.secondary'>
+                Setujui booking ini? Jika ya, penyewa dapat melanjutkan pembayaran. Jika tidak, booking dibatalkan.
+              </Typography>
+            </div>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant='tonal'
+            color='error'
+            onClick={() => handleKonfirmasi(false)}
+            disabled={konfirmasiLoading}
+            startIcon={<i className='tabler-x' />}
+          >
+            Tidak
+          </Button>
+          <Button
+            variant='contained'
+            color='success'
+            onClick={() => handleKonfirmasi(true)}
+            disabled={konfirmasiLoading}
+            startIcon={konfirmasiLoading ? <CircularProgress size={16} color='inherit' /> : <i className='tabler-check' />}
+          >
+            Ya
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

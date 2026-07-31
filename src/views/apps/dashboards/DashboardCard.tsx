@@ -17,10 +17,8 @@ import { apiFetchClient } from '@/src/utils/apiFetchClient'
 type DashboardStats = {
   totalAset: number
   totalItemAset: number
-  tersewaHariIni: number
-  tersewaBulanIni: number
-  bookingAsetBulanIni: number
-  bookingAsetTahunIni: number
+  bookingHariIni: number
+  bookingBulanIni: number
 }
 
 const DashboardCard = () => {
@@ -77,14 +75,14 @@ const DashboardCard = () => {
       color: 'success'
     },
     {
-      title: 'Tersewa Hari Ini',
-      stats: stats.tersewaHariIni.toString(),
+      title: 'Booking Hari Ini',
+      stats: stats.bookingHariIni.toString(),
       icon: 'tabler-calendar-check',
       color: 'warning'
     },
     {
-      title: 'Tersewa Bulan Ini',
-      stats: stats.tersewaBulanIni.toString(),
+      title: 'Booking Bulan Ini',
+      stats: stats.bookingBulanIni.toString(),
       icon: 'tabler-calendar-month',
       color: 'error'
     }

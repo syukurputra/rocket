@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
+import { STATUS_TAGIHAN } from '@/src/libs/orderPayment'
 
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
@@ -29,6 +30,15 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
     if (tagihan.status === 'LUNAS') {
       return NextResponse.json({ message: 'Tagihan sudah lunas' }, { status: 400 })
+    }
+
+    // Booking yang masih menunggu persetujuan pemilik belum boleh dibayar
+    if (tagihan.status === STATUS_TAGIHAN.menungguKonfirmasi) {
+      return NextResponse.json({ message: 'Booking masih menunggu konfirmasi pemilik' }, { status: 409 })
+    }
+
+    if (tagihan.status === STATUS_TAGIHAN.dibatalkan) {
+      return NextResponse.json({ message: 'Booking sudah dibatalkan' }, { status: 409 })
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get('origin') ?? 'http://localhost:3000')

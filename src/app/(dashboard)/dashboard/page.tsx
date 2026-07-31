@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid2'
 import MonthlyFinancialReport from '@views/apps/dashboards/MonthlyFinancialReport'
 import CategoryKeuangan from '@/src/views/apps/dashboards/CategoryKeuangan'
 import DashboardCard from '@/src/views/apps/dashboards/DashboardCard'
-import BookingStatsCard from '@/src/views/apps/dashboards/BookingStatsCard'
+import BookingTransactionChart from '@/src/views/apps/dashboards/BookingTransactionChart'
 
 const Dashboard = async () => {
   return (
@@ -14,15 +14,17 @@ const Dashboard = async () => {
         <DashboardCard />
       </Grid>
       <Grid size={{ xs: 12, lg: 8 }}>
-        <MonthlyFinancialReport />
+        <Grid container spacing={6}>
+          <Grid size={{ xs: 12 }}>
+            <MonthlyFinancialReport />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <BookingTransactionChart />
+          </Grid>
+        </Grid>
       </Grid>
       <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <Grid container spacing={6} direction='column'>
-          <Grid size={{ xs: 12 }}>
-            <CategoryKeuangan />
-          </Grid>
-          <BookingStatsCard />
-        </Grid>
+        <CategoryKeuangan />
       </Grid>
     </Grid>
   )

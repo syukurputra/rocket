@@ -13,7 +13,7 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
       where: { userId: user.id },
       include: {
         aset: { select: { id: true, nama: true, alamat: true, kota: true, alamatPemesanAktif: true } },
-        itemAset: { select: { id: true, nama: true } }
+        itemAset: { select: { id: true, nama: true, konfirmasiBooking: true } }
       },
       orderBy: { createdAt: 'asc' }
     })
@@ -60,6 +60,10 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
         lengkap: wajibAlamat ? isAlamatLengkap(profil) : true,
         alamat: formatAlamatLengkap(profil)
       },
+
+      // Satu order = satu pembayaran, jadi cukup satu item yang butuh
+      // persetujuan untuk membuat seluruh order menunggu konfirmasi
+      perluKonfirmasi: items.some(i => i.itemAset?.konfirmasiBooking),
       message: 'Data berhasil diambil'
     })
   } catch (error) {

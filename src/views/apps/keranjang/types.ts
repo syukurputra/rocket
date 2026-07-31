@@ -33,6 +33,9 @@ export interface KeranjangResponse {
   data: KeranjangItem[]
   summary: KeranjangSummary
   alamatPemesan: AlamatPemesanStatus
+
+  /** Order menunggu persetujuan pemilik sebelum bisa dibayar */
+  perluKonfirmasi: boolean
 }
 
 export const JENIS_LABEL: Record<string, string> = {

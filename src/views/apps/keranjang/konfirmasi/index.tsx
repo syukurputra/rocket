@@ -40,6 +40,7 @@ const KonfirmasiBayarView = () => {
   const [items, setItems] = useState<KeranjangItem[]>([])
   const [summary, setSummary] = useState<KeranjangSummary>(KOSONG)
   const [alamatPemesan, setAlamatPemesan] = useState<AlamatPemesanStatus>(ALAMAT_AWAL)
+  const [perluKonfirmasi, setPerluKonfirmasi] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -54,6 +55,7 @@ const KonfirmasiBayarView = () => {
         setItems(res.data)
         setSummary(res.summary)
         setAlamatPemesan(res.alamatPemesan ?? ALAMAT_AWAL)
+        setPerluKonfirmasi(res.perluKonfirmasi ?? false)
       })
       .catch(err => setError(err.message || 'Gagal memuat keranjang'))
       .finally(() => setLoading(false))
@@ -90,7 +92,7 @@ const KonfirmasiBayarView = () => {
     setError('')
 
     try {
-      const res = await apiFetchClient<{ data: { paymentUrl: string } }>(
+      const res = await apiFetchClient<{ data: { paymentUrl: string | null; perluKonfirmasi: boolean } }>(
         '/api/keranjang/checkout',
         {
           method: 'POST',
@@ -100,6 +102,13 @@ const KonfirmasiBayarView = () => {
       )
 
       window.dispatchEvent(new Event('keranjang:updated'))
+
+      // Booking yang perlu persetujuan pemilik belum punya link pembayaran
+      if (res.data.perluKonfirmasi || !res.data.paymentUrl) {
+        router.push('/booking/saya')
+
+        return
+      }
 
       // Diarahkan ke halaman pembayaran iPaymu
       window.location.href = res.data.paymentUrl
@@ -241,6 +250,12 @@ const KonfirmasiBayarView = () => {
 
             <Divider className='my-4' />
 
+            {perluKonfirmasi && (
+              <Alert severity='info' className='mbe-4'>
+                Booking ini menunggu persetujuan pemilik. Pembayaran baru bisa dilakukan setelah disetujui.
+              </Alert>
+            )}
+
             <div className='flex justify-between items-center'>
               <Typography variant='h6'>Total Bayar</Typography>
               <Typography variant='h5' color='primary.main' fontWeight={700}>
@@ -265,9 +280,15 @@ const KonfirmasiBayarView = () => {
                   variant='contained'
                   onClick={handleBayar}
                   disabled={submitting}
-                  startIcon={submitting ? <CircularProgress size={18} color='inherit' /> : <i className='tabler-credit-card' />}
+                  startIcon={
+                    submitting ? (
+                      <CircularProgress size={18} color='inherit' />
+                    ) : (
+                      <i className={perluKonfirmasi ? 'tabler-send' : 'tabler-credit-card'} />
+                    )
+                  }
                 >
-                  {submitting ? 'Memproses...' : 'Bayar Sekarang'}
+                  {submitting ? 'Memproses...' : perluKonfirmasi ? 'Kirim Booking' : 'Bayar Sekarang'}
                 </Button>
               )}
               <Button

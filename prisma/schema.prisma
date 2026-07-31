@@ -246,6 +246,9 @@ model Ruangan {
 
   /// Kalau aktif, item boleh dibooking beberapa kali pada waktu yang bersamaan
   multipleBooking  Boolean            @default(false)
+
+  /// Kalau aktif, booking menunggu persetujuan pemilik sebelum bisa dibayar
+  konfirmasiBooking Boolean           @default(false)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   createdById      String

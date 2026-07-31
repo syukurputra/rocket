@@ -73,6 +73,9 @@ const BookingDetailView = ({ bookingId }: { bookingId: string }) => {
   const isLunas = tagihan?.status === 'LUNAS'
   const isCancelled = tagihan?.status === 'DIBATALKAN'
 
+  // Booking pada item yang butuh persetujuan pemilik: belum boleh dibayar
+  const isMenungguKonfirmasi = tagihan?.status === 'MENUNGGU KONFIRMASI'
+
   const fetchBooking = useCallback(async () => {
     try {
       setLoading(true)
@@ -446,7 +449,13 @@ const BookingDetailView = ({ bookingId }: { bookingId: string }) => {
                   </Box>
                 )}
 
-                {!isLunas && !isCancelled && !confirmCancel && (
+                {isMenungguKonfirmasi && !confirmCancel && (
+                  <Alert severity='info'>
+                    Booking sedang menunggu persetujuan pemilik. Tombol pembayaran akan muncul setelah disetujui.
+                  </Alert>
+                )}
+
+                {!isLunas && !isCancelled && !isMenungguKonfirmasi && !confirmCancel && (
                   <>
                     <Button
                       fullWidth

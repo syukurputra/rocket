@@ -79,7 +79,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, status, asetId, multipleBooking } = body
+    const { nama, deskripsi, status, asetId, multipleBooking, konfirmasiBooking } = body
 
     if (!nama || !status || !asetId) {
       return NextResponse.json({ message: 'Nama, status, dan aset harus diisi' }, { status: 400 })
@@ -97,6 +97,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
         deskripsi: deskripsi || '',
         status: status,
         multipleBooking: multipleBooking === true,
+        konfirmasiBooking: konfirmasiBooking === true,
         createdById: user.id,
         updatedById: user.id,
         companyId: user.companyId
