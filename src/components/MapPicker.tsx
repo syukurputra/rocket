@@ -31,6 +31,9 @@ type MapPickerProps = {
   longitude?: number
   onLocationChange?: (lat: number, lng: number) => void
   containerId?: string
+
+  /** Klik pin membuka lokasi di Google Maps — untuk peta yang hanya dilihat, bukan diedit */
+  linkToGoogleMaps?: boolean
 }
 
 type SearchResult = {
@@ -40,7 +43,13 @@ type SearchResult = {
   lon: string
 }
 
-export default function MapPicker({ latitude, longitude, onLocationChange, containerId = 'map-container' }: MapPickerProps) {
+export default function MapPicker({
+  latitude,
+  longitude,
+  onLocationChange,
+  containerId = 'map-container',
+  linkToGoogleMaps = false
+}: MapPickerProps) {
   const [map, setMap] = useState<LeafletMap | null>(null)
   const markerRef = useRef<L.Marker | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -129,6 +138,21 @@ export default function MapPicker({ latitude, longitude, onLocationChange, conta
 
           onLocationChange(pos.lat, pos.lng)
         })
+      }
+
+      if (linkToGoogleMaps) {
+        newMarker.bindTooltip('Buka di Google Maps')
+        newMarker.on('click', () => {
+          window.open(
+            `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+            '_blank',
+            'noopener,noreferrer'
+          )
+        })
+
+        const el = newMarker.getElement()
+
+        if (el) el.style.cursor = 'pointer'
       }
 
       markerRef.current = newMarker

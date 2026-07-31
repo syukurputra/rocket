@@ -20,6 +20,7 @@ import classnames from 'classnames'
 
 // Components Imports
 import PaketPricingCard from '@/src/components/pricing/PaketPricingCard'
+import { gabungFiturPaket } from '@/src/components/pricing/fiturPaket'
 
 // Type Imports
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
@@ -73,6 +74,9 @@ const PricingPlan = () => {
 
     return -1
   }
+
+  // Dihitung sekali di sini supaya setiap kartu memakai daftar fitur yang sama
+  const daftarFitur = gabungFiturPaket(pricingPlans)
 
   return (
     <section
@@ -131,6 +135,7 @@ const PricingPlan = () => {
                   isActive={plan.id === activePaketId}
                   billingCycle={pricingPlan}
                   buttonLabel={getButtonLabel(plan.id)}
+                  daftarFitur={daftarFitur}
                 />
               </Grid>
             ))}

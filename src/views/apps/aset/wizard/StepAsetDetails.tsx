@@ -14,6 +14,7 @@ import DialogContent from '@mui/material/DialogContent'
 import IconButton from '@mui/material/IconButton'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import Tooltip from '@mui/material/Tooltip'
 
 // Component Imports
 import Autocomplete from '@mui/material/Autocomplete'
@@ -468,7 +469,7 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
         </div>
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <div className='flex flex-col'>
+        <div className='flex items-center gap-1'>
           <FormControlLabel
             control={
               <Switch
@@ -482,10 +483,11 @@ const StepAsetDetails = ({ activeStep, handleNext, handlePrev, steps, onSave, in
                 Alamat Pemesan — {alamatPemesanAktif ? 'Aktif' : 'Non Aktif'}
               </Typography>
             }
+            className='mie-1'
           />
-          <Typography variant='caption' color='text.secondary'>
-            Kalau aktif, pemesan wajib melengkapi alamat di profilnya sebelum bisa membayar booking aset ini.
-          </Typography>
+          <Tooltip title='Kalau aktif, pemesan wajib melengkapi alamat di profilnya sebelum bisa membayar booking aset ini.'>
+            <i className='tabler-info-circle text-textSecondary cursor-help' />
+          </Tooltip>
         </div>
       </Grid>
       <Grid size={{ xs: 12 }}>

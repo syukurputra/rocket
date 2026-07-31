@@ -9,6 +9,7 @@ import CustomAvatar from '@core/components/mui/Avatar'
 
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import { fiturDimiliki, type FiturPaket } from './fiturPaket'
 
 const DEFAULT_PAKET_ID = 'cmkzpagu800015k6czrtvc7f4'
 
@@ -20,13 +21,17 @@ interface PaketPricingCardProps {
   buttonLabel?: string
   isTrial?: boolean
   onTrialActivated?: () => void
+
+  /** Gabungan fitur seluruh paket, supaya baris fitur antar kartu sejajar */
+  daftarFitur?: FiturPaket[]
 }
 
-const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle, buttonLabel, isTrial = false, onTrialActivated }: PaketPricingCardProps) => {
+const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingCycle, buttonLabel, isTrial = false, onTrialActivated, daftarFitur }: PaketPricingCardProps) => {
   const router = useRouter()
   const [trialLoading, setTrialLoading] = useState(false)
 
   const showTrialButton = !isTrial && paket.id !== DEFAULT_PAKET_ID
+  const dimiliki = fiturDimiliki(paket)
 
   const handleGetStarted = () => {
     router.push(`/paket/checkout/${paket.id}?cycle=${billingCycle}`)
@@ -110,8 +115,29 @@ const PaketPricingCard = ({ paket, isPopular = false, isActive = false, billingC
 
         {/* Features List */}
         <div>
+          {/* Semua kartu menampilkan daftar yang sama; yang tidak termasuk paket
+              ini ditandai silang supaya barisnya tetap sejajar antar kartu. */}
           <div className='flex flex-col gap-3 mbs-3'>
-            {paket.paketMenus && paket.paketMenus.filter(pm => pm.tampilkan).length > 0 ? (
+            {daftarFitur && daftarFitur.length > 0 ? (
+              daftarFitur.map(fitur => {
+                const tersedia = dimiliki.has(fitur.id)
+
+                return (
+                  <div key={fitur.id} className='flex items-center gap-[12px]'>
+                    <CustomAvatar
+                      color={tersedia ? 'primary' : 'secondary'}
+                      skin={tersedia && isPopular ? 'filled' : 'light'}
+                      size={20}
+                    >
+                      <i className={`${tersedia ? 'tabler-check' : 'tabler-x'} text-sm`} />
+                    </CustomAvatar>
+                    <Typography variant='h6' color={tersedia ? undefined : 'text.disabled'}>
+                      {fitur.label}
+                    </Typography>
+                  </div>
+                )
+              })
+            ) : paket.paketMenus && paket.paketMenus.filter(pm => pm.tampilkan).length > 0 ? (
               paket.paketMenus
                 .filter(pm => pm.tampilkan)
                 .slice(0, 6)

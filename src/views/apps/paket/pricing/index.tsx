@@ -7,6 +7,7 @@ import Grid from '@mui/material/Grid2'
 
 import type { MasterPaketClient } from '@/src/types/apps/paketTypes'
 import PaketPricingCard from '@/src/components/pricing/PaketPricingCard'
+import { gabungFiturPaket } from '@/src/components/pricing/fiturPaket'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import { useAuth } from '@/src/hooks/useAuth'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
@@ -52,6 +53,9 @@ const PaketPricingPlans = () => {
 
     return -1 // No popular badge for other cases
   }
+
+  // Dihitung sekali di sini supaya setiap kartu memakai daftar fitur yang sama
+  const daftarFitur = gabungFiturPaket(data)
 
   return (
     <Box
@@ -136,6 +140,7 @@ const PaketPricingPlans = () => {
                 isPopular={index === getPopularIndex()}
                 isActive={paket.id === user?.company?.paketId}
                 billingCycle={billingCycle}
+                daftarFitur={daftarFitur}
                 isTrial={user?.company?.isTrial ?? false}
                 onTrialActivated={async () => {
                   await refreshToken()

@@ -63,6 +63,7 @@ import AddEditKeuangan from '@components/dialogs/keuangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import { akhirBulanIni, awalBulanIni } from '@/src/utils/localDate'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -134,17 +135,8 @@ const KeuanganListTable = ({ initialData = [], onFiltersChange }: KeuanganListTa
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('') // New state for API search
 
-  const getDefaultStartDate = () => {
-    const now = new Date()
-
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-  }
-
-  const getDefaultEndDate = () => {
-    const now = new Date()
-
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-  }
+  const getDefaultStartDate = awalBulanIni
+  const getDefaultEndDate = akhirBulanIni
 
   const [startDate, setStartDate] = useState(getDefaultStartDate())
   const [endDate, setEndDate] = useState(getDefaultEndDate())

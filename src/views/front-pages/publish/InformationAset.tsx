@@ -74,7 +74,11 @@ const InformationAset = ({ data }: InformationAsetProps) => {
           <CardContent className='flex items-center justify-center bs-full bg-actionHover'>
             <div className='flex flex-col items-center justify-center gap-2 is-full'>
               <div className='is-full bs-[300px] relative rounded overflow-hidden'>
-                <MapPicker latitude={data.latitude ?? -6.2088} longitude={data.longitude ?? 106.8456} />
+                <MapPicker
+                  latitude={data.latitude ?? -6.2088}
+                  longitude={data.longitude ?? 106.8456}
+                  linkToGoogleMaps
+                />
               </div>
               <div className='flex flex-col items-center gap-3 mbs-5'>
                 <Typography variant='h6' className='font-medium'>Kontak Kami</Typography>

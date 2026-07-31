@@ -11,18 +11,10 @@ import MenuItem from '@mui/material/MenuItem'
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import { akhirBulanIni, awalBulanIni } from '@/src/utils/localDate'
 
-const getDefaultStartDate = () => {
-  const now = new Date()
-
-  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-}
-
-const getDefaultEndDate = () => {
-  const now = new Date()
-
-  return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-}
+const getDefaultStartDate = awalBulanIni
+const getDefaultEndDate = akhirBulanIni
 
 type AsetOption = { id: string; nama: string; jenis: string }
 type KategoriOption = { id: string; nama: string; jenis: string }

@@ -52,7 +52,15 @@ const PromoSection = ({ embedded = false }: Props) => {
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>(
     {
       loop: true,
-      slides: { perView: 'auto', spacing: 16 }
+
+      // Jumlah kartu dipatok per breakpoint (maksimal 4) supaya kartunya tidak
+      // mengecil terus di layar lebar seperti waktu memakai perView 'auto'.
+      slides: { perView: 1, spacing: 16 },
+      breakpoints: {
+        '(min-width: 600px)': { slides: { perView: 2, spacing: 16 } },
+        '(min-width: 1200px)': { slides: { perView: 3, spacing: 16 } },
+        '(min-width: 1536px)': { slides: { perView: 4, spacing: 16 } }
+      }
     },
     [
       slider => {
@@ -132,7 +140,7 @@ const PromoSection = ({ embedded = false }: Props) => {
             <AppKeenSlider>
               <div ref={sliderRef} className='keen-slider mbe-6'>
                 {promos.map(promo => (
-                  <div key={promo.id} className='keen-slider__slide py-2' style={{ width: 400 }}>
+                  <div key={promo.id} className='keen-slider__slide py-2'>
                     <Card elevation={8} className='flex flex-col' style={{ width: '100%' }}>
                       {promo.imageUrl ? (
                         <Box

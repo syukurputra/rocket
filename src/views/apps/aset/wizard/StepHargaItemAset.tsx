@@ -319,7 +319,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
         </CustomTextField>
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }}>
+      {/* Empat field harga sengaja satu baris supaya alur hitungnya kebaca berurutan */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <CustomTextField
           fullWidth
           label='Harga'
@@ -330,19 +331,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
         />
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }}>
-        <div className='flex flex-col'>
-          <FormControlLabel
-            control={<Switch checked={promoAktif} onChange={e => setPromoAktif(e.target.checked)} size='small' />}
-            label={<Typography variant='body2'>Promo — {promoAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
-          />
-          <Typography variant='caption' color='text.secondary'>
-            Kalau aktif, harga promo yang tampil di publish dan yang ditagihkan saat booking.
-          </Typography>
-        </div>
-      </Grid>
-
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <CustomTextField
           fullWidth
           label='Harga Promo'
@@ -360,7 +349,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
         />
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <CustomTextField
           fullWidth
           label='Biaya Layanan'
@@ -371,7 +360,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
         />
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <CustomTextField
           fullWidth
           label='Harga Merchant'
@@ -379,6 +368,19 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
           disabled
           InputProps={{ readOnly: true }}
         />
+      </Grid>
+
+      <Grid size={{ xs: 12 }}>
+        <div className='flex items-center gap-1'>
+          <FormControlLabel
+            control={<Switch checked={promoAktif} onChange={e => setPromoAktif(e.target.checked)} size='small' />}
+            label={<Typography variant='body2'>Promo — {promoAktif ? 'Aktif' : 'Non Aktif'}</Typography>}
+            className='mie-1'
+          />
+          <Tooltip title='Kalau aktif, harga promo yang tampil di publish dan yang ditagihkan saat booking.'>
+            <i className='tabler-info-circle text-textSecondary cursor-help' />
+          </Tooltip>
+        </div>
       </Grid>
 
       <Grid size={{ xs: 12 }}>
