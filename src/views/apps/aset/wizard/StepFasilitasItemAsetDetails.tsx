@@ -21,6 +21,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
 import IconSearchAutocomplete from '@/src/components/IconSearchAutocomplete'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 type Props = {
   activeStep: number
@@ -54,6 +55,7 @@ type FasilitasItemAsetData = {
 const StepFasilitasItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
+  const { confirm, confirmProps } = useConfirm()
   const [fasilitas, setFasilitas] = useState<FasilitasItemAsetData[]>([])
   const [itemAsets, setItemAsets] = useState<ItemAsetData[]>([])
   const [loading, setLoading] = useState(false)
@@ -114,14 +116,15 @@ const StepFasilitasItemAsetDetails = ({ activeStep, handleNext, handlePrev, step
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
-      try {
-        await apiFetchClient(`/api/fasilitas-aset-item/${id}`, { method: 'DELETE' })
-        fetchFasilitas()
-      } catch (error) {
-        console.error('Error deleting fasilitas:', error)
-        onShowMessage?.('Gagal menghapus fasilitas.', 'error')
-      }
+    if (!(await confirm({ title: 'Hapus Fasilitas', message: 'Apakah Anda yakin ingin menghapus fasilitas ini?' })))
+      return
+
+    try {
+      await apiFetchClient(`/api/fasilitas-aset-item/${id}`, { method: 'DELETE' })
+      fetchFasilitas()
+    } catch (error) {
+      console.error('Error deleting fasilitas:', error)
+      onShowMessage?.('Gagal menghapus fasilitas.', 'error')
     }
   }
 
@@ -257,6 +260,8 @@ const StepFasilitasItemAsetDetails = ({ activeStep, handleNext, handlePrev, step
             </Button>
           </div>
         </Grid>
+
+        <ConfirmDialog {...confirmProps} />
       </Grid>
     )
   }

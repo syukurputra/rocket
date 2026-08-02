@@ -25,6 +25,7 @@ import DirectionalIcon from '@components/DirectionalIcon'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import { BIAYA_LAYANAN_PARAM_IDS, hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
 import { isPromoBerlaku } from '@/src/libs/hargaPromo'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 type Props = {
   activeStep: number
@@ -70,6 +71,7 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   const [itemAsets, setItemAsets] = useState<ItemAsetData[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [tarifLayanan, setTarifLayanan] = useState<TarifBiayaLayanan>({})
+  const { confirm, confirmProps } = useConfirm()
 
   // Form state
   const [selectedItemAsetId, setSelectedItemAsetId] = useState('')
@@ -140,7 +142,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus harga ini?')) return
+    if (!(await confirm({ title: 'Hapus Harga', message: 'Hapus harga item aset ini?' }))) return
+
     try {
       await apiFetchClient(`/api/harga-item-aset/${id}`, { method: 'DELETE' })
       fetchHarga()
@@ -279,6 +282,8 @@ const StepHargaItemAset = ({ activeStep, handleNext, handlePrev, steps, asetId, 
             </Button>
           </div>
         </Grid>
+
+        <ConfirmDialog {...confirmProps} />
       </Grid>
     )
   }

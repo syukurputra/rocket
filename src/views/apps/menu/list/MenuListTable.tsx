@@ -48,6 +48,7 @@ import AddEditMenu from '@/src/components/dialogs/menu'
 // Util Imports
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -82,6 +83,7 @@ const MenuListTable = () => {
   const [selectedMenu, setSelectedMenu] = useState<MenuClient | null>(null)
 
   const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
   const filterOpen = Boolean(filterAnchor)
@@ -134,9 +136,12 @@ const MenuListTable = () => {
   }
 
   const handleDelete = async (menu: MenuClient) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus menu "${menu.nama}"?`)) {
-      return
-    }
+    const setuju = await confirm({
+      title: 'Hapus Menu',
+      message: `Apakah Anda yakin ingin menghapus menu "${menu.nama}"?`
+    })
+
+    if (!setuju) return
 
     try {
       await apiFetchClient(
@@ -409,6 +414,8 @@ const MenuListTable = () => {
           handleCloseDialog()
         }}
       />
+
+      <ConfirmDialog {...confirmProps} />
     </>
   )
 }

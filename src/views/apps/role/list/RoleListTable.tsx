@@ -49,6 +49,7 @@ import AssignMenuToRole from '@/src/components/dialogs/assign-menu-to-role'
 // Util Imports
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -87,6 +88,7 @@ const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<RoleClient | null>(null)
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
   const filterOpen = Boolean(filterAnchor)
@@ -134,7 +136,7 @@ const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
   }, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus role ini?')) return
+    if (!(await confirm({ title: 'Hapus Role', message: 'Apakah Anda yakin ingin menghapus role ini?' }))) return
 
     try {
       await apiFetchClient(`/api/role/${id}`, {
@@ -421,6 +423,8 @@ const RoleListTable = ({ apiEndpoint = '/api/role' }: RoleListTableProps) => {
           handleCloseAssignDialog()
         }}
       />
+
+      <ConfirmDialog {...confirmProps} />
     </>
   )
 }

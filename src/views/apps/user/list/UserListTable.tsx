@@ -48,6 +48,7 @@ import AddEditUserDialog from './AddEditUserDialog'
 // Util Imports
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -83,6 +84,7 @@ const UserListTable = () => {
   const [selectedUser, setSelectedUser] = useState<UserClient | null>(null)
 
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
   const filterOpen = Boolean(filterAnchor)
@@ -150,7 +152,14 @@ const UserListTable = () => {
   const handleToggleStatus = async (user: UserClient) => {
     const action = user.status ? 'menonaktifkan' : 'mengaktifkan'
 
-    if (!confirm(`Apakah Anda yakin ingin ${action} user ini?`)) return
+    const setuju = await confirm({
+      title: user.status ? 'Nonaktifkan User' : 'Aktifkan User',
+      message: `Apakah Anda yakin ingin ${action} user ini?`,
+      confirmLabel: 'Ya',
+      color: user.status ? 'warning' : 'success'
+    })
+
+    if (!setuju) return
 
     try {
       await apiFetchClient(`/api/user/${user.id}`, {
@@ -170,7 +179,7 @@ const UserListTable = () => {
   }
 
   const handleDelete = async (user: UserClient) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return
+    if (!(await confirm({ title: 'Hapus User', message: 'Apakah Anda yakin ingin menghapus user ini?' }))) return
 
     try {
       await apiFetchClient(`/api/user/${user.id}`, {
@@ -456,6 +465,8 @@ const UserListTable = () => {
         userData={selectedUser}
         mode={dialogMode}
       />
+
+      <ConfirmDialog {...confirmProps} />
     </>
   )
 }

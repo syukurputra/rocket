@@ -20,6 +20,7 @@ import AddEditPaket from '@components/dialogs/master/paket'
 import PaketMenuAssignment from '@components/dialogs/paket/PaketMenuAssignment'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 import tableStyles from '@core/styles/table.module.css'
 
 type PaketWithAction = MasterPaketClient & {
@@ -34,6 +35,7 @@ const MasterPaketListTable = () => {
   const [menuDialogOpen, setMenuDialogOpen] = useState(false)
   const [selectedPaket, setSelectedPaket] = useState<MasterPaketClient | null>(null)
   const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const fetchData = async () => {
     try {
@@ -155,7 +157,8 @@ const MasterPaketListTable = () => {
             />
             <IconButton
               onClick={async () => {
-                if (!confirm('Apakah Anda yakin ingin menghapus paket ini?')) return
+                if (!(await confirm({ title: 'Hapus Paket', message: 'Apakah Anda yakin ingin menghapus paket ini?' })))
+                  return
 
                 try {
                   await apiFetchClient(`/api/master/paket/${row.original.id}`, {
@@ -264,6 +267,8 @@ const MasterPaketListTable = () => {
           showSnackbar('Menu berhasil di-assign', 'success')
         }}
       />
+
+      <ConfirmDialog {...confirmProps} />
     </Card>
   )
 }

@@ -20,6 +20,7 @@ import type { CategoryKeuanganClient } from '@/src/types/apps/categoryKeuanganTy
 import AddEditCategoryKeuangan from '@components/dialogs/setting/category-keuangan'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 import tableStyles from '@core/styles/table.module.css'
 
 type CategoryKeuanganWithAction = CategoryKeuanganClient & {
@@ -32,6 +33,7 @@ const Icon = styled('i')({})
 const CategoryKeuanganListTable = () => {
   const [data, setData] = useState<CategoryKeuanganClient[]>([])
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const fetchData = async () => {
     try {
@@ -127,7 +129,12 @@ const CategoryKeuanganListTable = () => {
             />
             <IconButton
               onClick={async () => {
-                if (!confirm('Apakah Anda yakin ingin menghapus category ini?')) return
+                const setuju = await confirm({
+                  title: 'Hapus Kategori',
+                  message: 'Apakah Anda yakin ingin menghapus kategori ini?'
+                })
+
+                if (!setuju) return
 
                 try {
                   await apiFetchClient(`/api/setting/category-keuangan/${row.original.id}`, {
@@ -222,6 +229,7 @@ const CategoryKeuanganListTable = () => {
       </div>
 
       <AppSnackbar snack={snackbar} onClose={closeSnack} />
+      <ConfirmDialog {...confirmProps} />
     </Card>
   )
 }

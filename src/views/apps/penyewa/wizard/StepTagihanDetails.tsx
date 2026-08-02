@@ -24,6 +24,7 @@ import DirectionalIcon from '@components/DirectionalIcon'
 import CustomTextField from '@core/components/mui/TextField'
 import AppReactDatepicker from '@/src/libs/styles/AppReactDatepicker'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 import { downloadPdfFromApi } from '@/src/utils/downloadPdf'
 
 // Type Imports
@@ -90,6 +91,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   })
 
   const { snack: snackbar, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   useEffect(() => {
     if (penyewaId) fetchTagihan()
@@ -219,15 +221,15 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus tagihan ini?')) {
-      try {
-        await apiFetchClient(`/api/tagihan/${id}`, { method: 'DELETE' })
-        fetchTagihan()
-        showSnackbar('Tagihan berhasil dihapus', 'success')
-      } catch (error) {
-        console.error('Error deleting tagihan:', error)
-        showSnackbar('Gagal menghapus tagihan', 'error')
-      }
+    if (!(await confirm({ title: 'Hapus Tagihan', message: 'Apakah Anda yakin ingin menghapus tagihan ini?' }))) return
+
+    try {
+      await apiFetchClient(`/api/tagihan/${id}`, { method: 'DELETE' })
+      fetchTagihan()
+      showSnackbar('Tagihan berhasil dihapus', 'success')
+    } catch (error) {
+      console.error('Error deleting tagihan:', error)
+      showSnackbar('Gagal menghapus tagihan', 'error')
     }
   }
 
@@ -427,6 +429,7 @@ const StepTagihanDetails = ({ activeStep, handleNext, handlePrev, steps, penyewa
         </Grid>
 
         <AppSnackbar snack={snackbar} onClose={closeSnack} />
+        <ConfirmDialog {...confirmProps} />
       </>
     )
   }

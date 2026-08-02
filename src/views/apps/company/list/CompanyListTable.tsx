@@ -49,6 +49,7 @@ import AddEditCompanyDialog from './AddEditCompanyDialog'
 // Util Imports
 import AppSnackbar, { useSnackbar } from '@/src/components/AppSnackbar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -87,6 +88,7 @@ const CompanyListTable = () => {
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
   const [selectedCompany, setSelectedCompany] = useState<CompanyClient | null>(null)
   const { snack, showSnack: showSnackbar, closeSnack } = useSnackbar()
+  const { confirm, confirmProps } = useConfirm()
 
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
   const filterOpen = Boolean(filterAnchor)
@@ -148,7 +150,15 @@ const CompanyListTable = () => {
 
   const handleToggleStatus = async (company: CompanyClient) => {
     const action = company.status ? 'menonaktifkan' : 'mengaktifkan'
-    if (!confirm(`Apakah Anda yakin ingin ${action} company ini?`)) return
+
+    const setuju = await confirm({
+      title: company.status ? 'Nonaktifkan Company' : 'Aktifkan Company',
+      message: `Apakah Anda yakin ingin ${action} company ini?`,
+      confirmLabel: 'Ya',
+      color: company.status ? 'warning' : 'success'
+    })
+
+    if (!setuju) return
 
     try {
       await apiFetchClient(`/api/company/${company.id}`, {
@@ -168,7 +178,8 @@ const CompanyListTable = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus company ini?')) return
+    if (!(await confirm({ title: 'Hapus Company', message: 'Apakah Anda yakin ingin menghapus company ini?' })))
+      return
 
     try {
       await apiFetchClient(`/api/company/${id}`, {
@@ -437,6 +448,8 @@ const CompanyListTable = () => {
         companyData={selectedCompany}
         mode={dialogMode}
       />
+
+      <ConfirmDialog {...confirmProps} />
     </>
   )
 }

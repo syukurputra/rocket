@@ -25,6 +25,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import CustomTextField from '@core/components/mui/TextField'
 import DirectionalIcon from '@components/DirectionalIcon'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 type Props = {
   activeStep: number
@@ -50,6 +51,7 @@ type ItemAsetData = {
 const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId, onShowMessage }: Props) => {
   // View State
   const [view, setView] = useState<'table' | 'form'>('table')
+  const { confirm, confirmProps } = useConfirm()
   const [rooms, setRooms] = useState<ItemAsetData[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -107,14 +109,15 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus item aset ini?')) {
-      try {
-        await apiFetchClient(`/api/aset-item/${id}`, { method: 'DELETE' })
-        fetchRooms()
-      } catch (error) {
-        console.error('Error deleting room:', error)
-        onShowMessage?.('Gagal menghapus item aset.', 'error')
-      }
+    if (!(await confirm({ title: 'Hapus Item Aset', message: 'Apakah Anda yakin ingin menghapus item aset ini?' })))
+      return
+
+    try {
+      await apiFetchClient(`/api/aset-item/${id}`, { method: 'DELETE' })
+      fetchRooms()
+    } catch (error) {
+      console.error('Error deleting room:', error)
+      onShowMessage?.('Gagal menghapus item aset.', 'error')
     }
   }
 
@@ -342,6 +345,8 @@ const StepItemAsetDetails = ({ activeStep, handleNext, handlePrev, steps, asetId
             </Button>
           </div>
         </Grid>
+
+        <ConfirmDialog {...confirmProps} />
       </Grid>
     )
   }
