@@ -24,10 +24,16 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak terkait dengan perusahaan' }, { status: 400 })
     }
 
-    const { tagihanId, setuju } = await request.json()
+    const { tagihanId, setuju, alasan } = await request.json()
 
     if (!tagihanId || typeof setuju !== 'boolean') {
       return NextResponse.json({ message: 'tagihanId dan setuju wajib diisi' }, { status: 400 })
+    }
+
+    const alasanBatal = typeof alasan === 'string' ? alasan.trim() : ''
+
+    if (!setuju && !alasanBatal) {
+      return NextResponse.json({ message: 'Alasan pembatalan wajib diisi' }, { status: 400 })
     }
 
     const tagihan = await prisma.tagihan.findUnique({
@@ -53,10 +59,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     if (!setuju) {
       await prisma.tagihan.updateMany({
         where: { ...targetOrder, status: STATUS_TAGIHAN.menungguKonfirmasi },
-        data: { status: STATUS_TAGIHAN.dibatalkan, updatedById: user.id }
+        data: { status: STATUS_TAGIHAN.dibatalkan, alasanBatal, updatedById: user.id }
       })
 
-      kirimNotifikasiPenyewa(tagihan, false)
+      kirimNotifikasiPenyewa(tagihan, false, alasanBatal)
 
       return NextResponse.json({ data: { status: STATUS_TAGIHAN.dibatalkan }, message: 'Booking dibatalkan' })
     }
@@ -97,8 +103,15 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
 
 /** Notifikasi in-app ke penyewa. Dijalankan tanpa menahan respons. */
 function kirimNotifikasiPenyewa(
-  tagihan: { penyewaId: string; nominal: unknown; aset: { nama: string } | null; ruangan: { nama: string } | null },
-  disetujui: boolean
+  tagihan: {
+    id: string
+    penyewaId: string
+    nominal: unknown
+    aset: { nama: string } | null
+    ruangan: { nama: string } | null
+  },
+  disetujui: boolean,
+  alasanBatal = ''
 ) {
   const rincian = `${tagihan.aset?.nama ?? '-'} ${tagihan.ruangan?.nama ?? ''} | ${formatRupiah(Number(tagihan.nominal))}`
 
@@ -110,12 +123,14 @@ function kirimNotifikasiPenyewa(
       return prisma.notifikasi.create({
         data: {
           title: disetujui ? 'Booking Disetujui' : 'Booking Ditolak',
-          subtitle: disetujui ? `${rincian} — silakan lanjutkan pembayaran` : `${rincian} — booking dibatalkan`,
+          subtitle: disetujui
+            ? `${rincian} — silakan lanjutkan pembayaran`
+            : `${rincian} — dibatalkan: ${alasanBatal}`,
           avatarIcon: disetujui ? 'tabler-circle-check' : 'tabler-circle-x',
           avatarColor: disetujui ? 'success' : 'error',
           type: 'tagihan',
-          url: '/booking/saya',
-          refId: akun.id,
+          url: `/booking/saya/${tagihan.id}`,
+          refId: tagihan.id,
           userId: akun.id
         }
       })

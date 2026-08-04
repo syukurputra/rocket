@@ -24,6 +24,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import ScheduleDialog from '@/src/views/front-pages/publish/ScheduleDialog'
 import type { TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
+import { hitungSelesaiSewa } from '@/src/libs/periodeSewa'
 
 interface HargaItem {
   id: string
@@ -74,16 +75,6 @@ const formatTanggal = (d: Date, withTime: boolean) =>
     ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {})
   })
 
-const addDuration = (date: Date, durasi: number, jenis: string): Date => {
-  const d = new Date(date)
-
-  if (jenis === 'JAM') d.setHours(d.getHours() + durasi)
-  else if (jenis === 'HARIAN') d.setDate(d.getDate() + durasi)
-  else if (jenis === 'BULANAN') d.setMonth(d.getMonth() + durasi)
-  else if (jenis === 'TAHUNAN') d.setFullYear(d.getFullYear() + durasi)
-
-  return d
-}
 
 const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
   const router = useRouter()
@@ -164,7 +155,7 @@ const BookingCheckoutView = ({ itemId }: { itemId: string }) => {
 
   // Tanggal & jam disimpan terpisah lalu digabung — menit dikunci 00
   const mulaiSewa = tanggalMulai ? (pakaiJam(jenisHarga) ? `${tanggalMulai}T${jamMulai}:00` : tanggalMulai) : ''
-  const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
+  const selesaiSewa = mulaiSewa ? hitungSelesaiSewa(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   /**
    * Booking tidak langsung jadi tagihan — masuk keranjang dulu supaya beberapa

@@ -22,6 +22,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CustomTextField from '@core/components/mui/TextField'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
 import { BIAYA_LAYANAN_PARAM_IDS, hitungBiayaLayanan, type TarifBiayaLayanan } from '@/src/libs/biayaLayanan'
+import { hitungSelesaiSewa } from '@/src/libs/periodeSewa'
 
 type AsetItem = { id: string; nama: string; jenis?: string }
 type ItemAsetItem = { id: string; nama: string; asetId: string; hargaItemAset: { id: string; jenisHarga: string; harga: number }[] }
@@ -37,16 +38,6 @@ const JENIS_LABEL: Record<string, string> = {
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
-const addDuration = (date: Date, durasi: number, jenis: string): Date => {
-  const d = new Date(date)
-
-  if (jenis === 'JAM') d.setHours(d.getHours() + durasi)
-  else if (jenis === 'HARIAN') d.setDate(d.getDate() + durasi)
-  else if (jenis === 'BULANAN') d.setMonth(d.getMonth() + durasi)
-  else if (jenis === 'TAHUNAN') d.setFullYear(d.getFullYear() + durasi)
-
-  return d
-}
 
 type Props = {
   open: boolean
@@ -88,7 +79,7 @@ const TambahBookingDialog = ({ open, onClose, onSuccess }: Props) => {
   // Biaya layanan mengikuti jenjang total booking
   const adminBooking = hitungBiayaLayanan(total, tarifLayanan)
   const grandTotal = total + adminBooking
-  const selesaiSewa = mulaiSewa && jenisHarga ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
+  const selesaiSewa = mulaiSewa && jenisHarga ? hitungSelesaiSewa(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   useEffect(() => {
     if (!open) return

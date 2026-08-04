@@ -5,6 +5,7 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { formatAlamatLengkap, isAlamatLengkap } from '@/src/libs/alamatPemesan'
 import { hargaEfektif } from '@/src/libs/hargaPromo'
+import { hitungSelesaiSewa } from '@/src/libs/periodeSewa'
 
 // GET /api/keranjang — isi keranjang user yang login
 async function handleGet(_request: NextRequest, { user }: AuthContext) {
@@ -77,9 +78,9 @@ async function handleGet(_request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { itemAsetId, jenisHarga, mulaiSewa, selesaiSewa, durasi, catatan } = body
+    const { itemAsetId, jenisHarga, mulaiSewa, durasi, catatan } = body
 
-    if (!itemAsetId || !jenisHarga || !mulaiSewa || !selesaiSewa || !durasi) {
+    if (!itemAsetId || !jenisHarga || !mulaiSewa || !durasi) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 })
     }
 
@@ -107,8 +108,10 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
     const hargaSatuan = hargaEfektif(daftarHarga)
     const total = hargaSatuan * jumlahDurasi
 
+    // Tanggal selesai dihitung ulang di server supaya rumusnya seragam untuk
+    // semua form booking, tidak bergantung pada kiriman client.
     const mulai = new Date(mulaiSewa)
-    const selesai = new Date(selesaiSewa)
+    const selesai = hitungSelesaiSewa(mulai, jumlahDurasi, jenisHarga)
 
     // Keranjang hanya boleh berisi item dari satu aset — supaya satu kali bayar
     // hanya menyangkut satu pemilik sewaan.

@@ -11,13 +11,18 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const limitParam = searchParams.get('limit')
     const take = limitParam === 'all' ? undefined : Number(limitParam) || 20
 
-    const notifikasi = await prisma.notifikasi.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      ...(take ? { take } : {})
-    })
+    // unreadCount dihitung dari seluruh notifikasi, bukan hanya yang ikut
+    // terambil pada halaman ini — supaya angka di lonceng tidak terpotong limit.
+    const [notifikasi, unreadCount] = await Promise.all([
+      prisma.notifikasi.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        ...(take ? { take } : {})
+      }),
+      prisma.notifikasi.count({ where: { userId: user.id, read: false } })
+    ])
 
-    return NextResponse.json({ data: notifikasi })
+    return NextResponse.json({ data: notifikasi, unreadCount })
   } catch (error) {
     console.error('Get notifikasi error:', error)
     return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })

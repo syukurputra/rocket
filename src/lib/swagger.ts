@@ -104,8 +104,6 @@ const swaggerSpec: OpenAPIV3.Document = {
           latitude: { type: 'number', nullable: true },
           longitude: { type: 'number', nullable: true },
           status: { type: 'boolean' },
-          bookingOnline: { type: 'boolean' },
-          pembayaranOnline: { type: 'boolean' },
           createdAt: { type: 'string', format: 'date-time' }
         }
       },
@@ -715,9 +713,7 @@ const swaggerSpec: OpenAPIV3.Document = {
                   kelurahan: { type: 'string' },
                   latitude: { type: 'number' },
                   longitude: { type: 'number' },
-                  status: { type: 'boolean', default: true },
-                  bookingOnline: { type: 'boolean', default: false },
-                  pembayaranOnline: { type: 'boolean', default: false }
+                  status: { type: 'boolean', default: true }
                 }
               }
             }

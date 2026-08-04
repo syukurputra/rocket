@@ -56,7 +56,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = await params
     const body = await request.json()
-    const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamatPemesanAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, syaratKetentuan, bookingOnline, pembayaranOnline } = body
+    const { jenis, nama, deskripsi, nomorWa, nomorWaAktif, instagram, instagramAktif, facebook, facebookAktif, alamatPemesanAktif, alamat, kota, provinsi, kecamatan, kelurahan, latitude, longitude, status, publishId, syaratKetentuan } = body
 
     const existingAset = await prisma.aset.findUnique({
       where: { id }
@@ -99,9 +99,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
         latitude: latitude !== undefined ? Number(latitude) : undefined,
         longitude: longitude !== undefined ? Number(longitude) : undefined,
         updatedById: user.id,
-        ...(status && { status }),
-        ...(bookingOnline !== undefined && { bookingOnline: bookingOnline === true }),
-        ...(pembayaranOnline !== undefined && { pembayaranOnline: pembayaranOnline === true })
+        ...(status && { status })
       },
       include: {
         images: true,

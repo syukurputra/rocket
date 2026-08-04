@@ -6,6 +6,7 @@ import { sendBookingCreatedEmail } from '@/src/mails/bookingCreatedEmail'
 import { createIpaymuPayment } from '@/src/libs/ipaymu'
 import { getBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 import { generateNomorTagihan } from '@/src/libs/nomorTagihan'
+import { hitungLateDate, hitungSelesaiSewa } from '@/src/libs/periodeSewa'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -47,7 +48,9 @@ export async function POST(req: NextRequest) {
     const adminBooking = await getBiayaLayanan(Number(total))
 
     const mulaiSewaDate = new Date(mulaiSewa)
-    const selesaiSewaDate = new Date(selesaiSewa)
+
+    // Dihitung ulang di server supaya rumus periodenya seragam dengan form lain
+    const selesaiSewaDate = hitungSelesaiSewa(mulaiSewaDate, Number(durasi), jenisHarga)
     const periodeSewa = JENIS_PERIODE[jenisHarga] || jenisHarga
 
     // Cek konflik tanggal pada ruangan yang sama dengan status LUNAS.
@@ -126,6 +129,9 @@ export async function POST(req: NextRequest) {
         mulaiSewa: mulaiSewaDate,
         selesaiSewa: selesaiSewaDate,
         nominal: Number(total),
+
+        // Batas telat hanya diisi kalau item asetnya mengaktifkan aturan ini
+        lateDate: ruangan.telatBookingAktif ? hitungLateDate(selesaiSewaDate) : null,
         penyewaId: penyewa.id,
         asetId: ruangan.asetId,
         itemAsetId: ruanganId,
@@ -194,7 +200,7 @@ export async function POST(req: NextRequest) {
           avatarIcon: 'tabler-calendar-check',
           avatarColor: 'primary',
           type: 'tagihan',
-          url: '/booking',
+          url: `/booking/saya/${tagihan.id}`,
           refId: tagihan.id,
           userId
         }
@@ -217,7 +223,7 @@ export async function POST(req: NextRequest) {
           avatarIcon: 'tabler-calendar-plus',
           avatarColor: 'warning',
           type: 'tagihan',
-          url: '/booking',
+          url: `/booking/aset/${tagihan.id}`,
           refId: tagihan.id,
           userId: u.id
         }))

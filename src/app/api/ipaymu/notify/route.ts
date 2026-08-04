@@ -190,7 +190,7 @@ async function prosesTagihanLunas(tagihan: TagihanNotify) {
             avatarIcon: 'tabler-circle-check',
             avatarColor: 'success',
             type: 'tagihan',
-            url: '/booking',
+            url: `/booking/saya/${tagihanId}`,
             refId: tagihanId,
             userId: userPenyewa.id
           }
@@ -233,7 +233,7 @@ async function prosesTagihanLunas(tagihan: TagihanNotify) {
           avatarIcon: 'tabler-circle-check',
           avatarColor: 'success',
           type: 'tagihan',
-          url: `/penyewa/edit/${tagihan.penyewaId}`,
+          url: `/booking/aset/${tagihanId}`,
           refId: tagihanId,
           userId: u.id
         }))

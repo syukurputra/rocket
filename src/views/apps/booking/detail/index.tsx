@@ -35,6 +35,7 @@ type TagihanBooking = {
   mulaiSewa: string
   selesaiSewa: string
   metodeBayar?: string | null
+  alasanBatal?: string | null
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
   aset?: { id: string; nama: string } | null
@@ -416,10 +417,20 @@ const BookingDetailView = ({ bookingId }: { bookingId: string }) => {
                 )}
 
                 {isCancelled && (
-                  <Box className='p-4 rounded flex items-center gap-3' sx={{ bgcolor: 'error.light' }}>
-                    <i className='tabler-circle-x text-white text-2xl' />
-                    <Typography color='white' fontWeight={600}>Booking Dibatalkan</Typography>
-                  </Box>
+                  <>
+                    <Box className='p-4 rounded flex items-center gap-3' sx={{ bgcolor: 'error.light' }}>
+                      <i className='tabler-circle-x text-white text-2xl' />
+                      <Typography color='white' fontWeight={600}>Booking Dibatalkan</Typography>
+                    </Box>
+                    {tagihan?.alasanBatal && (
+                      <Alert severity='warning'>
+                        <Typography variant='body2' fontWeight={600}>
+                          Alasan Pembatalan
+                        </Typography>
+                        <Typography variant='body2'>{tagihan.alasanBatal}</Typography>
+                      </Alert>
+                    )}
+                  </>
                 )}
 
                 {confirmCancel && (

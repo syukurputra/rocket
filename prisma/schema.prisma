@@ -186,8 +186,6 @@ model Aset {
   status              String          @default("aktif")
   publishId           String?         @unique
   syaratKetentuan     String?         @db.Text
-  bookingOnline       Boolean         @default(false)
-  pembayaranOnline Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   nominal       Decimal         @default(0) @db.Decimal(15, 2)
@@ -249,6 +247,9 @@ model Ruangan {
 
   /// Kalau aktif, booking menunggu persetujuan pemilik sebelum bisa dibayar
   konfirmasiBooking Boolean           @default(false)
+
+  /// Kalau aktif, tagihan booking diberi batas telat H+1 dari tanggal selesai sewa
+  telatBookingAktif Boolean           @default(false)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   createdById      String
@@ -517,6 +518,13 @@ model Tagihan {
   // Penanda satu kali pembayaran dari keranjang. Beberapa tagihan yang dibayar
   // sekaligus berbagi orderId yang sama, dan itulah referenceId ke iPaymu.
   orderId          String?
+
+  /// Batas telat H+1 (selesaiSewa + 1 hari). Diisi hanya kalau item asetnya
+  /// mengaktifkan telatBookingAktif. Status telat dihitung dari kolom ini.
+  lateDate         DateTime?
+
+  /// Alasan yang ditulis pemilik saat menolak/membatalkan booking
+  alasanBatal      String?  @db.Text
 
   // Rekonsiliasi fields
   statusRekon      String?

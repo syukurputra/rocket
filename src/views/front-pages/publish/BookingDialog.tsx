@@ -18,6 +18,7 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 
 import CustomTextField from '@core/components/mui/TextField'
+import { hitungSelesaiSewa } from '@/src/libs/periodeSewa'
 
 interface HargaItem {
   id: string
@@ -55,16 +56,6 @@ const JENIS_LABEL: Record<string, string> = {
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
-const addDuration = (date: Date, durasi: number, jenis: string): Date => {
-  const d = new Date(date)
-
-  if (jenis === 'JAM') d.setHours(d.getHours() + durasi)
-  else if (jenis === 'HARIAN') d.setDate(d.getDate() + durasi)
-  else if (jenis === 'BULANAN') d.setMonth(d.getMonth() + durasi)
-  else if (jenis === 'TAHUNAN') d.setFullYear(d.getFullYear() + durasi)
-
-  return d
-}
 
 const BookingDialog = ({ open, onClose, itemAset, asetNama, adminBooking = 0, initialData }: BookingDialogProps) => {
   const router = useRouter()
@@ -85,7 +76,7 @@ const BookingDialog = ({ open, onClose, itemAset, asetNama, adminBooking = 0, in
   const hargaSatuan = selectedHarga?.harga || 0
   const total = hargaSatuan * durasi
   const grandTotal = total + adminBooking
-  const selesaiSewa = mulaiSewa ? addDuration(new Date(mulaiSewa), durasi, jenisHarga) : null
+  const selesaiSewa = mulaiSewa ? hitungSelesaiSewa(new Date(mulaiSewa), durasi, jenisHarga) : null
 
   useEffect(() => {
     const userData = localStorage.getItem('user')

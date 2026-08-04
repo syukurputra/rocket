@@ -67,6 +67,7 @@ const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: bool
 const NotificationsDropdown = () => {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -77,17 +78,20 @@ const NotificationsDropdown = () => {
   const isSmallScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
   const { settings } = useSettings()
 
-  const unreadCount = notifications.filter(n => !n.read).length
   const allRead = notifications.length > 0 && notifications.every(n => n.read)
 
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await apiFetchClient<{ data: NotificationItem[] }>('/api/notifikasi', undefined, {
-        redirectOn401: false
-      })
+
+      const res = await apiFetchClient<{ data: NotificationItem[]; unreadCount: number }>(
+        '/api/notifikasi',
+        undefined,
+        { redirectOn401: false }
+      )
 
       setNotifications(res.data || [])
+      setUnreadCount(res.unreadCount ?? 0)
     } catch {
       // silently fail
     } finally {
@@ -121,18 +125,21 @@ const NotificationsDropdown = () => {
   const markRead = async (e: MouseEvent<HTMLElement>, item: NotificationItem, value: boolean) => {
     e.stopPropagation()
     setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, read: value } : n)))
+    setUnreadCount(prev => Math.max(0, prev + (value ? -1 : 1)))
 
     try {
       await apiFetchClient(`/api/notifikasi/${item.id}`, { method: 'PATCH', body: JSON.stringify({ read: value }) }, { redirectOn401: false })
     } catch {
       // revert on fail
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, read: !value } : n)))
+      setUnreadCount(prev => Math.max(0, prev + (value ? 1 : -1)))
     }
   }
 
   const removeNotification = async (e: MouseEvent<HTMLElement>, item: NotificationItem) => {
     e.stopPropagation()
     setNotifications(prev => prev.filter(n => n.id !== item.id))
+    if (!item.read) setUnreadCount(prev => Math.max(0, prev - 1))
 
     try {
       await apiFetchClient(`/api/notifikasi/${item.id}`, { method: 'DELETE' }, { redirectOn401: false })
@@ -144,6 +151,7 @@ const NotificationsDropdown = () => {
   const toggleReadAll = async () => {
     if (allRead) return
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    setUnreadCount(0)
 
     try {
       await apiFetchClient('/api/notifikasi/read-all', { method: 'PATCH' }, { redirectOn401: false })
@@ -155,6 +163,7 @@ const NotificationsDropdown = () => {
   const handleItemClick = async (item: NotificationItem) => {
     if (!item.read) {
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, read: true } : n)))
+      setUnreadCount(prev => Math.max(0, prev - 1))
       apiFetchClient(`/api/notifikasi/${item.id}`, { method: 'PATCH', body: JSON.stringify({ read: true }) }, { redirectOn401: false }).catch(() => {})
     }
 
@@ -169,10 +178,15 @@ const NotificationsDropdown = () => {
       <IconButton ref={anchorRef} onClick={() => setOpen(prev => !prev)} className='text-textPrimary'>
         <Badge
           color='error'
-          variant='dot'
+          badgeContent={unreadCount}
+          max={99}
           overlap='circular'
           invisible={unreadCount === 0}
-          sx={{ '& .MuiBadge-dot': { top: 6, right: 5, boxShadow: 'var(--mui-palette-background-paper) 0px 0px 0px 2px' } }}
+          sx={{
+            '& .MuiBadge-badge': {
+              boxShadow: 'var(--mui-palette-background-paper) 0px 0px 0px 2px'
+            }
+          }}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <i className='tabler-bell' />

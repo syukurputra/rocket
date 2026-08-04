@@ -8,6 +8,7 @@ import { getTarifBiayaLayanan } from '@/src/libs/getBiayaLayanan'
 import { hitungBiayaLayanan } from '@/src/libs/biayaLayanan'
 import { generateNomorTagihan } from '@/src/libs/nomorTagihan'
 import { isAlamatLengkap } from '@/src/libs/alamatPemesan'
+import { hitungLateDate } from '@/src/libs/periodeSewa'
 
 const JENIS_PERIODE: Record<string, string> = {
   JAM: 'jam',
@@ -35,7 +36,15 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       where: { userId: user.id },
       include: {
         aset: { select: { id: true, nama: true, alamatPemesanAktif: true } },
-        itemAset: { select: { id: true, nama: true, multipleBooking: true, konfirmasiBooking: true } }
+        itemAset: {
+          select: {
+            id: true,
+            nama: true,
+            multipleBooking: true,
+            konfirmasiBooking: true,
+            telatBookingAktif: true
+          }
+        }
       },
       orderBy: { createdAt: 'asc' }
     })
@@ -175,6 +184,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
           adminBooking,
           hargaMerchant: Math.max(0, total - adminBooking),
           orderId,
+
+          // Batas telat hanya diisi kalau item asetnya mengaktifkan aturan ini
+          lateDate: item.itemAset?.telatBookingAktif ? hitungLateDate(item.selesaiSewa) : null,
           penyewaId: penyewa.id,
           asetId: item.asetId,
           itemAsetId: item.itemAsetId,
@@ -228,7 +240,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
           avatarIcon: perluKonfirmasi ? 'tabler-clock-hour-4' : 'tabler-shopping-cart',
           avatarColor: perluKonfirmasi ? 'warning' : 'primary',
           type: 'tagihan',
-          url: '/booking/saya',
+
+          // Order berisi satu booking langsung diarahkan ke detailnya
+          url: tagihanIds.length === 1 ? `/booking/saya/${tagihanIds[0]}` : '/booking/saya',
           refId: orderId,
           userId: user.id
         }
@@ -250,7 +264,9 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
             avatarIcon: perluKonfirmasi ? 'tabler-help-circle' : 'tabler-calendar-plus',
             avatarColor: 'warning',
             type: 'tagihan',
-            url: '/booking',
+
+            // Order berisi satu booking langsung diarahkan ke detailnya
+            url: tagihanIds.length === 1 ? `/booking/aset/${tagihanIds[0]}` : '/booking/aset',
             refId: orderId,
             userId: u.id
           }))
