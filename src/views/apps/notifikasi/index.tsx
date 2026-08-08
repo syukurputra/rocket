@@ -21,6 +21,7 @@ import Tab from '@mui/material/Tab'
 import type { ThemeColor } from '@core/types'
 import CustomAvatar from '@core/components/mui/Avatar'
 import { apiFetchClient } from '@/src/utils/apiFetchClient'
+import ConfirmDialog, { useConfirm } from '@/src/components/ConfirmDialog'
 
 type NotificationItem = {
   id: string
@@ -51,6 +52,7 @@ const timeAgo = (isoString: string) => {
 const NotifikasiList = () => {
   const router = useRouter()
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const { confirm, confirmProps } = useConfirm()
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'all' | 'unread'>('all')
 
@@ -109,6 +111,25 @@ const NotifikasiList = () => {
     }
   }
 
+  const handleHapusSemua = async () => {
+    const setuju = await confirm({
+      title: 'Hapus Semua Notifikasi',
+      message: `Hapus seluruh ${notifications.length} notifikasi? Tindakan ini tidak bisa dibatalkan.`
+    })
+
+    if (!setuju) return
+
+    const sebelumnya = notifications
+
+    setNotifications([])
+
+    try {
+      await apiFetchClient('/api/notifikasi', { method: 'DELETE' })
+    } catch {
+      setNotifications(sebelumnya)
+    }
+  }
+
   const handleItemClick = async (item: NotificationItem) => {
     if (!item.read) {
       setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, read: true } : n)))
@@ -143,6 +164,19 @@ const NotifikasiList = () => {
                   onClick={toggleReadAll}
                 >
                   Tandai Semua Dibaca
+                </Button>
+              </Tooltip>
+            )}
+            {notifications.length > 0 && (
+              <Tooltip title='Hapus semua notifikasi'>
+                <Button
+                  size='small'
+                  variant='tonal'
+                  color='error'
+                  startIcon={<i className='tabler-trash' />}
+                  onClick={handleHapusSemua}
+                >
+                  Hapus Semua
                 </Button>
               </Tooltip>
             )}
@@ -182,7 +216,7 @@ const NotifikasiList = () => {
           filtered.map((n, index) => (
             <div key={n.id}>
               <div
-                className={`flex items-start gap-4 px-6 py-4 cursor-pointer hover:bg-actionHover group transition-colors ${!n.read ? 'bg-actionSelected' : ''}`}
+                className={`flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-actionHover group transition-colors ${!n.read ? 'bg-actionSelected' : ''}`}
                 onClick={() => handleItemClick(n)}
               >
                 <CustomAvatar color={(n.avatarColor as ThemeColor) ?? 'primary'} skin='light-static'>
@@ -204,20 +238,18 @@ const NotifikasiList = () => {
                 <div className='flex items-center gap-1 shrink-0'>
                   <Tooltip title={n.read ? 'Tandai belum dibaca' : 'Tandai sudah dibaca'}>
                     <IconButton
-                      size='small'
                       className={`${n.read ? 'invisible group-hover:visible' : ''}`}
                       onClick={e => markRead(e, n, !n.read)}
                     >
-                      <i className={n.read ? 'tabler-mail text-sm' : 'tabler-mail-opened text-sm text-primary'} />
+                      <i className={n.read ? 'tabler-mail text-xl' : 'tabler-mail-opened text-xl text-primary'} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title='Hapus'>
                     <IconButton
-                      size='small'
                       className='invisible group-hover:visible'
                       onClick={e => removeNotification(e, n)}
                     >
-                      <i className='tabler-trash text-sm text-error' />
+                      <i className='tabler-trash text-xl text-error' />
                     </IconButton>
                   </Tooltip>
                 </div>
@@ -227,6 +259,8 @@ const NotifikasiList = () => {
           ))
         )}
       </CardContent>
+
+      <ConfirmDialog {...confirmProps} />
     </Card>
   )
 }

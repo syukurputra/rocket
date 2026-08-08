@@ -180,10 +180,16 @@ const NotificationsDropdown = () => {
           color='error'
           badgeContent={unreadCount}
           max={99}
-          overlap='circular'
           invisible={unreadCount === 0}
           sx={{
+            // Dibuat kecil dan digeser keluar supaya tidak menutupi ikon lonceng
             '& .MuiBadge-badge': {
+              height: 16,
+              minWidth: 16,
+              paddingInline: '4px',
+              fontSize: '0.625rem',
+              lineHeight: 1,
+              transform: 'translate(60%, -40%)',
               boxShadow: 'var(--mui-palette-background-paper) 0px 0px 0px 2px'
             }
           }}

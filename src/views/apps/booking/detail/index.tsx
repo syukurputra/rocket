@@ -38,9 +38,12 @@ type TagihanBooking = {
   alasanBatal?: string | null
   buktiPembayaran?: string | null
   ipaymuSessionId?: string | null
-  aset?: { id: string; nama: string } | null
+  aset?: { id: string; nama: string; alamatPemesanAktif?: boolean } | null
   itemAset?: { id: string; nama: string } | null
   penyewa?: { id: string; nama: string; nomorTelepon?: string; email?: string }
+
+  /** Alamat dari profil user penyewa, hanya diisi kalau aset mewajibkannya */
+  alamatPemesan?: string | null
 }
 
 const formatCurrency = (val: number) =>
@@ -290,6 +293,14 @@ const BookingDetailView = ({ bookingId }: { bookingId: string }) => {
                   <Typography variant='body2' color='text.secondary'>Nomor Telepon</Typography>
                   <Typography variant='body2' fontWeight={500}>{tagihan.penyewa?.nomorTelepon || '-'}</Typography>
                 </div>
+                {tagihan.aset?.alamatPemesanAktif && (
+                  <div className='flex justify-between gap-4'>
+                    <Typography variant='body2' color='text.secondary' className='shrink-0'>Alamat</Typography>
+                    <Typography variant='body2' fontWeight={500} className='text-right'>
+                      {tagihan.alamatPemesan || '-'}
+                    </Typography>
+                  </div>
+                )}
                 <div className='flex justify-between gap-4'>
                   <Typography variant='body2' color='text.secondary'>Periode Booking</Typography>
                   <Typography variant='body2' fontWeight={500}>

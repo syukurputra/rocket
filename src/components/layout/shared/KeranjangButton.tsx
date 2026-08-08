@@ -66,7 +66,25 @@ const KeranjangButton = () => {
   return (
     <Tooltip title='Keranjang'>
       <IconButton className='text-textPrimary' onClick={() => router.push('/keranjang')}>
-        <Badge color='primary' badgeContent={jumlahItem} invisible={jumlahItem === 0}>
+        <Badge
+          color='primary'
+          badgeContent={jumlahItem}
+          max={99}
+          invisible={jumlahItem === 0}
+          sx={{
+            // Ukurannya disamakan dengan badge notifikasi supaya ikon tidak tertutup
+            '& .MuiBadge-badge': {
+              height: 16,
+              minWidth: 16,
+              paddingInline: '4px',
+              fontSize: '0.625rem',
+              lineHeight: 1,
+              transform: 'translate(60%, -40%)',
+              boxShadow: 'var(--mui-palette-background-paper) 0px 0px 0px 2px'
+            }
+          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
           <i className='tabler-shopping-cart text-2xl' />
         </Badge>
       </IconButton>

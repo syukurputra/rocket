@@ -42,9 +42,12 @@ type TagihanBooking = {
   metodeBayar?: string | null
   buktiPembayaran?: string | null
   orderId?: string | null
-  aset?: { id: string; nama: string } | null
+  aset?: { id: string; nama: string; alamatPemesanAktif?: boolean } | null
   itemAset?: { id: string; nama: string } | null
   penyewa?: { id: string; nama: string; nomorTelepon?: string; email?: string } | null
+
+  /** Alamat dari profil user penyewa, hanya diisi kalau aset mewajibkannya */
+  alamatPemesan?: string | null
 }
 
 const formatCurrency = (val: number) =>
@@ -192,6 +195,9 @@ const BookingAsetDetailView = ({ bookingId }: { bookingId: string }) => {
                 <Baris label='Nama' value={tagihan.penyewa?.nama || '-'} />
                 <Baris label='Email' value={tagihan.penyewa?.email || '-'} />
                 <Baris label='Nomor Telepon' value={tagihan.penyewa?.nomorTelepon || '-'} />
+                {tagihan.aset?.alamatPemesanAktif && (
+                  <Baris label='Alamat' value={tagihan.alamatPemesan || '-'} />
+                )}
               </div>
 
               <Divider />

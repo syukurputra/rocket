@@ -23,8 +23,8 @@ import { apiFetchClient } from '@/src/utils/apiFetchClient'
 interface SummaryData {
   totalAset: number
   totalItem: number
-  totalTersedia: number
-  totalTidakTersedia: number
+  totalItemAktif: number
+  totalItemNonAktif: number
 }
 
 const AsetCard = () => {
@@ -72,14 +72,14 @@ const AsetCard = () => {
           color: 'info.main'
         },
         {
-          title: summary.totalTersedia,
-          subtitle: 'Tersedia',
+          title: summary.totalItemAktif,
+          subtitle: 'Item Aset Aktif',
           icon: 'tabler-circle-check',
           color: 'success.main'
         },
         {
-          title: summary.totalTidakTersedia,
-          subtitle: 'Tidak Tersedia',
+          title: summary.totalItemNonAktif,
+          subtitle: 'Item Aset Non Aktif',
           icon: 'tabler-circle-x',
           color: 'error.main'
         }

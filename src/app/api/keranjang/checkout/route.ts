@@ -72,14 +72,35 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'Nomor telepon harus diisi' }, { status: 400 })
     }
 
-    // Aset yang mengaktifkan "Alamat Pemesan" mensyaratkan alamat profil lengkap
-    if (items.some(i => i.aset?.alamatPemesanAktif)) {
-      const profil = await prisma.user.findUnique({
+    // Aset yang mengaktifkan "Alamat Pemesan" mensyaratkan alamat profil lengkap.
+    // Alamatnya lalu disalin ke data penyewa supaya ikut tersimpan bersama booking.
+    const wajibAlamat = items.some(i => i.aset?.alamatPemesanAktif)
+
+    let alamatPemesan: {
+      alamat: string | null
+      provinsi: string | null
+      kota: string | null
+      kecamatan: string | null
+      kelurahan: string | null
+      latitude: number | null
+      longitude: number | null
+    } | null = null
+
+    if (wajibAlamat) {
+      alamatPemesan = await prisma.user.findUnique({
         where: { id: user.id },
-        select: { alamat: true, provinsi: true, kota: true, kecamatan: true, kelurahan: true }
+        select: {
+          alamat: true,
+          provinsi: true,
+          kota: true,
+          kecamatan: true,
+          kelurahan: true,
+          latitude: true,
+          longitude: true
+        }
       })
 
-      if (!isAlamatLengkap(profil)) {
+      if (!isAlamatLengkap(alamatPemesan)) {
         return NextResponse.json(
           { message: 'Harus lengkapi alamat terlebih dahulu', code: 'ALAMAT_BELUM_LENGKAP' },
           { status: 400 }
@@ -132,7 +153,8 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
           data: {
             nama,
             email: emailPemesan || existingPenyewa.email,
-            nomorTelepon: nomorTelepon || existingPenyewa.nomorTelepon
+            nomorTelepon: nomorTelepon || existingPenyewa.nomorTelepon,
+            ...(alamatPemesan ?? {})
           }
         })
       : await prisma.penyewa.create({
@@ -141,6 +163,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
             nama,
             email: emailPemesan || null,
             nomorTelepon,
+            ...(alamatPemesan ?? {}),
             status: 'booking',
             companyId,
             createdById: companyUser.id,

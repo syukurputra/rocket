@@ -6,15 +6,16 @@ import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
-    const [totalAset, totalItem, totalTersedia, totalTidakTersedia] = await Promise.all([
+    // Status item aset yang dipakai form: 'aktif' / 'non aktif'
+    const [totalAset, totalItem, totalItemAktif, totalItemNonAktif] = await Promise.all([
       prisma.aset.count({ where: { createdById: user.id } }),
       prisma.ruangan.count({ where: { createdById: user.id } }),
-      prisma.ruangan.count({ where: { createdById: user.id, status: 'tidak huni' } }),
-      prisma.ruangan.count({ where: { createdById: user.id, status: 'huni' } })
+      prisma.ruangan.count({ where: { createdById: user.id, status: 'aktif' } }),
+      prisma.ruangan.count({ where: { createdById: user.id, status: { not: 'aktif' } } })
     ])
 
     return NextResponse.json({
-      data: { totalAset, totalItem, totalTersedia, totalTidakTersedia },
+      data: { totalAset, totalItem, totalItemAktif, totalItemNonAktif },
       message: 'Ringkasan aset berhasil diambil'
     })
   } catch (error) {

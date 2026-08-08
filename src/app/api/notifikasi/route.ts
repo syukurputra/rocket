@@ -62,5 +62,19 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
   }
 }
 
+// DELETE /api/notifikasi - Hapus semua notifikasi milik user yang sedang login
+async function handleDelete(_request: NextRequest, { user }: AuthContext) {
+  try {
+    const { count } = await prisma.notifikasi.deleteMany({ where: { userId: user.id } })
+
+    return NextResponse.json({ data: { count }, message: `${count} notifikasi berhasil dihapus` })
+  } catch (error) {
+    console.error('Delete all notifikasi error:', error)
+
+    return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
+  }
+}
+
 export const GET = withAuth(handleGet)
 export const POST = withAuth(handlePost)
+export const DELETE = withAuth(handleDelete)
