@@ -241,6 +241,14 @@ const IconListTable = ({ initialData = [] }: IconListTableProps) => {
           return <Typography className='text-sm font-mono'>{row.original.code}</Typography>
         }
       }),
+      columnHelper.accessor('keyword', {
+        header: 'Kata Kunci',
+        cell: ({ row }) => (
+          <Typography variant='body2' color='text.secondary'>
+            {row.original.keyword || '-'}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (

@@ -36,6 +36,7 @@ async function ensureBookingCategory(companyId: string, createdById: string) {
       data: {
         nama: 'Cash Banknote',
         code: BOOKING_ICON_CODE,
+        keyword: 'uang, tunai, kas, duit, lembaran, pendapatan',
         createdById,
         updatedById: createdById
       }

@@ -321,6 +321,10 @@ model MasterIcon {
   id               String             @id @default(cuid())
   nama             String
   code             String             @unique
+
+  /// Kata kunci bahasa Indonesia untuk pencarian, dipisah koma.
+  /// Contoh: armchair → "kursi, sofa, bangku, furnitur"
+  keyword          String?            @db.Text
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   createdById      String

@@ -34,11 +34,13 @@ type FormValues = {
   id?: string
   nama: string
   code: string
+  keyword: string
 }
 
 const DEFAULTS: FormValues = {
   nama: '',
-  code: ''
+  code: '',
+  keyword: ''
 }
 
 const Icon = styled('i')({})
@@ -56,7 +58,8 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
       setForm({
         id: initialData.id,
         nama: initialData.nama ?? '',
-        code: initialData.code ?? ''
+        code: initialData.code ?? '',
+        keyword: initialData.keyword ?? ''
       })
     } else {
       setForm(DEFAULTS)
@@ -81,7 +84,8 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
           method: 'PUT',
           body: JSON.stringify({
             nama: form.nama,
-            code: form.code
+            code: form.code,
+            keyword: form.keyword
           })
         })
 
@@ -99,7 +103,8 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
           method: 'POST',
           body: JSON.stringify({
             nama: form.nama,
-            code: form.code
+            code: form.code,
+            keyword: form.keyword
           })
         })
 
@@ -167,6 +172,18 @@ export default function AddEditIcon({ open, setOpen, mode = 'create', initialDat
                   onChange={handleChange('code')}
                   required
                   helperText='Gunakan format: tabler-[nama-icon]. Lihat icon di https://tabler.io/icons'
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Kata Kunci Pencarian'
+                  name='keyword'
+                  variant='outlined'
+                  placeholder='Contoh: kursi, sofa, bangku, furnitur'
+                  value={form.keyword}
+                  onChange={handleChange('keyword')}
+                  helperText='Kata kunci bahasa Indonesia, pisahkan dengan koma. Dipakai saat mencari icon.'
                 />
               </Grid>
             </Grid>

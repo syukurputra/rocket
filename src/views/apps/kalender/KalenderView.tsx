@@ -36,6 +36,9 @@ type KalenderEvent = {
     itemAset: string
     status: string
     periodeSewa: string
+
+    /** Tanggal selesai sebenarnya — `event.end` dari FullCalendar bersifat eksklusif */
+    selesaiSewa: string
   }
 }
 
@@ -190,7 +193,9 @@ const KalenderView = () => {
                     <Typography variant='caption' color='text.secondary'>
                       Selesai Sewa
                     </Typography>
-                    <Typography variant='body2'>{formatDate(selectedEvent.end)}</Typography>
+                    <Typography variant='body2'>
+                      {formatDate(selectedEvent.extendedProps.selesaiSewa)}
+                    </Typography>
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>

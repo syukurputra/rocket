@@ -31,19 +31,31 @@ export async function GET(req: NextRequest) {
       orderBy: { mulaiSewa: 'asc' }
     })
 
-    const events = tagihanList.map(t => ({
-      id: t.id,
-      title: 'Booking',
-      start: t.mulaiSewa,
-      end: t.selesaiSewa,
-      allDay: true,
-      extendedProps: {
-        color: 'error',
-        itemAset: t.ruangan?.nama ?? '',
-        status: t.status,
-        periodeSewa: t.periodeSewa
+    const events = tagihanList.map(t => {
+      const allDay = t.periodeSewa !== 'jam'
+
+      // `end` pada event allDay bersifat eksklusif di FullCalendar, sedangkan
+      // selesaiSewa kita inklusif — ditambah satu hari agar hari terakhir ikut
+      // tertandai sebagai tanggal yang sudah terpakai.
+      const endTampilan = new Date(t.selesaiSewa)
+
+      if (allDay) endTampilan.setDate(endTampilan.getDate() + 1)
+
+      return {
+        id: t.id,
+        title: 'Booking',
+        start: t.mulaiSewa,
+        end: endTampilan,
+        allDay,
+        extendedProps: {
+          color: 'error',
+          itemAset: t.ruangan?.nama ?? '',
+          status: t.status,
+          periodeSewa: t.periodeSewa,
+          selesaiSewa: t.selesaiSewa
+        }
       }
-    }))
+    })
 
     return NextResponse.json({ data: events })
   } catch (error) {

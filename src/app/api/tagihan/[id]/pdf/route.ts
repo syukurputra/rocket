@@ -5,6 +5,7 @@ import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 import { generateBookingPdf } from '@/src/libs/pdf/bookingPdf'
 import { getParameter } from '@/src/libs/getParameter'
+import { formatAlamatLengkap } from '@/src/libs/alamatPemesan'
 
 async function handleGet(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
   try {
@@ -15,8 +16,9 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       where: { id },
       include: {
         penyewa: { select: { id: true, nama: true, email: true, nomorTelepon: true } },
-        aset: { select: { id: true, nama: true } },
-        ruangan: { select: { id: true, nama: true } }
+        aset: { select: { id: true, nama: true, alamatPemesanAktif: true } },
+        ruangan: { select: { id: true, nama: true } },
+        company: { select: { nama: true } }
       }
     })
 
@@ -43,6 +45,18 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       syaratKetentuan = syaratRows[0]?.syaratKetentuan ?? null
     }
 
+    // Alamat pemesan diambil dari profil user penyewa, sama seperti di detail booking
+    let alamatPemesan: string | null = null
+
+    if (tagihan.aset?.alamatPemesanAktif) {
+      const profil = await prisma.user.findUnique({
+        where: { id: tagihan.penyewaId },
+        select: { alamat: true, provinsi: true, kota: true, kecamatan: true, kelurahan: true }
+      })
+
+      alamatPemesan = formatAlamatLengkap(profil) || null
+    }
+
     const buffer = generateBookingPdf({
       id: tagihan.id,
       nomorTagihan: tagihan.nomorTagihan,
@@ -53,6 +67,8 @@ async function handleGet(request: NextRequest, { user, params }: AuthContext & {
       selesaiSewa: tagihan.selesaiSewa,
       syaratKetentuan,
       penyewa: tagihan.penyewa,
+      alamatPemesan,
+      namaUsaha: tagihan.company?.nama ?? null,
       itemAset: tagihan.ruangan,
       aset: tagihan.aset
     })

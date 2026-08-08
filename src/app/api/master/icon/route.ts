@@ -15,7 +15,11 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
     const whereClause: any = {}
 
     if (search) {
-      whereClause.OR = [{ nama: { contains: search.trim(), mode: 'insensitive' } }]
+      whereClause.OR = [
+        { nama: { contains: search.trim(), mode: 'insensitive' } },
+        { code: { contains: search.trim(), mode: 'insensitive' } },
+        { keyword: { contains: search.trim(), mode: 'insensitive' } }
+      ]
     }
 
     // If 'all' parameter is true, return all icons without pagination
@@ -25,7 +29,8 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
         select: {
           id: true,
           nama: true,
-          code: true
+          code: true,
+          keyword: true
         },
         orderBy: { nama: 'asc' }
       })
@@ -84,7 +89,7 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 async function handlePost(request: NextRequest, { user }: AuthContext) {
   try {
     const body = await request.json()
-    const { nama, jenis, code, color } = body
+    const { nama, code, keyword } = body
 
     if (!nama || !code) {
       return NextResponse.json({ message: 'Nama dan code harus diisi' }, { status: 400 })
@@ -94,6 +99,7 @@ async function handlePost(request: NextRequest, { user }: AuthContext) {
       data: {
         nama: nama,
         code: code,
+        keyword: keyword?.trim() || null,
         createdById: user.id,
         updatedById: user.id
       },

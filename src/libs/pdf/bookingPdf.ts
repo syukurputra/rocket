@@ -20,6 +20,12 @@ export type TagihanForPdf = {
   } | null
   itemAset?: { nama: string } | null
   aset?: { nama: string } | null
+
+  /** Alamat dari profil user penyewa, hanya diisi kalau aset mewajibkannya */
+  alamatPemesan?: string | null
+
+  /** Nama usaha pemilik aset, diambil dari tabel company */
+  namaUsaha?: string | null
 }
 
 // Baca logo Bantu Sewa sekali lalu cache sebagai data URI (server-side)
@@ -133,6 +139,16 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   doc.setFont('helvetica', 'bold')
   doc.text(mulai, valueX, y)
 
+  if (tagihan.namaUsaha) {
+    y += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...grayText)
+    doc.text('Nama Usaha', labelX, y)
+    doc.setTextColor(...darkText)
+    doc.setFont('helvetica', 'bold')
+    doc.text(tagihan.namaUsaha, valueX, y)
+  }
+
   y += 10
   doc.setDrawColor(...borderColor)
   doc.setLineWidth(0.3)
@@ -157,6 +173,14 @@ export function generateBookingPdf(tagihan: TagihanForPdf): ArrayBuffer {
   doc.setTextColor(...grayText)
   if (tagihan.penyewa?.nomorTelepon) { doc.text(tagihan.penyewa.nomorTelepon, margin, y); y += 6 }
   if (tagihan.penyewa?.email) { doc.text(tagihan.penyewa.email, margin, y); y += 6 }
+
+  // Alamat bisa panjang, jadi dipecah mengikuti lebar halaman
+  if (tagihan.alamatPemesan) {
+    const barisAlamat = doc.splitTextToSize(tagihan.alamatPemesan, pageW - margin * 2)
+
+    doc.text(barisAlamat, margin, y)
+    y += barisAlamat.length * 5 + 1
+  }
 
   // Divider
   y += 3

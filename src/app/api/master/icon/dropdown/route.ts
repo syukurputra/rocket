@@ -17,10 +17,13 @@ export async function GET(request: NextRequest) {
       where: {
         OR: [
           { nama: { contains: search.trim(), mode: 'insensitive' } },
-          { code: { contains: search.trim(), mode: 'insensitive' } }
+          { code: { contains: search.trim(), mode: 'insensitive' } },
+
+          // Kata kunci bahasa Indonesia, mis. "bangku" menemukan ikon armchair
+          { keyword: { contains: search.trim(), mode: 'insensitive' } }
         ]
       },
-      select: { id: true, nama: true, code: true },
+      select: { id: true, nama: true, code: true, keyword: true },
       orderBy: { nama: 'asc' },
       take: 50
     })

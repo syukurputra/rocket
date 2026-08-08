@@ -44,7 +44,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
   try {
     const { id } = params
     const body = await request.json()
-    const { nama, code } = body
+    const { nama, code, keyword } = body
 
     const existingIcon = await prisma.masterIcon.findUnique({
       where: { id }
@@ -59,6 +59,7 @@ async function handlePut(request: NextRequest, { user, params }: ParamCtx) {
       data: {
         ...(nama && { nama }),
         ...(code && { code }),
+        ...(keyword !== undefined && { keyword: keyword?.trim() || null }),
         updatedById: user.id
       },
       include: {
