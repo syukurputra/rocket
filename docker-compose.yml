@@ -1,18 +1,21 @@
 services:
   app:
-    # Server hanya PULL image ini dari GHCR (tidak build sendiri).
     image: ghcr.io/syukurputra/bantusewa:production
-    # `build:` hanya dipakai kalau kamu jalankan `docker compose build` manual.
-    build:
-      context: .
-      dockerfile: Dockerfile
+    pull_policy: always
     container_name: bantusewa
     restart: unless-stopped
     env_file:
       - .env.production
     ports:
-      # Container di belakang Nginx: hanya bisa diakses dari localhost (127.0.0.1),
-      # tidak diekspos publik. Nginx (host) yang pegang port 80/443 + SSL.
       - "127.0.0.1:3000:3000"
-    # Postgres sudah ada di luar (Nevacloud managed / server lain),
-    # koneksinya lewat DATABASE_URL & DIRECT_URL di .env.production.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
