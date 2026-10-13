@@ -2,6 +2,7 @@ import cron from 'node-cron'
 import type { ScheduledTask } from 'node-cron'
 
 import type { ScheduledJob, SchedulerManager } from '../types/scheduler'
+import prisma from '../libs/prisma'
 
 /**
  * General Scheduler Manager
@@ -50,9 +51,6 @@ class Scheduler implements SchedulerManager {
 
       try {
         // Create log entry - started
-        const { PrismaClient } = await import('@prisma/client')
-        const prisma = new PrismaClient()
-
         const log = await prisma.schedulerLog.create({
           data: {
             jobName: job.name,
@@ -78,7 +76,6 @@ class Scheduler implements SchedulerManager {
           }
         })
 
-        await prisma.$disconnect()
 
         console.log(`✅ Job "${job.name}" completed successfully (${duration}ms)`)
       } catch (error) {
@@ -88,9 +85,6 @@ class Scheduler implements SchedulerManager {
 
         // Update log - failed
         try {
-          const { PrismaClient } = await import('@prisma/client')
-          const prisma = new PrismaClient()
-
           if (logId) {
             await prisma.schedulerLog.update({
               where: { id: logId },
@@ -103,8 +97,6 @@ class Scheduler implements SchedulerManager {
               }
             })
           }
-
-          await prisma.$disconnect()
         } catch (logError) {
           console.error('Failed to log error:', logError)
         }
@@ -127,9 +119,6 @@ class Scheduler implements SchedulerManager {
 
         try {
           // Create log entry - started
-          const { PrismaClient } = await import('@prisma/client')
-          const prisma = new PrismaClient()
-
           const log = await prisma.schedulerLog.create({
             data: {
               jobName: `${job.name} (startup)`,
@@ -155,7 +144,6 @@ class Scheduler implements SchedulerManager {
             }
           })
 
-          await prisma.$disconnect()
 
           console.log(`✅ Startup job "${job.name}" completed (${duration}ms)`)
         } catch (error) {
@@ -165,9 +153,6 @@ class Scheduler implements SchedulerManager {
 
           // Update log - failed
           try {
-            const { PrismaClient } = await import('@prisma/client')
-            const prisma = new PrismaClient()
-
             if (logId) {
               await prisma.schedulerLog.update({
                 where: { id: logId },
@@ -180,8 +165,6 @@ class Scheduler implements SchedulerManager {
                 }
               })
             }
-
-            await prisma.$disconnect()
           } catch (logError) {
             console.error('Failed to log startup error:', logError)
           }

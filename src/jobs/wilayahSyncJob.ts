@@ -1,8 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-
 import type { ScheduledJob } from '../types/scheduler'
-
-const prisma = new PrismaClient()
+import prisma from '../libs/prisma'
 
 // Retry helper with exponential backoff
 async function fetchWithRetry(url: string, retries = 3, delay = 1000): Promise<any> {

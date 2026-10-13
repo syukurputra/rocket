@@ -10,6 +10,7 @@ const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Simpan di globalThis juga di production supaya semua route/job memakai satu pool koneksi
+globalForPrisma.prisma = prisma
 
 export default prisma

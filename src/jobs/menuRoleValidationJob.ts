@@ -1,9 +1,6 @@
-import { PrismaClient } from '@prisma/client'
-
 import type { ScheduledJob } from '../types/scheduler'
 import { getParameter } from '../libs/getParameter'
-
-const prisma = new PrismaClient()
+import prisma from '../libs/prisma'
 
 async function validateMenuRoleByPaket() {
   console.log('🔍 Memulai validasi menu_role berdasarkan paket...')

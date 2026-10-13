@@ -1,14 +1,23 @@
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+import prisma from '@/src/libs/prisma'
+import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+
+function isSuperAdmin(user: AuthContext['user']) {
+  return user.roleId === 'superadmin' || user.role?.nama?.toLowerCase().replace(/\s+/g, '') === 'superadmin'
+}
 
 /**
  * API untuk melihat log scheduler
  * GET /api/scheduler-logs?limit=50&jobName=wilayah-sync&status=success
  */
-export async function GET(request: Request) {
+async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
+    if (!isSuperAdmin(user)) {
+      return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
     const jobName = searchParams.get('jobName')
@@ -70,10 +79,15 @@ export async function GET(request: Request) {
  * API untuk menghapus log lama
  * DELETE /api/scheduler-logs?olderThan=30
  */
-export async function DELETE(request: Request) {
+async function handleDelete(request: NextRequest, { user }: AuthContext) {
   try {
+    if (!isSuperAdmin(user)) {
+      return NextResponse.json({ message: 'Akses ditolak' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
-    const olderThanDays = parseInt(searchParams.get('olderThan') || '30')
+    // Minimal 1 hari supaya nilai negatif/0 tidak menghapus semua log
+    const olderThanDays = Math.max(1, parseInt(searchParams.get('olderThan') || '30') || 30)
 
     const cutoffDate = new Date()
 
@@ -103,3 +117,6 @@ export async function DELETE(request: Request) {
     )
   }
 }
+
+export const GET = withAuth(handleGet)
+export const DELETE = withAuth(handleDelete)

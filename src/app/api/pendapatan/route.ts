@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import prisma from '@/src/libs/prisma'
 
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
@@ -11,9 +12,6 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
 
     const { searchParams } = new URL(request.url)
     const period = searchParams.get('period') || 'weekly' // weekly | monthly | yearly
-
-    const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
 
     const now = new Date()
     let startDate: Date
@@ -42,8 +40,6 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       },
       orderBy: { tanggal: 'asc' }
     })
-
-    await prisma.$disconnect()
 
     const totalBiayaBooking = rows.reduce((sum: number, r: any) => sum + Number(r.biayaBooking), 0)
     const totalBiayaLayanan = rows.reduce((sum: number, r: any) => sum + Number(r.biayaLayanan), 0)
