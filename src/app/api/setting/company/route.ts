@@ -4,6 +4,16 @@ import { NextResponse } from 'next/server'
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
 
+/** Membuang kolom sisa sistem paket dari data company sebelum dikirim. */
+function tanpaKolomPaket<T extends { paketId?: unknown; paketStartDate?: unknown; paketEndDate?: unknown; isTrial?: unknown }>(
+  company: T
+) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { paketId, paketStartDate, paketEndDate, isTrial, ...sisa } = company
+
+  return sisa
+}
+
 // GET /api/setting/company - Get company details
 async function handleGet(request: NextRequest, { user }: AuthContext) {
   try {
@@ -11,39 +21,17 @@ async function handleGet(request: NextRequest, { user }: AuthContext) {
       return NextResponse.json({ message: 'User tidak terkait dengan perusahaan' }, { status: 400 })
     }
 
-    const [company, lastInvoice] = await Promise.all([
-      prisma.company.findUnique({
-        where: { id: user.companyId },
-        include: {
-          paket: {
-            select: { id: true, nama: true, deskripsi: true }
-          }
-        }
-      }),
-      prisma.invoice.findFirst({
-        where: { companyId: user.companyId, status: 'PAID' },
-        orderBy: { tanggalBayar: 'desc' },
-        select: {
-          id: true,
-          nomorInvoice: true,
-          billingCycle: true,
-          subtotal: true,
-          total: true,
-          tanggalBayar: true,
-          tanggalInvoice: true,
-          paket: {
-            select: { id: true, nama: true, deskripsi: true, hargaBulanan: true, hargaTahunan: true }
-          }
-        }
-      })
-    ])
+    const company = await prisma.company.findUnique({
+      where: { id: user.companyId }
+    })
 
     if (!company) {
       return NextResponse.json({ message: 'Company tidak ditemukan' }, { status: 404 })
     }
 
     return NextResponse.json({
-      data: { ...company, lastInvoice: lastInvoice ?? null },
+      // Bantu Sewa 100% gratis — kolom sisa paket tidak dikirim lagi ke klien.
+      data: tanpaKolomPaket(company),
       message: 'Data perusahaan berhasil diambil'
     })
   } catch (error) {
@@ -105,20 +93,11 @@ async function handlePut(request: NextRequest, { user }: AuthContext) {
         kelurahan: kelurahan || null,
         latitude: latitude ?? null,
         longitude: longitude ?? null
-      },
-      include: {
-        paket: {
-          select: {
-            id: true,
-            nama: true,
-            deskripsi: true
-          }
-        }
       }
     })
 
     return NextResponse.json({
-      data: company,
+      data: tanpaKolomPaket(company),
       message: 'Perusahaan berhasil diperbarui'
     })
   } catch (error) {

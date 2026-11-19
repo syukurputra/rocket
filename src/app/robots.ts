@@ -27,7 +27,6 @@ export default function robots(): MetadataRoute.Robots {
         '/booking',
         '/kalender',
         '/chat',
-        '/paket',
         '/tarik-saldo',
         '/setting',
         '/notifikasi',

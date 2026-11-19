@@ -1,58 +1,26 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { ambilMenuUntukCompany } from '@/src/libs/menuTenant'
 
-// GET /api/menu/by-paket - Get menus available in company's paket
-async function handleGet(request: NextRequest, { user }: AuthContext) {
+/**
+ * GET /api/menu/by-paket - Menu yang tersedia untuk company pengguna.
+ *
+ * Nama rute dipertahankan agar klien lama tetap jalan, tetapi isinya tidak
+ * lagi bergantung pada paket: Bantu Sewa 100% gratis, semua usaha mendapat
+ * menu yang sama.
+ */
+async function handleGet(_request: NextRequest, { user }: AuthContext) {
   try {
-    // Get user's company with paket
-    const company = await prisma.company.findUnique({
-      where: { id: user.companyId! },
-      select: {
-        paketId: true
-      }
-    })
-
-    if (!company || !company.paketId) {
-      return NextResponse.json({ message: 'Perusahaan tidak memiliki paket aktif' }, { status: 400 })
-    }
-
-    // Get menus from paket_menu
-    const paketMenus = await prisma.paketMenu.findMany({
-      where: {
-        paketId: company.paketId
-      },
-      include: {
-        menu: {
-          select: {
-            id: true,
-            nama: true,
-            path: true,
-            icon: true,
-            urutan: true,
-            parentId: true,
-            status: true
-          }
-        }
-      },
-      orderBy: {
-        menu: {
-          urutan: 'asc'
-        }
-      }
-    })
-
-    // Extract menu data
-    const menus = paketMenus.map(pm => pm.menu)
+    const menus = await ambilMenuUntukCompany(user.companyId)
 
     return NextResponse.json({
       data: menus,
       message: 'Data menu berhasil diambil'
     })
   } catch (error) {
-    console.error('Get menus by paket error:', error)
+    console.error('Get menus error:', error)
 
     return NextResponse.json({ message: 'Terjadi kesalahan server' }, { status: 500 })
   }

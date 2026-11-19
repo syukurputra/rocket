@@ -59,27 +59,21 @@ const termData: FaqType[] = [
   },
   {
     id: 'layanan',
-    title: 'Layanan & Paket',
-    icon: 'tabler-package',
-    subtitle: 'Ketentuan layanan dan paket berlangganan',
+    title: 'Layanan',
+    icon: 'tabler-gift',
+    subtitle: 'Ketentuan layanan Bantu Sewa',
     questionsAnswers: [
       {
         id: 'deskripsi-layanan',
         question: 'Deskripsi Layanan',
         answer:
-          'Bantu Sewa menyediakan platform manajemen bisnis sewa berbasis berlangganan. Detail fitur dan batasan setiap paket tersedia di halaman Pricing dan dapat berubah sewaktu-waktu.'
+          'Bantu Sewa menyediakan platform manajemen bisnis sewa yang 100% gratis, tanpa biaya langganan dan tanpa paket berbayar. Seluruh fitur tersedia bagi semua pengguna dan dapat berkembang sewaktu-waktu.'
       },
       {
-        id: 'masa-berlaku',
-        question: 'Masa Berlaku Paket',
+        id: 'biaya-layanan',
+        question: 'Biaya Layanan Transaksi',
         answer:
-          'Masa berlaku paket dimulai sejak pembayaran berhasil dikonfirmasi. Perpanjangan tidak terjadi secara otomatis dan harus dilakukan oleh pengguna secara manual sebelum masa berlaku habis.'
-      },
-      {
-        id: 'perubahan-harga',
-        question: 'Perubahan Harga',
-        answer:
-          'Bantu Sewa berhak mengubah harga paket dengan pemberitahuan minimal 7 hari kerja sebelumnya. Perubahan harga tidak berlaku untuk paket yang sedang aktif hingga masa berlakunya habis.'
+          'Tidak ada biaya langganan. Biaya layanan per transaksi booking tetap berlaku sesuai ketentuan Bantu Sewa.'
       }
     ]
   },
@@ -100,38 +94,6 @@ const termData: FaqType[] = [
         question: 'Pajak dan Biaya',
         answer:
           'Harga yang tertera sudah termasuk pajak yang berlaku. Bantu Sewa tidak bertanggung jawab atas biaya tambahan yang dikenakan oleh bank atau penyedia layanan pembayaran Anda.'
-      },
-      {
-        id: 'gagal-bayar',
-        question: 'Kegagalan Pembayaran',
-        answer:
-          'Jika pembayaran gagal diproses, paket tidak akan aktif. Anda dapat mencoba kembali menggunakan metode pembayaran lain. Hubungi tim support jika mengalami kendala berulang.'
-      }
-    ]
-  },
-  {
-    id: 'refund',
-    title: 'Kebijakan Refund',
-    icon: 'tabler-receipt-refund',
-    subtitle: 'Syarat dan proses pengajuan refund',
-    questionsAnswers: [
-      {
-        id: 'syarat-refund',
-        question: 'Syarat Pengajuan Refund',
-        answer:
-          'Refund dapat diajukan dalam kondisi berikut: (1) Pembayaran berhasil diproses namun paket tidak aktif dalam 1x24 jam, (2) Terjadi double payment untuk paket yang sama, (3) Kesalahan teknis dari pihak Bantu Sewa yang menyebabkan layanan tidak berfungsi lebih dari 7 hari berturut-turut.'
-      },
-      {
-        id: 'proses-refund',
-        question: 'Proses Pengajuan Refund',
-        answer:
-          'Hubungi tim support melalui WhatsApp +62 851-1054-4040 atau email support@bantusewa.com dengan menyertakan nomor invoice, bukti pembayaran, dan alasan pengajuan. Proses 3–5 hari kerja, pengembalian dana 7–14 hari kerja ke metode pembayaran asal.'
-      },
-      {
-        id: 'tidak-bisa-refund',
-        question: 'Kondisi Refund Tidak Dapat Diproses',
-        answer:
-          'Refund tidak dapat diproses jika: paket sudah aktif dan digunakan lebih dari 7 hari, pengajuan dilakukan setelah lebih dari 30 hari sejak tanggal pembayaran, atau terjadi pelanggaran Syarat & Ketentuan.'
       }
     ]
   },

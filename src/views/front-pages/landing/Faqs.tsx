@@ -59,21 +59,9 @@ const FaqsData: FaqsDataTypes[] = [
   },
   {
     id: 'panel6',
-    question: 'Apa saja syarat pengajuan refund?',
+    question: 'Berapa biaya memakai Bantu Sewa?',
     answer:
-      'Refund dapat diajukan dalam kondisi berikut: (1) Pembayaran berhasil diproses namun paket tidak aktif dalam 1x24 jam, (2) Terjadi double payment untuk paket yang sama, (3) Terdapat kesalahan teknis dari pihak Bantu Sewa yang menyebabkan layanan tidak berfungsi selama lebih dari 7 hari berturut-turut.'
-  },
-  {
-    id: 'panel7',
-    question: 'Bagaimana proses pengajuan refund?',
-    answer:
-      'Untuk mengajukan refund, hubungi tim support kami melalui WhatsApp +62 851-1054-4040 atau email support@bantusewa.com dengan menyertakan: nomor invoice, bukti pembayaran, dan alasan pengajuan refund. Tim kami akan memproses permintaan dalam 3–5 hari kerja dan dana akan dikembalikan ke metode pembayaran asal dalam 7–14 hari kerja.'
-  },
-  {
-    id: 'panel8',
-    question: 'Kapan refund tidak bisa dilakukan?',
-    answer:
-      'Refund tidak dapat diproses dalam kondisi berikut: paket sudah aktif dan digunakan selama lebih dari 7 hari, pengajuan dilakukan setelah lebih dari 30 hari sejak tanggal pembayaran, atau pelanggaran Syarat & Ketentuan yang menyebabkan akun dinonaktifkan.'
+      'Bantu Sewa 100% gratis — tanpa biaya langganan dan tanpa batas masa aktif. Semua fitur langsung terbuka sejak Anda mendaftar. Biaya layanan per transaksi booking tetap berlaku sesuai ketentuan Bantu Sewa.'
   }
 ]
 

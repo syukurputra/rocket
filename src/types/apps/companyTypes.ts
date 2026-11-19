@@ -5,8 +5,6 @@ export type CompanyClient = {
   telepon?: string
   email?: string
   status: boolean
-  paketStartDate?: Date | string | null
-  paketEndDate?: Date | string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -17,6 +15,4 @@ export type CompanyFormData = {
   telepon?: string
   email?: string
   status?: boolean
-  paketStartDate?: string | null
-  paketEndDate?: string | null
 }

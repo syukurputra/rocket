@@ -1,57 +1,7 @@
 import type { ScheduledJob } from '../types/scheduler'
-import prisma from '../libs/prisma'
 
-const FREE_PAKET_ID = 'cmkzpagu800015k6czrtvc7f4'
-
-/**
- * Job - Downgrade company yang paketnya sudah expired ke paket free
- * Berjalan setiap hari jam 01:00
- */
-export const downgradeExpiredPaketJob: ScheduledJob = {
-  name: 'downgrade-expired-paket',
-  schedule: '0 1 * * *', // Setiap hari jam 01:00
-  enabled: true,
-  description: 'Downgrade company ke paket free jika paketEndDate sudah lewat',
-  task: async () => {
-    console.log('📦 [downgradeExpiredPaket] Memulai pengecekan paket yang expired...')
-
-    const now = new Date()
-
-    const expiredCompanies = await prisma.company.findMany({
-      where: {
-        paketEndDate: { lt: now },
-        paketId: { not: FREE_PAKET_ID }
-      },
-      select: { id: true, nama: true, paketId: true, paketEndDate: true }
-    })
-
-    if (expiredCompanies.length === 0) {
-      console.log('✅ [downgradeExpiredPaket] Tidak ada company yang perlu di-downgrade.')
-
-      return
-    }
-
-    console.log(`⚠️ [downgradeExpiredPaket] Ditemukan ${expiredCompanies.length} company expired, memproses downgrade...`)
-
-    const ids = expiredCompanies.map(c => c.id)
-
-    await prisma.company.updateMany({
-      where: { id: { in: ids } },
-      data: {
-        paketId: FREE_PAKET_ID,
-        isTrial: false,
-        paketStartDate: null,
-        paketEndDate: null
-      }
-    })
-
-    for (const c of expiredCompanies) {
-      console.log(`  ✓ ${c.nama} (${c.id}) — expired: ${c.paketEndDate?.toISOString()}`)
-    }
-
-    console.log(`✅ [downgradeExpiredPaket] ${expiredCompanies.length} company berhasil di-downgrade ke paket free.`)
-  }
-}
+// Job downgrade paket kedaluwarsa sudah dihapus: Bantu Sewa 100% gratis dan
+// tidak ada lagi paket berlangganan.
 
 /**
  * Contoh job sederhana - Cleanup temporary files

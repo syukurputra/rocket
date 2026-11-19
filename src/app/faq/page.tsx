@@ -190,66 +190,34 @@ const faqData: FaqType[] = [
     ]
   },
   {
-    id: 'paket',
-    title: 'Paket Langganan',
-    icon: 'tabler-package',
-    subtitle: 'Informasi paket dan berlangganan',
+    id: 'biaya',
+    title: '100% Gratis',
+    icon: 'tabler-gift',
+    subtitle: 'Biaya pemakaian Bantu Sewa',
     questionsAnswers: [
       {
-        id: 'lihat-paket',
-        question: 'Bagaimana cara melihat paket yang tersedia?',
+        id: 'apakah-gratis',
+        question: 'Apakah Bantu Sewa benar-benar gratis?',
         answer:
-          'Buka menu Paket di sidebar. Anda akan melihat semua paket yang tersedia beserta fitur dan harganya. Pilih paket yang sesuai dengan kebutuhan bisnis Anda.'
+          'Ya. Bantu Sewa 100% gratis tanpa biaya langganan dan tanpa batas masa aktif. Tidak ada lagi paket berbayar — semua usaha mendapat fitur yang sama sejak pertama mendaftar.'
       },
       {
-        id: 'upgrade-paket',
-        question: 'Bagaimana cara upgrade ke paket berbayar?',
+        id: 'fitur-gratis',
+        question: 'Fitur apa saja yang bisa saya pakai?',
         answer:
-          'Di halaman Paket, pilih paket yang diinginkan dan klik "Pilih Paket". Pilih durasi (bulanan atau tahunan), lalu lanjutkan ke halaman pembayaran. Setelah pembayaran dikonfirmasi, paket langsung aktif.'
+          'Semua fitur terbuka: kelola aset dan item sewa, booking online dan kalender, manajemen penyewa, pembayaran online, laporan keuangan, hingga halaman website usaha Anda sendiri.'
       },
       {
-        id: 'trial',
-        question: 'Apakah tersedia masa trial?',
+        id: 'biaya-layanan',
+        question: 'Apakah ada biaya lain?',
         answer:
-          'Ya, tersedia masa trial gratis untuk mencoba fitur premium. Selama masa trial Anda bisa mengakses semua fitur paket yang dipilih. Setelah trial berakhir, akun akan kembali ke paket gratis.'
+          'Tidak ada biaya langganan. Biaya layanan per transaksi booking tetap berlaku sesuai ketentuan Bantu Sewa.'
       },
       {
-        id: 'paket-expired',
-        question: 'Apa yang terjadi jika paket saya expired?',
+        id: 'paket-lama',
+        question: 'Saya dulu berlangganan paket berbayar. Bagaimana sekarang?',
         answer:
-          'Jika paket berbayar Anda expired, akun akan otomatis diturunkan ke paket gratis pada hari berikutnya. Data Anda tetap aman, namun akses ke fitur premium akan terbatas sampai Anda memperpanjang paket.'
-      },
-      {
-        id: 'beda-paket',
-        question: 'Apa perbedaan paket gratis dan berbayar?',
-        answer:
-          'Paket gratis memiliki batasan jumlah aset, penyewa, dan fitur yang bisa diakses. Paket berbayar memberikan akses penuh ke semua fitur termasuk laporan keuangan, booking online, pembayaran online, dan lebih banyak kuota data.'
-      }
-    ]
-  },
-  {
-    id: 'pembayaran-paket',
-    title: 'Pembayaran Paket',
-    icon: 'tabler-credit-card',
-    subtitle: 'Syarat, ketentuan, dan kebijakan pembayaran paket',
-    questionsAnswers: [
-      {
-        id: 'syarat-refund',
-        question: 'Apa saja syarat pengajuan refund?',
-        answer:
-          'Refund dapat diajukan dalam kondisi berikut: (1) Pembayaran berhasil diproses namun paket tidak aktif dalam 1x24 jam, (2) Terjadi double payment untuk paket yang sama, (3) Terdapat kesalahan teknis dari pihak Bantu Sewa yang menyebabkan layanan tidak berfungsi selama lebih dari 7 hari berturut-turut.'
-      },
-      {
-        id: 'proses-refund',
-        question: 'Bagaimana proses pengajuan refund?',
-        answer:
-          'Untuk mengajukan refund, hubungi tim support kami melalui WhatsApp +62 851-1054-4040 atau email support@bantusewa.com dengan menyertakan: nomor invoice, bukti pembayaran, dan alasan pengajuan refund. Tim kami akan memproses permintaan dalam 3–5 hari kerja dan dana akan dikembalikan ke metode pembayaran asal dalam 7–14 hari kerja.'
-      },
-      {
-        id: 'tidak-bisa-refund',
-        question: 'Kapan refund tidak bisa dilakukan?',
-        answer:
-          'Refund tidak dapat diproses dalam kondisi berikut: paket sudah aktif dan digunakan selama lebih dari 7 hari, pengajuan dilakukan setelah lebih dari 30 hari sejak tanggal pembayaran, atau pelanggaran Syarat & Ketentuan yang menyebabkan akun dinonaktifkan.'
+          'Akun Anda otomatis mendapat semua fitur tanpa perlu memperpanjang apa pun. Untuk pertanyaan seputar pembayaran paket sebelumnya, hubungi tim support melalui WhatsApp +62 851-1054-4040 atau email support@bantusewa.com.'
       }
     ]
   }

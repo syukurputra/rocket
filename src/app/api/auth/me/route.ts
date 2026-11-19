@@ -55,9 +55,7 @@ export async function GET(req: NextRequest) {
         company: {
           select: {
             id: true,
-            nama: true,
-            paketId: true,
-            isTrial: true
+            nama: true
           }
         }
       }

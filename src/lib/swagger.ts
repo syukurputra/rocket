@@ -83,9 +83,6 @@ const swaggerSpec: OpenAPIV3.Document = {
           email: { type: 'string', nullable: true },
           telepon: { type: 'string', nullable: true },
           alamat: { type: 'string', nullable: true },
-          paketId: { type: 'string', nullable: true },
-          paketEndDate: { type: 'string', format: 'date-time', nullable: true },
-          isTrial: { type: 'boolean' },
           createdAt: { type: 'string', format: 'date-time' }
         }
       },
@@ -164,17 +161,6 @@ const swaggerSpec: OpenAPIV3.Document = {
           keterangan: { type: 'string', nullable: true }
         }
       },
-      Paket: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          nama: { type: 'string' },
-          deskripsi: { type: 'string', nullable: true },
-          hargaBulanan: { type: 'number' },
-          hargaTahunan: { type: 'number' },
-          status: { type: 'boolean' }
-        }
-      },
       Icon: {
         type: 'object',
         properties: {
@@ -209,7 +195,6 @@ const swaggerSpec: OpenAPIV3.Document = {
     { name: 'Role', description: 'Manajemen role / hak akses' },
     { name: 'Menu', description: 'Manajemen menu aplikasi' },
     { name: 'Master Wilayah', description: 'Data wilayah Indonesia (provinsi, kota, kecamatan, kelurahan)' },
-    { name: 'Master Paket', description: 'Manajemen paket layanan' },
     { name: 'Master Jenis Aset', description: 'Manajemen jenis aset' },
     { name: 'Master Icon', description: 'Manajemen icon' },
     { name: 'Admin', description: 'Endpoint admin (SUPER ADMIN only)' },
@@ -606,8 +591,7 @@ const swaggerSpec: OpenAPIV3.Document = {
                   nama: { type: 'string' },
                   email: { type: 'string' },
                   telepon: { type: 'string' },
-                  alamat: { type: 'string' },
-                  paketId: { type: 'string' }
+                  alamat: { type: 'string' }
                 }
               }
             }
@@ -643,9 +627,6 @@ const swaggerSpec: OpenAPIV3.Document = {
                   email: { type: 'string' },
                   telepon: { type: 'string' },
                   alamat: { type: 'string' },
-                  paketId: { type: 'string' },
-                  paketEndDate: { type: 'string', format: 'date-time' },
-                  isTrial: { type: 'boolean' }
                 }
               }
             }
@@ -1336,9 +1317,8 @@ const swaggerSpec: OpenAPIV3.Document = {
     '/menu/by-paket': {
       get: {
         tags: ['Menu'],
-        summary: 'List menu berdasarkan paket',
-        parameters: [{ name: 'paketId', in: 'query', schema: { type: 'string' } }],
-        responses: { '200': { description: 'List menu untuk paket' } }
+        summary: 'List menu yang tersedia untuk company user (tanpa paket)',
+        responses: { '200': { description: 'List menu tersedia' } }
       }
     },
     // ─── MASTER WILAYAH ──────────────────────────────────────────────────
@@ -1394,101 +1374,6 @@ const swaggerSpec: OpenAPIV3.Document = {
         summary: 'List kelurahan/desa berdasarkan kecamatan',
         parameters: [{ name: 'districtId', in: 'path', required: true, schema: { type: 'string' } }],
         responses: { '200': { description: 'List kelurahan' } }
-      }
-    },
-    // ─── MASTER PAKET ──────────────────────────────────────────────────
-    '/master/paket': {
-      get: {
-        tags: ['Master Paket'],
-        summary: 'List paket layanan',
-        responses: {
-          '200': {
-            description: 'List paket',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    data: { type: 'array', items: { $ref: '#/components/schemas/Paket' } }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      post: {
-        tags: ['Master Paket'],
-        summary: 'Tambah paket baru',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['nama', 'hargaBulanan'],
-                properties: {
-                  nama: { type: 'string' },
-                  deskripsi: { type: 'string' },
-                  hargaBulanan: { type: 'number' },
-                  hargaTahunan: { type: 'number' },
-                  status: { type: 'boolean', default: true }
-                }
-              }
-            }
-          }
-        },
-        responses: { '201': { description: 'Paket berhasil ditambahkan' } }
-      }
-    },
-    '/master/paket/{id}': {
-      get: {
-        tags: ['Master Paket'],
-        summary: 'Detail paket',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { '200': { description: 'Detail paket' } }
-      },
-      put: {
-        tags: ['Master Paket'],
-        summary: 'Update paket',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Paket' } } } },
-        responses: { '200': { description: 'Paket berhasil diupdate' } }
-      },
-      delete: {
-        tags: ['Master Paket'],
-        summary: 'Hapus paket',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { '200': { description: 'Paket berhasil dihapus' } }
-      }
-    },
-    '/master/paket/subscribe': {
-      post: {
-        tags: ['Master Paket'],
-        summary: 'Subscribe company ke paket tertentu',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['paketId'],
-                properties: {
-                  paketId: { type: 'string' },
-                  durasi: { type: 'string', enum: ['bulanan', 'tahunan'], default: 'bulanan' }
-                }
-              }
-            }
-          }
-        },
-        responses: { '200': { description: 'Subscribe berhasil' } }
-      }
-    },
-    '/paket/trial': {
-      post: {
-        tags: ['Master Paket'],
-        summary: 'Aktifkan trial paket untuk company',
-        responses: { '200': { description: 'Trial berhasil diaktifkan' } }
       }
     },
     // ─── MASTER JENIS ASET ──────────────────────────────────────────────────
@@ -1731,23 +1616,6 @@ const swaggerSpec: OpenAPIV3.Document = {
         responses: { '200': { description: 'File berhasil diupload' } }
       }
     },
-    '/upload/paket-icon': {
-      post: {
-        tags: ['Upload'],
-        summary: 'Upload icon untuk paket',
-        requestBody: {
-          content: {
-            'multipart/form-data': {
-              schema: {
-                type: 'object',
-                properties: { file: { type: 'string', format: 'binary' } }
-              }
-            }
-          }
-        },
-        responses: { '200': { description: 'Icon berhasil diupload' } }
-      }
-    },
     '/user/profile/photo': {
       post: {
         tags: ['User'],
@@ -1835,14 +1703,6 @@ const swaggerSpec: OpenAPIV3.Document = {
       }
     },
     // ─── PUBLIC ──────────────────────────────────────────────────
-    '/public/paket': {
-      get: {
-        tags: ['Public'],
-        summary: 'List paket aktif untuk halaman landing (tanpa auth)',
-        security: [],
-        responses: { '200': { description: 'List paket aktif' } }
-      }
-    },
     '/public/aset': {
       get: {
         tags: ['Public'],

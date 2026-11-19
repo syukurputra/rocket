@@ -1,167 +1,92 @@
 import type { ScheduledJob } from '../types/scheduler'
 import { getParameter } from '../libs/getParameter'
 import prisma from '../libs/prisma'
+import { ambilMenuTenantIds } from '../libs/menuTenant'
 
-async function validateMenuRoleByPaket() {
-  console.log('🔍 Memulai validasi menu_role berdasarkan paket...')
+/**
+ * Sinkronisasi menu_role setelah paket dihapus (Bantu Sewa 100% gratis).
+ *
+ * Untuk setiap usaha selain company admin platform:
+ *  1. Role "Super Admin" dilengkapi SEMUA menu tenant. Usaha yang dulu berada
+ *     di paket Free otomatis mendapat fitur yang sebelumnya berbayar, dan menu
+ *     baru yang ditambahkan lewat Management > Menu ikut terbuka.
+ *  2. Menu di luar daftar tenant (menu admin platform & sisa fitur paket)
+ *     dicabut dari semua role usaha itu.
+ *
+ * Role lain buatan usaha sendiri tidak ditambahi menu — pengaturan aksesnya
+ * tetap milik pemilik usaha lewat Setting > Role.
+ */
+export async function sinkronMenuTenant({ simulasi = false }: { simulasi?: boolean } = {}) {
+  console.log(`🔄 Memulai sinkronisasi menu_role tenant${simulasi ? ' (SIMULASI — tidak mengubah data)' : ''}...`)
 
-  try {
-    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
+  const companySuper = await getParameter('COMPANY_SUPER')
+  const menuTenant = await ambilMenuTenantIds()
 
-    // Ambil semua company beserta paket dan roles-nya
-    const companies = await prisma.company.findMany({
-      where: {
-        id: { not: DEMO_COMPANY_ID }
-      },
-      select: {
-        id: true,
-        nama: true,
-        paketId: true,
-        paket: {
-          select: {
-            id: true,
-            nama: true,
-            paketMenus: {
-              select: { menuId: true }
-            }
-          }
-        },
-        roles: {
-          select: {
-            id: true,
-            nama: true,
-            menuRoles: {
-              select: { id: true, menuId: true }
-            }
-          }
+  if (menuTenant.length === 0) {
+    // Tanpa daftar menu, langkah pencabutan akan menghapus SEMUA akses.
+    console.warn('⚠️ Daftar menu tenant kosong, sinkronisasi dibatalkan')
+
+    return
+  }
+
+  const menuTenantSet = new Set(menuTenant)
+
+  const companies = await prisma.company.findMany({
+    where: companySuper ? { id: { not: companySuper } } : undefined,
+    select: {
+      id: true,
+      nama: true,
+      roles: {
+        select: {
+          id: true,
+          nama: true,
+          menuRoles: { select: { id: true, menuId: true } }
         }
       }
-    })
-
-    let totalDeleted = 0
-
-    for (const company of companies) {
-      // Company tanpa paket aktif: skip
-      if (!company.paket) {
-        console.log(`⏭️  [${company.nama}] Tidak ada paket aktif, skip`)
-        continue
-      }
-
-      const allowedMenuIds = new Set(company.paket.paketMenus.map(pm => pm.menuId))
-
-      console.log(
-        `🏢 [${company.nama}] Paket: ${company.paket.nama} | Menu diizinkan: ${allowedMenuIds.size}`
-      )
-
-      for (const role of company.roles) {
-        // Kumpulkan menu_role yang menuId-nya tidak ada di paket
-        const invalidMenuRoleIds = role.menuRoles
-          .filter(mr => !allowedMenuIds.has(mr.menuId))
-          .map(mr => mr.id)
-
-        if (invalidMenuRoleIds.length === 0) continue
-
-        await prisma.menuRole.deleteMany({
-          where: { id: { in: invalidMenuRoleIds } }
-        })
-
-        totalDeleted += invalidMenuRoleIds.length
-        console.log(
-          `  🗑️  Role [${role.nama}]: hapus ${invalidMenuRoleIds.length} menu_role tidak sesuai paket`
-        )
-      }
     }
+  })
 
-    console.log(`✅ Validasi selesai. Total menu_role dihapus: ${totalDeleted}`)
-  } catch (error) {
-    console.error('❌ Validasi menu_role gagal:', error)
-    throw error
-  }
-}
+  let totalDitambah = 0
+  let totalDicabut = 0
 
-async function insertMissingMenuRoleForSuperAdmin() {
-  console.log('➕ Memulai insert menu_role untuk Super Admin (paket_menu tampilkan=false)...')
+  for (const company of companies) {
+    for (const role of company.roles) {
+      const dicabut = role.menuRoles.filter(mr => !menuTenantSet.has(mr.menuId)).map(mr => mr.id)
 
-  try {
-    const DEMO_COMPANY_ID = await getParameter('COMPANY_SUPER')
-
-    const companies = await prisma.company.findMany({
-      where: {
-        id: { not: DEMO_COMPANY_ID },
-        paketId: { not: null }
-      },
-      select: {
-        id: true,
-        nama: true,
-        paket: {
-          select: {
-            id: true,
-            nama: true,
-            paketMenus: {
-              where: { tampilkan: false },
-              select: { menuId: true }
-            }
-          }
-        },
-        roles: {
-          where: { nama: 'Super Admin' },
-          select: {
-            id: true,
-            menuRoles: {
-              select: { menuId: true }
-            }
-          }
-        }
-      }
-    })
-
-    let totalInserted = 0
-
-    for (const company of companies) {
-      if (!company.paket) continue
-
-      const hiddenMenuIds = company.paket.paketMenus.map(pm => pm.menuId)
-      if (hiddenMenuIds.length === 0) continue
-
-      const superAdminRole = company.roles[0]
-      if (!superAdminRole) {
-        console.log(`⏭️  [${company.nama}] Tidak ada role Super Admin, skip`)
-        continue
+      if (dicabut.length > 0) {
+        if (!simulasi) await prisma.menuRole.deleteMany({ where: { id: { in: dicabut } } })
+        totalDicabut += dicabut.length
+        console.log(`  🗑️  [${company.nama}] Role ${role.nama}: cabut ${dicabut.length} menu non-tenant`)
       }
 
-      const existingMenuIds = new Set(superAdminRole.menuRoles.map(mr => mr.menuId))
-      const toInsert = hiddenMenuIds.filter(menuId => !existingMenuIds.has(menuId))
+      if (role.nama !== 'Super Admin') continue
 
-      if (toInsert.length === 0) continue
+      const dimiliki = new Set(role.menuRoles.map(mr => mr.menuId))
+      const kurang = menuTenant.filter(id => !dimiliki.has(id))
 
-      await prisma.menuRole.createMany({
-        data: toInsert.map(menuId => ({
-          roleId: superAdminRole.id,
-          menuId
-        })),
-        skipDuplicates: true
-      })
+      if (kurang.length === 0) continue
 
-      totalInserted += toInsert.length
-      console.log(
-        `  ✅ [${company.nama}] Insert ${toInsert.length} menu_role untuk Super Admin (paket: ${company.paket.nama})`
-      )
+      const jumlah = simulasi
+        ? kurang.length
+        : (
+            await prisma.menuRole.createMany({
+              data: kurang.map(menuId => ({ roleId: role.id, menuId })),
+              skipDuplicates: true
+            })
+          ).count
+
+      totalDitambah += jumlah
+      console.log(`  ✅ [${company.nama}] Super Admin: tambah ${jumlah} menu`)
     }
-
-    console.log(`✅ Insert selesai. Total menu_role ditambahkan: ${totalInserted}`)
-  } catch (error) {
-    console.error('❌ Insert menu_role Super Admin gagal:', error)
-    throw error
   }
+
+  console.log(`✅ Sinkronisasi selesai. Ditambah: ${totalDitambah}, dicabut: ${totalDicabut}`)
 }
 
 export const menuRoleValidationJob: ScheduledJob = {
-  name: 'menu-role-validation',
+  name: 'menu-role-sync',
   schedule: '0 * * * *', // Setiap 1 jam
-  task: async () => {
-    await validateMenuRoleByPaket()
-    await insertMissingMenuRoleForSuperAdmin()
-  },
+  task: () => sinkronMenuTenant(),
   enabled: true,
-  description: 'Validasi menu_role: hapus menu tidak sesuai paket & insert menu Super Admin yang belum ada'
+  description: 'Lengkapi menu Super Admin tiap usaha & cabut menu non-tenant (tanpa paket)'
 }

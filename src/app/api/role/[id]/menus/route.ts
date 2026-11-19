@@ -3,52 +3,38 @@ import { NextResponse } from 'next/server'
 
 import prisma from '@/src/libs/prisma'
 import { withAuth, type AuthContext } from '@/src/libs/auth-middleware'
+import { ambilMenuIdsUntukCompany, ambilMenuUntukCompany, companyPlatform } from '@/src/libs/menuTenant'
 
-// GET /api/role/[id]/menus - Get available menus for role (filtered by company paket)
-async function handleGet(request: NextRequest, { params }: AuthContext & { params: { id: string } }) {
+type Ctx = AuthContext & { params: { id: string } }
+
+/**
+ * Role hanya boleh diatur oleh pengguna dari company yang sama, kecuali admin
+ * platform yang memang mengelola role semua company.
+ */
+async function bolehAkses(roleCompanyId: string | null, userCompanyId: string | null | undefined) {
+  if (roleCompanyId && roleCompanyId === userCompanyId) return true
+
+  return companyPlatform(userCompanyId)
+}
+
+// GET /api/role/[id]/menus - Menu yang tersedia untuk role, beserta status penetapannya
+async function handleGet(_request: NextRequest, { user, params }: Ctx) {
   try {
-    // Verify role exists and get its company
     const role = await prisma.role.findUnique({
       where: { id: params.id },
-      include: {
-        company: {
-          include: {
-            paket: {
-              include: {
-                paketMenus: {
-                  include: {
-                    menu: true
-                  }
-                }
-              }
-            }
-          }
-        },
-        menuRoles: true
-      }
+      include: { menuRoles: true }
     })
 
-    if (!role) {
+    if (!role || !(await bolehAkses(role.companyId, user.companyId))) {
       return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
-    // Get menus from company's paket
-    const paketMenus = role.company?.paket?.paketMenus || []
+    // Bantu Sewa 100% gratis: semua usaha mendapat menu yang sama, tidak lagi
+    // bergantung pada paket.
+    const availableMenus = await ambilMenuUntukCompany(role.companyId)
 
-    if (paketMenus.length === 0) {
-      return NextResponse.json({
-        data: [],
-        message: 'Tidak ada menu yang tersedia untuk paket perusahaan'
-      })
-    }
+    const assignedMenuIds = new Set(role.menuRoles.map(rm => rm.menuId))
 
-    // Get menu IDs from paket
-    const availableMenus = paketMenus.map(pm => pm.menu)
-
-    // Create set of assigned menu IDs
-    const assignedMenuIds = new Set(role.menuRoles.map((rm: any) => rm.menuId))
-
-    // Map menus with assignment status
     const menusWithAssignment = availableMenus.map(menu => ({
       id: menu.id,
       nama: menu.nama,
@@ -69,7 +55,7 @@ async function handleGet(request: NextRequest, { params }: AuthContext & { param
 }
 
 // PUT /api/role/[id]/menus - Assign menus to role
-async function handlePut(request: NextRequest, { user, params }: AuthContext & { params: { id: string } }) {
+async function handlePut(request: NextRequest, { user, params }: Ctx) {
   try {
     const body = await request.json()
     const { menus } = body
@@ -82,33 +68,23 @@ async function handlePut(request: NextRequest, { user, params }: AuthContext & {
       return NextResponse.json({ message: 'User tidak terkait dengan perusahaan' }, { status: 400 })
     }
 
-    // Verify role exists
-    const role = await prisma.role.findUnique({
-      where: {
-        id: params.id
-      }
-    })
+    const role = await prisma.role.findUnique({ where: { id: params.id } })
 
-    if (!role) {
+    if (!role || !(await bolehAkses(role.companyId, user.companyId))) {
       return NextResponse.json({ message: 'Role tidak ditemukan' }, { status: 404 })
     }
 
-    // Delete existing role-menu assignments for this role
-    await prisma.menuRole.deleteMany({
-      where: {
-        roleId: params.id
-      }
-    })
+    // Hanya menu yang memang tersedia untuk company role ini yang disimpan —
+    // mencegah tenant memberi rolenya menu admin platform.
+    const diizinkan = new Set(await ambilMenuIdsUntukCompany(role.companyId))
+    const menuIds = [...new Set(menus.map((m: any) => String(m?.menuId ?? '')))].filter(id => diizinkan.has(id))
 
-    // Create new assignments
-    if (menus.length > 0) {
-      await prisma.menuRole.createMany({
-        data: menus.map((menu: any) => ({
-          roleId: params.id,
-          menuId: menu.menuId
-        }))
+    await prisma.$transaction([
+      prisma.menuRole.deleteMany({ where: { roleId: params.id } }),
+      prisma.menuRole.createMany({
+        data: menuIds.map(menuId => ({ roleId: params.id, menuId }))
       })
-    }
+    ])
 
     return NextResponse.json({
       message: 'Menu berhasil ditetapkan'

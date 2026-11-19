@@ -185,7 +185,7 @@ export default function AddEditMenu({ open, setOpen, mode = 'create', initialDat
                   label='Keterangan'
                   name='keterangan'
                   variant='outlined'
-                  placeholder='Deskripsi fitur untuk tampilan paket'
+                  placeholder='Deskripsi singkat menu'
                   value={form.keterangan}
                   onChange={handleChange('keterangan')}
                   multiline

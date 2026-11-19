@@ -28,7 +28,7 @@ const ogImage = '/images/bantu-sewa/Logo_Bantu_Sewa_HD_2000.png'
 
 const defaultTitle = 'Bantu Sewa — Aplikasi Manajemen Bisnis Sewa Properti, Kendaraan & Peralatan'
 const defaultDescription =
-  'Kelola bisnis sewa dalam satu dashboard: properti, kendaraan, peralatan, hingga perlengkapan acara. Catat aset & penyewa, jadwal sewa, tagihan otomatis, dan pembayaran online. Coba gratis.'
+  'Kelola bisnis sewa dalam satu dashboard: properti, kendaraan, peralatan, hingga perlengkapan acara. Catat aset & penyewa, jadwal sewa, tagihan otomatis, dan pembayaran online. 100% gratis.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

@@ -1,4 +1,5 @@
 import prisma from '@/src/libs/prisma'
+import { beriSemuaMenuTenant } from '@/src/libs/menuTenant'
 
 /**
  * Helper login Google untuk klien non-web (aplikasi mobile).
@@ -11,9 +12,6 @@ import prisma from '@/src/libs/prisma'
  * Karena itu mobile memakai jalur berbeda: SDK Google native yang sudah
  * memegang ID token, lalu ID token itu dikirim ke sini untuk diverifikasi.
  */
-
-/** Paket bawaan untuk user baru; sama dengan yang dipakai alur web. */
-const PAKET_DEFAULT = process.env.GOOGLE_DEFAULT_PAKET_ID || 'cmkzpagu800015k6czrtvc7f4'
 
 export type ProfilGoogle = {
   email: string
@@ -115,7 +113,7 @@ async function buatUsername(email: string): Promise<string> {
  * Mengambil user berdasarkan email Google, atau membuatnya kalau belum ada.
  *
  * Mengikuti pola alur web: user baru dibuat tanpa password (passwordless),
- * lengkap dengan company, role Super Admin, dan menu sesuai paket bawaan.
+ * lengkap dengan company, role Super Admin, dan semua menu tenant.
  */
 export async function cariAtauBuatUserGoogle(profil: ProfilGoogle) {
   const adaUser = await prisma.user.findUnique({ where: { email: profil.email } })
@@ -132,13 +130,11 @@ export async function cariAtauBuatUserGoogle(profil: ProfilGoogle) {
 
   const sufiks = Math.random().toString(36).substring(2, 8).toUpperCase()
 
+  // Bantu Sewa 100% gratis — usaha baru tidak terikat paket apa pun.
   const company = await prisma.company.create({
     data: {
       nama: `Company-${sufiks}`,
-      status: true,
-      paketId: PAKET_DEFAULT,
-      paketStartDate: new Date(),
-      paketEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      status: true
     }
   })
 
@@ -170,13 +166,7 @@ export async function cariAtauBuatUserGoogle(profil: ProfilGoogle) {
   // Kegagalan pemberian menu tidak boleh menggagalkan login — akun sudah
   // terbentuk, menunya bisa diperbaiki belakangan lewat pengaturan role.
   try {
-    const paketMenus = await prisma.paketMenu.findMany({ where: { paketId: PAKET_DEFAULT } })
-
-    if (paketMenus.length > 0) {
-      await prisma.menuRole.createMany({
-        data: paketMenus.map(pm => ({ roleId: role.id, menuId: pm.menuId }))
-      })
-    }
+    await beriSemuaMenuTenant(role.id)
   } catch (error) {
     console.error('[googleAuth] Gagal memberi menu ke role baru:', error)
   }

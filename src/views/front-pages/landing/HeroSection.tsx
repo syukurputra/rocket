@@ -68,7 +68,7 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
                   color='primary'
                   size='large'
                 >
-                  Coba Gratis
+                  Daftar Gratis
                 </Button>
                 <Button
                   component={Link}

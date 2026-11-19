@@ -94,7 +94,7 @@ const FrontMenu = (props: Props) => {
           </Typography>
           <Typography color='text.primary' component={Link} href='/#pricing-plans'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>
-            Paket Harga
+            100% Gratis
           </Typography>
           <Typography color='text.primary' component={Link} href='/home'
             className='font-medium plb-3 pli-1.5 hover:text-primary'>

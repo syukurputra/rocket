@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
 import prisma from '@/src/libs/prisma'
+import { beriSemuaMenuTenant } from '@/src/libs/menuTenant'
 import { verifyEmailConnection } from '@/src/mails/verifyEmailConnection'
 
 export async function POST(request: NextRequest) {
@@ -41,18 +42,11 @@ export async function POST(request: NextRequest) {
     const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase()
     const companyName = `Company-${randomSuffix}`
 
-    // Create company for new user
-    // Create company for new user
-    // Fixed paket ID as requested
-    const defaultPaketId = 'cmkzpagu800015k6czrtvc7f4'
-
+    // Create company for new user. Bantu Sewa 100% gratis — tanpa paket.
     const company = await prisma.company.create({
       data: {
         nama: companyName,
-        status: true,
-        paketId: defaultPaketId,
-        paketStartDate: new Date(),
-        paketEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // +30 days (1 month)
+        status: true
       }
     })
 
@@ -79,20 +73,9 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Assign menus based on paket
+    // Semua usaha mendapat semua fitur
     try {
-      const paketMenus = await prisma.paketMenu.findMany({
-        where: { paketId: defaultPaketId }
-      })
-
-      if (paketMenus.length > 0) {
-        await prisma.menuRole.createMany({
-          data: paketMenus.map(pm => ({
-            roleId: adminRole.id,
-            menuId: pm.menuId
-          }))
-        })
-      }
+      await beriSemuaMenuTenant(adminRole.id)
     } catch (menuError) {
       console.error('Error assigning menus:', menuError)
 

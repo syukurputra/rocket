@@ -46,7 +46,7 @@ export default function RoleMenuAssignment({ open, setOpen, role }: Props) {
       setLoading(true)
 
       try {
-        // Fetch menus filtered by company paket with current role assignments
+        // Menu yang tersedia untuk company role ini, beserta status penetapannya
         const menusResult = await apiFetchClient<{ data: any[] }>(`/api/role/${role.id}/menus`)
         const menusData = menusResult.data || []
 

@@ -293,24 +293,8 @@ async function prosesInvoice(
 
     console.log(`[iPaymu Notify] Invoice "${referenceId}" → ${newStatus} ✓`)
 
-    // Update periode aktif company
-    if (newStatus === 'PAID' && invoice.companyId && invoice.paketId) {
-      const startDate = tanggalBayar ?? new Date()
-      const endDate = new Date(startDate)
-
-      if (invoice.billingCycle === 'annually') {
-        endDate.setFullYear(endDate.getFullYear() + 1)
-      } else {
-        endDate.setMonth(endDate.getMonth() + 1)
-      }
-
-      await prisma.company.update({
-        where: { id: invoice.companyId },
-        data: { paketId: invoice.paketId, paketStartDate: startDate, paketEndDate: endDate }
-      })
-
-      console.log(`[iPaymu Notify] Company "${invoice.companyId}" periode updated ✓`)
-    }
+    // Sejak Bantu Sewa 100% gratis, invoice paket yang terlanjur dibayar hanya
+    // dicatat statusnya — tidak lagi mengaktifkan paket di company.
 
     // Notifikasi & email
     if (invoice.createdBy?.id) {

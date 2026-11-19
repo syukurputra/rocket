@@ -13,7 +13,6 @@ import Grid from '@mui/material/Grid2'
 import TextField from '@mui/material/TextField'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import LinearProgress from '@mui/material/LinearProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -41,23 +40,6 @@ const formatRupiah = (val: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 
 
-type LastInvoice = {
-  id: string
-  nomorInvoice: string
-  billingCycle: string
-  subtotal: number
-  total: number
-  tanggalBayar: string | null
-  tanggalInvoice: string
-  paket: {
-    id: string
-    nama: string
-    deskripsi: string | null
-    hargaBulanan: number
-    hargaTahunan: number
-  } | null
-}
-
 type Company = {
   id: string
   nama: string
@@ -68,11 +50,6 @@ type Company = {
   nomorRekening?: string | null
   rekeningPenerima?: string | null
   status: boolean
-  paketId: string | null
-  paketStartDate: string | null
-  paketEndDate: string | null
-  paket?: { id: string; nama: string; deskripsi: string | null } | null
-  lastInvoice?: LastInvoice | null
 }
 
 const CompanySettings = () => {
@@ -184,24 +161,6 @@ const CompanySettings = () => {
     }
   }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-'
-
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount)
-  }
-
   if (loading) {
     return (
       <Card>
@@ -223,23 +182,6 @@ const CompanySettings = () => {
       </Card>
     )
   }
-
-  const paketNama = company.paket?.nama || company.lastInvoice?.paket?.nama || '-'
-  const paketDeskripsi = company.paket?.deskripsi || company.lastInvoice?.paket?.deskripsi || ''
-  const billingCycleLabel = company.lastInvoice?.billingCycle === 'annually' ? 'Tahunan' : 'Bulanan'
-  const totalPembayaran = company.lastInvoice ? Number(company.lastInvoice.total) : 0
-  const nomorInvoice = company.lastInvoice?.nomorInvoice || '-'
-
-  const now = new Date()
-  const startDate = company.paketStartDate ? new Date(company.paketStartDate) : null
-  const endDate = company.paketEndDate ? new Date(company.paketEndDate) : null
-  const totalDays = startDate && endDate ? Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000)) : 30
-  const isExpired = endDate !== null && now > endDate
-  const daysUsedRaw = startDate ? Math.max(0, Math.ceil((now.getTime() - startDate.getTime()) / 86400000)) : 0
-  const daysUsed = Math.min(daysUsedRaw, totalDays)
-  const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / 86400000)) : 0
-  const progress = Math.min(100, Math.round((daysUsed / totalDays) * 100))
-  const isExpiringSoon = !isExpired && daysRemaining <= 7 && endDate !== null
 
   return (
     <>
@@ -299,97 +241,29 @@ const CompanySettings = () => {
           </Card>
         </Grid>
 
-        {/* Package Information Card - CurrentPlan style */}
+        {/* Bantu Sewa 100% gratis — pengganti kartu informasi paket */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card className='bs-full'>
             <CardHeader
-              title='Informasi Paket'
-              action={
-                <div className='flex flex-wrap gap-2'>
-                  <Button
-                    variant='contained'
-                    size='small'
-                    startIcon={<i className='tabler-arrow-up-circle' />}
-                    onClick={() => router.push('/paket')}
-                  >
-                    Upgrade Paket
-                  </Button>
-                  <Button
-                    variant='tonal'
-                    color='secondary'
-                    size='small'
-                    startIcon={<i className='tabler-history' />}
-                    onClick={() => router.push('/setting/invoice')}
-                  >
-                    History Pembayaran
-                  </Button>
-                </div>
-              }
+              title='Layanan Bantu Sewa'
+              action={<Chip label='100% Gratis' color='success' variant='tonal' />}
             />
-            <CardContent>
-              {company.paket || company.lastInvoice ? (
-                <Grid container spacing={6}>
-                  {/* Left: Plan details */}
-                  <Grid size={{ xs: 12, md: 6 }} className='flex flex-col gap-6'>
-                    <div className='flex flex-col gap-1'>
-                      <Typography color='text.primary' className='font-medium'>
-                        Paket saat ini: {paketNama}
-                      </Typography>
-                      {paketDeskripsi && <Typography>{paketDeskripsi}</Typography>}
-                    </div>
-                    <div className='flex flex-col gap-1'>
-                      <Typography color='text.primary' className='font-medium'>
-                        Aktif hingga {formatDate(company.paketEndDate)}
-                      </Typography>
-                      <Typography>Notifikasi akan dikirim saat langganan mendekati akhir</Typography>
-                    </div>
-                  </Grid>
-
-                  {/* Right: Invoice + Alert + Progress */}
-                  <Grid size={{ xs: 12, md: 6 }} className='flex flex-col gap-6'>
-                    {company.lastInvoice && (
-                      <div className='flex flex-col gap-1'>
-                        <div className='flex items-center gap-1.5'>
-                          <Typography color='text.primary' className='font-medium'>
-                            {formatCurrency(totalPembayaran)}
-                          </Typography>
-                          <Chip color='primary' variant='tonal' label={billingCycleLabel} size='small' />
-                        </div>
-                        <Typography>No. Invoice: {nomorInvoice}</Typography>
-                      </div>
-                    )}
-                    {isExpired && (
-                      <Alert severity='error'>
-                        <AlertTitle>Paket Habis!</AlertTitle>
-                        Paket anda sudah habis harap perpanjang paket
-                      </Alert>
-                    )}
-                    {isExpiringSoon && (
-                      <Alert severity='warning'>
-                        <AlertTitle>Perhatian!</AlertTitle>
-                        Paket anda akan habis
-                      </Alert>
-                    )}
-                    {endDate && (
-                      <div className='flex flex-col gap-1'>
-                        <div className='flex items-center justify-between'>
-                          <Typography color='text.primary' className='font-medium'>Hari</Typography>
-                          <Typography color='text.primary' className='font-medium'>
-                            {daysUsed} dari {totalDays} Hari
-                          </Typography>
-                        </div>
-                        <LinearProgress variant='determinate' value={progress} />
-                        <Typography variant='body2'>
-                          {isExpired ? 'Periode berlangganan telah berakhir' : `${daysRemaining} hari tersisa hingga periode berakhir`}
-                        </Typography>
-                      </div>
-                    )}
-                  </Grid>
-
-                </Grid>
-              ) : (
-                <Alert severity='info'>Tidak ada paket aktif</Alert>
-              )}
+            <CardContent className='flex flex-col gap-4'>
+              <div className='flex items-center gap-4'>
+                <CustomAvatar skin='light' variant='rounded' color='success' size={48}>
+                  <i className='tabler-gift text-[28px]' />
+                </CustomAvatar>
+                <div className='flex flex-col'>
+                  <Typography variant='h5' color='success.main'>
+                    100% Gratis
+                  </Typography>
+                  <Typography>Tanpa biaya langganan, tanpa batas masa aktif.</Typography>
+                </div>
+              </div>
+              <Alert severity='success' icon={<i className='tabler-circle-check' />}>
+                Semua fitur Bantu Sewa terbuka untuk usaha Anda — kelola aset, booking, penyewa, dan keuangan
+                tanpa perlu upgrade.
+              </Alert>
             </CardContent>
           </Card>
         </Grid>

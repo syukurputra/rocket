@@ -53,7 +53,7 @@ export default function AssignMenuToRole({ open, setOpen, roleId, roleName, onSa
       setLoading(true)
 
       try {
-        // Fetch menus available in company's paket
+        // Menu yang tersedia untuk company (semua menu tenant — tanpa paket)
         const menusResult = await apiFetchClient<{ data: MenuClient[] }>('/api/menu/by-paket')
 
         setMenus(menusResult.data || [])
