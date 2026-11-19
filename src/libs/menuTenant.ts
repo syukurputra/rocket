@@ -7,8 +7,9 @@ import { getParameter } from '@/src/libs/getParameter'
  * Bantu Sewa kini 100% gratis: tidak ada lagi paket berlangganan, dan semua
  * usaha mendapat fitur yang sama. Sebelumnya daftar menu tiap usaha diambil
  * dari `paket_menu` milik paketnya; sekarang satu daftar ini berlaku untuk
- * semua, dan menu baru yang ditambahkan lewat Management > Menu otomatis
- * ikut terbuka untuk semua usaha.
+ * semua. Menu baru yang ditambahkan lewat Management > Menu langsung masuk
+ * daftar ini — usaha baru mendapatkannya saat mendaftar, dan pemilik usaha
+ * lama bisa mencentangnya di Setting > Role.
  *
  * Yang dikecualikan hanya menu milik admin platform dan sisa fitur paket.
  */

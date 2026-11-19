@@ -8,9 +8,15 @@
  * Langkah:
  *  1. Menonaktifkan menu sisa paket: Paket (/paket/pricing), Master Paket,
  *     dan Invoice paket (/setting/invoice) — halamannya sudah dihapus.
- *  2. Sinkronisasi menu_role: Super Admin setiap usaha mendapat semua menu
- *     tenant, menu non-tenant dicabut dari role usaha (logika yang sama
- *     dengan job `menu-role-sync`).
+ *  2. Sinkronisasi menu_role untuk setiap usaha selain admin platform:
+ *     - Role "Super Admin" dilengkapi SEMUA menu tenant, sehingga usaha yang
+ *       dulu di paket Free langsung mendapat fitur yang sebelumnya berbayar.
+ *     - Menu di luar daftar tenant (menu admin platform & sisa paket) dicabut
+ *       dari semua role usaha itu.
+ *     Role lain buatan usaha sendiri tidak ditambahi menu.
+ *
+ * Cukup dijalankan sekali. Setelah itu tidak ada scheduler: usaha baru
+ * langsung mendapat semua menu saat mendaftar (`beriSemuaMenuTenant`).
  *
  * Pemakaian (dari folder rocket):
  *   npx tsx scripts/terapkan-gratis.ts --env=.env.production            # simulasi, tidak mengubah data
@@ -39,7 +45,8 @@ async function main() {
 
   // Diimpor setelah env dimuat supaya Prisma terhubung ke database yang benar.
   const { default: prisma } = await import('../src/libs/prisma')
-  const { sinkronMenuTenant } = await import('../src/jobs/menuRoleValidationJob')
+  const { getParameter } = await import('../src/libs/getParameter')
+  const { ambilMenuTenantIds } = await import('../src/libs/menuTenant')
 
   try {
     // --- Langkah 1 ---
@@ -67,7 +74,69 @@ async function main() {
 
     // --- Langkah 2 ---
     console.log('Langkah 2 — sinkronisasi menu_role:')
-    await sinkronMenuTenant({ simulasi: !jalankan })
+
+    const simulasi = !jalankan
+    const companySuper = await getParameter('COMPANY_SUPER')
+
+    // Pada simulasi, menu langkah 1 belum dinonaktifkan; ketiganya memang
+    // sudah dikecualikan dari daftar tenant, jadi hasilnya tetap sama.
+    const menuTenant = await ambilMenuTenantIds()
+
+    if (menuTenant.length === 0) {
+      // Tanpa daftar menu, langkah pencabutan akan menghapus SEMUA akses.
+      throw new Error('Daftar menu tenant kosong — sinkronisasi dibatalkan')
+    }
+
+    const menuTenantSet = new Set(menuTenant)
+
+    const companies = await prisma.company.findMany({
+      where: companySuper ? { id: { not: companySuper } } : undefined,
+      select: {
+        nama: true,
+        roles: {
+          select: {
+            id: true,
+            nama: true,
+            menuRoles: { select: { id: true, menuId: true } }
+          }
+        }
+      }
+    })
+
+    let totalDitambah = 0
+    let totalDicabut = 0
+
+    for (const company of companies) {
+      for (const role of company.roles) {
+        const dicabut = role.menuRoles.filter(mr => !menuTenantSet.has(mr.menuId)).map(mr => mr.id)
+
+        if (dicabut.length > 0) {
+          if (!simulasi) await prisma.menuRole.deleteMany({ where: { id: { in: dicabut } } })
+
+          totalDicabut += dicabut.length
+          console.log(`  - [${company.nama}] ${role.nama}: cabut ${dicabut.length} menu non-tenant`)
+        }
+
+        if (role.nama !== 'Super Admin') continue
+
+        const dimiliki = new Set(role.menuRoles.map(mr => mr.menuId))
+        const kurang = menuTenant.filter(id => !dimiliki.has(id))
+
+        if (kurang.length === 0) continue
+
+        if (!simulasi) {
+          await prisma.menuRole.createMany({
+            data: kurang.map(menuId => ({ roleId: role.id, menuId })),
+            skipDuplicates: true
+          })
+        }
+
+        totalDitambah += kurang.length
+        console.log(`  + [${company.nama}] Super Admin: tambah ${kurang.length} menu`)
+      }
+    }
+
+    console.log(`  → ${companies.length} usaha diperiksa. Ditambah: ${totalDitambah}, dicabut: ${totalDicabut}`)
   } finally {
     await prisma.$disconnect()
   }
